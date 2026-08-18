@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JamWeaver.Core", "src\JamWeaver.Core\JamWeaver.Core.csproj", "{A5A5A2B1-6892-4F91-A6CB-65D9FC6B5151}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JamWeaver.Console", "src\JamWeaver.Console\JamWeaver.Console.csproj", "{1509EF9C-B8B0-4BF4-B9CE-0AD05CB63A50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JamWeaver.Core.Tests", "tests\JamWeaver.Core.Tests\JamWeaver.Core.Tests.csproj", "{33BCB1E6-926B-49EC-85BB-57526594EA5C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5A5A2B1-6892-4F91-A6CB-65D9FC6B5151}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5A5A2B1-6892-4F91-A6CB-65D9FC6B5151}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5A5A2B1-6892-4F91-A6CB-65D9FC6B5151}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5A5A2B1-6892-4F91-A6CB-65D9FC6B5151}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1509EF9C-B8B0-4BF4-B9CE-0AD05CB63A50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1509EF9C-B8B0-4BF4-B9CE-0AD05CB63A50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1509EF9C-B8B0-4BF4-B9CE-0AD05CB63A50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1509EF9C-B8B0-4BF4-B9CE-0AD05CB63A50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33BCB1E6-926B-49EC-85BB-57526594EA5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33BCB1E6-926B-49EC-85BB-57526594EA5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33BCB1E6-926B-49EC-85BB-57526594EA5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33BCB1E6-926B-49EC-85BB-57526594EA5C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

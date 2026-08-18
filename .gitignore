@@ -1,0 +1,14 @@
+# .NET build output
+**/bin/
+**/obj/
+
+# IDE state
+.vs/
+*.suo
+*.user
+
+# Test output
+TestResults/
+
+# Disposable agent working notes
+lode/tmp/

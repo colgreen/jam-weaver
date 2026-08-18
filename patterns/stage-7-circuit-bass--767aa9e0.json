@@ -1,0 +1,197 @@
+{
+  "formatVersion": 1,
+  "savedUtc": "2026-08-09T14:41:37.1961941\u002B00:00",
+  "pattern": {
+    "schemaVersion": 1,
+    "id": "767aa9e0-cae2-46e5-959e-d89d2a156907",
+    "name": "Stage 7 Circuit Bass",
+    "mode": "melodic",
+    "pulsesPerStep": 6,
+    "steps": [
+      {
+        "probability": 1,
+        "notes": [
+          {
+            "velocity": 99,
+            "gate": 0.8300000000000001,
+            "pitch": {
+              "kind": "melodic",
+              "scaleDegree": 0,
+              "octaveOffset": 0,
+              "chromaticOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": [
+          {
+            "velocity": 100,
+            "gate": 0.8300000000000001,
+            "pitch": {
+              "kind": "melodic",
+              "scaleDegree": 2,
+              "octaveOffset": 0,
+              "chromaticOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": [
+          {
+            "velocity": 101,
+            "gate": 0.8300000000000001,
+            "pitch": {
+              "kind": "melodic",
+              "scaleDegree": 0,
+              "octaveOffset": 0,
+              "chromaticOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": [
+          {
+            "velocity": 99,
+            "gate": 0.8300000000000001,
+            "pitch": {
+              "kind": "melodic",
+              "scaleDegree": 2,
+              "octaveOffset": 0,
+              "chromaticOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": [
+          {
+            "velocity": 102,
+            "gate": 0.8300000000000001,
+            "pitch": {
+              "kind": "melodic",
+              "scaleDegree": 3,
+              "octaveOffset": 0,
+              "chromaticOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "probability": 1,
+        "notes": []
+      },
+      {
+        "probability": 1,
+        "notes": []
+      }
+    ],
+    "role": "bass",
+    "tonalContext": {
+      "root": 0,
+      "palette": "minorPentatonic"
+    },
+    "recipe": {
+      "generatorId": "melodic-euclidean-motif",
+      "generatorVersion": 1,
+      "seed": "12345",
+      "parentPatternId": null,
+      "parameters": {
+        "density": {
+          "kind": "number",
+          "value": 0.4
+        },
+        "gate": {
+          "kind": "number",
+          "value": 0.8
+        },
+        "hits": {
+          "kind": "integer",
+          "value": 5
+        },
+        "motif-length": {
+          "kind": "integer",
+          "value": 3
+        },
+        "movement": {
+          "kind": "number",
+          "value": 0.35
+        },
+        "palette": {
+          "kind": "text",
+          "value": "MinorPentatonic"
+        },
+        "pulses-per-step": {
+          "kind": "integer",
+          "value": 6
+        },
+        "repetition": {
+          "kind": "number",
+          "value": 0.65
+        },
+        "role": {
+          "kind": "text",
+          "value": "Bass"
+        },
+        "root": {
+          "kind": "integer",
+          "value": 0
+        },
+        "rotation": {
+          "kind": "integer",
+          "value": 3
+        },
+        "steps": {
+          "kind": "integer",
+          "value": 16
+        },
+        "velocity-variation": {
+          "kind": "number",
+          "value": 0.15
+        }
+      }
+    }
+  }
+}

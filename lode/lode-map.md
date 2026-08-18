@@ -1,0 +1,30 @@
+# Lode map
+
+- [Project summary](summary.md) - current purpose, implementation, and direction
+- [Terminology](terminology.md) - domain language used by the project
+- [Project practices](practices.md) - persistent engineering conventions
+- Architecture
+  - [Project structure](architecture/project-structure.md) - core, console, and test boundaries
+- MIDI
+  - [Clock and transport](midi/clock-transport.md) - accepted synchronization design
+  - [Note lifecycle](midi/note-lifecycle.md) - active-note and shutdown safety
+- Sequencer
+  - [Pattern model](sequencer/pattern-model.md) - accepted step and persistence model
+- Generation
+  - [Pattern generation](generation/pattern-generation.md) - deterministic generators, roles, and mutation
+- Performance
+  - [Candidate workflow](performance/candidate-workflow.md) - private audition and live controls
+- Hardware
+  - [Original Circuit validation](hardware/circuit-validation.md) - confirmed melodic and clock behavior
+  - [Zynthian validation](hardware/zynthian-validation.md) - confirmed generic melodic routing
+- Plans
+  - [Initial sequencer](plans/initial-sequencer.md) - implementation scope and current stage
+  - [Stage 2 domain model](plans/stage-2-domain-model.md) - proposed types, invariants, and tests
+  - [Stage 3 generation](plans/stage-3-generation.md) - proposed deterministic generation and mutation
+  - [Stage 4 transport](plans/stage-4-transport.md) - proposed transport state and quantized scheduling
+  - [Stage 5 performance](plans/stage-5-performance.md) - implemented playback and candidate workflow
+  - [Stage 6 persistence](plans/stage-6-persistence.md) - implemented JSON library and recall workflow
+  - [Stage 7 hardware validation](plans/stage-7-hardware-validation.md) - completed live checks and remaining limits
+  - [Stage 8 phrase generation](plans/stage-8-phrase-generation.md) - implemented structured phrases and targeted mutation
+  - [Stage 9 groove vocabulary](plans/stage-9-groove-vocabulary.md) - implemented template and metric based groove experiment
+  - [Stage 10 musical motifs](plans/stage-10-musical-motifs.md) - implemented low-entropy melodic grammar
