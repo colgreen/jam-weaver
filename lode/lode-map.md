@@ -11,7 +11,7 @@
 - Sequencer
   - [Pattern model](sequencer/pattern-model.md) - step, identity, and persistence model
 - Persistence
-  - [Pattern library](persistence/pattern-library.md) - JSON format, validation, save, and recall contracts
+  - [Pattern library](persistence/pattern-library.md) - JSON format, validation, save, and load contracts
 - Generation
   - [Pattern generation](generation/pattern-generation.md) - shared deterministic generation contracts
   - [Phrase generation](generation/phrase-generation.md) - structured phrase behavior
@@ -19,6 +19,8 @@
   - [Motif generation](generation/motif-generation.md) - default low-entropy bass grammar
 - Performance
   - [Candidate workflow](performance/candidate-workflow.md) - audition and live-control state
+- Plans
+  - [Simplify candidate workflow](plans/simplify-candidate-workflow.md) - unify short-term browsing around one accepted safe point
 - Hardware
   - [Original Circuit validation](hardware/circuit-validation.md) - confirmed melodic and clock behavior
   - [Zynthian validation](hardware/zynthian-validation.md) - confirmed generic melodic routing

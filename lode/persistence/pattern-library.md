@@ -48,7 +48,7 @@ Errors identify the file and failed operation without echoing its full content.
 A malformed or duplicate entry is shown as invalid and does not prevent other
 library entries from being listed.
 
-## Save and recall
+## Save and load
 
 Saves are serialized within the process. The complete JSON is prepared first,
 then written to a unique temporary file in the library directory and atomically
@@ -58,10 +58,10 @@ file intact and cleans up the temporary file when possible.
 Only the accepted pattern can be saved. An optional new name updates in-memory
 metadata only after the file save succeeds.
 
-Recall validates the selected file again and introduces it as a candidate. It
-does not change the accepted pattern, undo history, MIDI route, or transport.
-The recalled candidate becomes active immediately while stopped or at the next
-bar while running.
+Load validates the selected file again, adds it to the recent-pattern list, and
+introduces it as a candidate. It does not change the accepted pattern, MIDI
+route, or transport. The loaded candidate becomes active immediately while
+stopped or at the next bar while running.
 
 The library deliberately has no delete command, migrations from nonexistent
 older formats, route persistence, cloud synchronization, or automatic repair of

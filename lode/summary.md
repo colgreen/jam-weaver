@@ -15,7 +15,7 @@ current startup preference rather than JamWeaver's musical identity.
 The application currently plays one MIDI-routed track. Patterns may contain
 several notes per step and can follow internal or external MIDI Clock. Changes
 made during playback take effect at the next bar. A performer can generate,
-mutate, audition, accept, reject, undo, save, and recall patterns without sending
+mutate, audition, accept, reject, save, and load patterns without sending
 device-specific patch data.
 
 The default generator develops a small bass motif over four bars. Simpler,
@@ -24,7 +24,7 @@ Generated material and recipes are deterministic and versioned; saved
 materialized steps remain authoritative for playback.
 
 The generic melodic path, note cleanup, internal and external clock, candidate
-workflow, and save/restart/recall have been exercised on physical devices.
+workflow, and save/restart/load have been exercised on physical devices.
 Generator musical quality, quantitative timing, long-running behavior, drum
 workflow, and device-specific controls still require further hardware work.
 

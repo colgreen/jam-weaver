@@ -6,9 +6,10 @@ mixer's headphone Aux channel while its main-mix level is down.
 
 The application maintains:
 
-- An accepted pattern, which is the safe point for recall and undo.
+- An accepted pattern, which is the single in-memory safe point and the only
+  pattern eligible for saving.
 - A candidate pattern, which can be generated, transposed, or mutated privately.
-- One previous accepted pattern for undo toggling.
+- An eight-entry list of recent candidate patterns for browsing.
 
 The physical mixer determines what the room hears. The application does not
 automate audio fades.
@@ -18,10 +19,10 @@ stateDiagram-v2
     [*] --> Accepted
     Accepted --> Candidate: generate or mutate
     Candidate --> Candidate: transpose or mutate
-    Candidate --> Accepted: accept at bar boundary
-    Candidate --> Accepted: reject or undo
+    Candidate --> Accepted: accept after candidate is audible
+    Candidate --> Accepted: reject
     Accepted --> Saved: save
-    Saved --> Candidate: recall for audition
+    Saved --> Candidate: load for audition
 ```
 
 ## Key finding by ear
@@ -37,31 +38,33 @@ An accepted root/palette change preserves the pattern's scale-degree shape.
 The terminal provides direct controls for:
 
 - Start and stop candidate playback.
-- Generate, mutate, undo/reject, and accept.
+- Generate, mutate, reject, and accept.
 - Transpose down/up one semitone.
 - Move between bass, middle, and high roles.
-- Save and recall accepted patterns.
+- Save accepted patterns and load saved patterns for audition.
 - Panic/All Notes Off.
 
 Playback-affecting changes made while running become active on the next bar.
 When stopped, candidate editing can apply immediately because nothing is being
-sent. Pattern acceptance and saving are separate: acceptance establishes the
-undo point; saving persists it for another session.
+sent. Pattern acceptance and saving are separate: acceptance moves the
+in-memory safe point; saving persists it for another session.
 
 Manual MIDI recording and graphical interfaces are outside the current scope.
 The engine remains independent of the terminal UI.
 
 `play` and `mute` enable or silence pattern notes without changing the shared
 transport. Acceptance is immediate bookkeeping once the candidate is audible;
-it is refused while that candidate is still pending. Reject returns to Accepted,
-and undo swaps Accepted with the one previous accepted snapshot.
+it is refused while that candidate is still pending. Reject selects Accepted
+again without removing anything from the recent-pattern list.
 
-An independent eight-entry candidate history supports `previous` and `next`.
-Navigating queues the selected snapshot through the normal stopped-immediate or
+The eight-entry recent-pattern list supports `previous` and `next`. Navigating
+queues the selected pattern through the normal stopped-immediate or
 running-next-bar path. Creating a candidate after navigating backward discards
-the forward history branch; this never alters Accepted or its undo slot.
+the forward branch; this never alters Accepted. Accepting a pattern does not
+create a second history: the former safe point is recoverable only while it
+remains in this bounded list or if it was saved.
 
-Only Accepted can be saved. Recall always enters as Candidate and follows the
+Only Accepted can be saved. Load always enters as Candidate and follows the
 same immediate-while-stopped or next-bar-while-running audition path. An
 optional save name updates matching in-memory metadata only after the atomic
 file save succeeds.

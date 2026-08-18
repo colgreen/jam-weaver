@@ -90,7 +90,7 @@ public sealed class PatternLibrary : IDisposable
     public async Task<Pattern> LoadAsync(PatternLibraryEntry entry, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entry);
-        if (!entry.IsValid) throw new PatternPersistenceException($"Cannot recall invalid library entry '{entry.FileName}': {entry.Error}");
+        if (!entry.IsValid) throw new PatternPersistenceException($"Cannot load invalid library entry '{entry.FileName}': {entry.Error}");
         var path = ResolveFile(entry.FileName);
         var decoded = await ReadDecodedAsync(path, cancellationToken).ConfigureAwait(false);
         if (entry.Id is { } expected && decoded.Pattern.Id != expected)

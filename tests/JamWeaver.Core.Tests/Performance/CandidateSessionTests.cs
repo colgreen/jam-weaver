@@ -19,7 +19,6 @@ public sealed class CandidateSessionTests
         fixture.Session.Accept();
 
         Assert.Equal(second.Id, fixture.Session.Accepted!.Id);
-        Assert.Equal(first.Id, fixture.Session.PreviousAccepted!.Id);
     }
 
     [Fact]
@@ -51,7 +50,7 @@ public sealed class CandidateSessionTests
     }
 
     [Fact]
-    public void Reject_returns_to_accepted_and_undo_toggles_accepted_history()
+    public void Reject_returns_to_the_single_accepted_pattern()
     {
         using var fixture = new SessionFixture();
         var first = Melodic(0);
@@ -62,10 +61,6 @@ public sealed class CandidateSessionTests
         fixture.Session.SetCandidate(Melodic(2));
         fixture.Session.Reject();
         Assert.Equal(second.Id, fixture.Session.Candidate!.Id);
-
-        fixture.Session.Undo();
-        Assert.Equal(first.Id, fixture.Session.Accepted!.Id);
-        fixture.Session.Undo();
         Assert.Equal(second.Id, fixture.Session.Accepted!.Id);
     }
 

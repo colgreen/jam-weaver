@@ -14,10 +14,10 @@ headphone Aux workflow at controlled volume.
   generator-to-player-to-device path using internal clock.
 - Internal clock sounded steady in a short subjective check at 100 BPM.
 - Stop and Panic leave no audible hanging note.
-- Mutation, chromatic root audition, acceptance, rejection, and undo activate
+- Mutation, chromatic root audition, acceptance, and rejection activate
   through the bar-quantized candidate path without an observed glitch.
 - An accepted fixed-seed pattern saves to JSON, survives application restart,
-  recalls with its name/seed/key/role intact, and sounds the same on playback.
+  loads with its name/seed/key/role intact, and sounds the same on playback.
 - An Arturia KeyStep acting as external clock master supplies Start, 24-PPQN
   Clock, and Stop through the interface input; the application drives Circuit
   notes while preserving stopped position.

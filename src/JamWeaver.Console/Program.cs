@@ -150,7 +150,6 @@ try
                 case "settings": Console.WriteLine($"Generator={generatorMode.ToString().ToLowerInvariant()}, Shape={MotifText(motifShape)}, Length={(int)phraseLength}, Activity={phraseActivity.ToString().ToLowerInvariant()}, Rhythm={phraseRhythm.ToString().ToLowerInvariant()}, Groove={GrooveText(grooveSelection)}, Similarity={grooveSimilarity.ToString().ToLowerInvariant()}, Movement={phraseMovement.ToString().ToLowerInvariant()}, Variation={phraseVariation.ToString().ToLowerInvariant()}, Turnaround={phraseTurnaround.ToString().ToLowerInvariant()}"); break;
                 case "accept": session.Accept(); Console.WriteLine("Candidate accepted."); break;
                 case "reject": session.Reject(); Console.WriteLine("Returning to accepted pattern."); break;
-                case "undo": session.Undo(); Console.WriteLine("Restoring previous accepted pattern."); break;
                 case "root":
                     var rootPattern = Candidate(session);
                     var direction = S(parts, 1).ToLowerInvariant() switch
@@ -190,13 +189,13 @@ try
                     if (patternToSave.Name != accepted.Name) session.RenameAccepted(patternToSave);
                     Console.WriteLine($"Saved {saved.FileName} in {patternLibrary.RootDirectory}");
                     break;
-                case "recall":
+                case "load":
                     var entries = await patternLibrary.ListAsync();
-                    var recallIndex = I(parts, 1) - 1;
-                    if ((uint)recallIndex >= (uint)entries.Length) throw new ArgumentOutOfRangeException(nameof(recallIndex), "Recall number is not in the library menu.");
-                    var recalled = await patternLibrary.LoadAsync(entries[recallIndex]);
-                    SelectCandidate(session, history, recalled);
-                    Console.WriteLine($"Recalled '{recalled.Name}' ({(player.CurrentPattern?.Id == recalled.Id ? "audible" : "pending for next bar")}).");
+                    var loadIndex = I(parts, 1) - 1;
+                    if ((uint)loadIndex >= (uint)entries.Length) throw new ArgumentOutOfRangeException(nameof(loadIndex), "Load number is not in the library menu.");
+                    var loaded = await patternLibrary.LoadAsync(entries[loadIndex]);
+                    SelectCandidate(session, history, loaded);
+                    Console.WriteLine($"Loaded '{loaded.Name}' as a candidate ({(player.CurrentPattern?.Id == loaded.Id ? "audible" : "pending for next bar")}).");
                     break;
                 case "note": await output.SendNoteAsync(C(parts, 1), V(parts, 2), V(parts, 3), TimeSpan.FromMilliseconds(parts.Length > 4 ? I(parts, 4) : 250)); break;
                 case "on": output.NoteOn(C(parts, 1), V(parts, 2), V(parts, 3)); break;
@@ -328,10 +327,10 @@ rhythm steady|syncopated|broken | movement low|medium|high
 variation low|medium|high | turnaround none|subtle|strong | settings
 generate [seed] | compare [seed] | previous | next
 mutate rhythm|notes|expression|turnaround|all [seed] [strength-0..1]
-mutate [seed] [strength-0..1] | accept | reject | undo
+mutate [seed] [strength-0..1] | accept | reject
 root up|down | palette | role bass|middle|high | channel <1..16>
 play | mute | pattern | panic | status | quit
-library | save [name] | recall <number>
+library | save [name] | load <number>
 help <command> for syntax, options, defaults, and behavior
 """);
         return;
@@ -361,12 +360,11 @@ help <command> for syntax, options, defaults, and behavior
         "settings" => "settings\nPrints all current generator controls. Some controls apply only to particular generator modes.",
         "generate" => "generate [seed]\nCreates and auditions a candidate using current settings. Omit seed for fresh material; supply it to reproduce a pattern.",
         "compare" => "compare [seed]\nPrepares matched phrase/groove bass candidates, or toggles an existing comparison. Changes remain next-bar quantized.",
-        "previous" => "previous\nSelects the previous candidate in the eight-item audition history. Does not change the accepted pattern.",
-        "next" => "next\nSelects the next candidate in audition history. Does not change the accepted pattern.",
+        "previous" => "previous\nSelects the previous pattern in the eight-item recent-pattern list. Does not change the accepted pattern.",
+        "next" => "next\nSelects the next pattern in the recent-pattern list. Does not change the accepted pattern.",
         "mutate" => "mutate rhythm|notes|expression|turnaround|all [seed] [strength-0..1]\nCreates a targeted mutation. Legacy form: mutate [seed] [strength]. Default strength: 0.3.",
-        "accept" => "accept\nMakes the current candidate the accepted pattern. This is the pattern restored by reject and eligible for save.",
-        "reject" => "reject\nDiscards the current audition and returns to the last accepted pattern.",
-        "undo" => "undo\nRestores the previously accepted pattern.",
+        "accept" => "accept\nMakes the audible candidate the accepted safe point. Only the accepted pattern can be saved.",
+        "reject" => "reject\nReturns to the accepted safe point without removing patterns from the recent-pattern list.",
         "root" => "root up|down\nMoves the candidate's tonal root by one semitone for by-ear key matching. Creates a new audition candidate.",
         "palette" => "palette\nToggles the candidate between major and minor pentatonic. Creates a new audition candidate.",
         "role" => "role bass|middle|high\nChanges the candidate's register. Motif and groove generation currently support bass only.",
@@ -374,9 +372,9 @@ help <command> for syntax, options, defaults, and behavior
         "play" => "play\nEnables pattern note output. A running internal or external transport is also required to hear notes.",
         "mute" => "mute\nDisables pattern note output and releases active notes without stopping the clock.",
         "pattern" => "pattern\nShows candidate, playback state, tonal context, and note grid: X anchor, x note, g ghost, . rest.",
-        "library" => "library\nLists saved accepted patterns and their recall numbers.",
+        "library" => "library\nLists saved patterns and their load numbers.",
         "save" => "save [name]\nSaves the accepted pattern as JSON. An optional name renames it before saving.",
-        "recall" => "recall <number>\nLoads a candidate using the number shown by 'library'. Use accept if you want it to become accepted.",
+        "load" => "load <number>\nLoads a saved pattern as a candidate using the number shown by 'library'. Use accept to make it the safe point.",
         "note" => "note <channel> <note> <velocity> [milliseconds]\nSends a one-shot MIDI note. Default duration: 250 ms. Values are MIDI 1.0 ranges.",
         "on" => "on <channel> <note> <velocity>\nSends MIDI Note On. Remember to use 'off', or 'panic' if a note becomes stuck.",
         "off" => "off <channel> <note> [velocity]\nSends MIDI Note Off. Default release velocity: 0.",
