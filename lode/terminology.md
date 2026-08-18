@@ -24,9 +24,6 @@
   structural roles; the four-bar form is A, A-prime, B, and turnaround.
 - Recipe - Generator name, parameters, seed, and ancestry required to reproduce
   or mutate a pattern.
-- Random source - A seeded Redzen `IRandomSource` created through
-  `RandomDefaults.CreateRandomSource(seed)`; generator versions protect its
-  output contract.
 - Scale degree - A pitch position relative to the active musical palette; melodic
   patterns store this rather than binding their shape to absolute MIDI notes.
 - Track - A sequence routed to one MIDI output and channel; the initial product

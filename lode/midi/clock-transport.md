@@ -1,8 +1,5 @@
 # MIDI clock and transport
 
-> Design status: implemented and covered by automated tests. Pattern-note
-> playback remains for Stage 5.
-
 External MIDI Clock is the normal live source. Internal clock is a switchable
 fallback for home use and testing. Both drive the same sequencer timing contract.
 

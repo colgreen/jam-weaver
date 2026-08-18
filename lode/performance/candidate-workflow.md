@@ -1,8 +1,5 @@
 # Candidate workflow
 
-> Design status: implemented for the line-oriented console and covered by
-> automated core tests, including save and recall.
-
 The application is used as one contribution to an informal jam, not as a full
 multi-track solo workstation. The performer monitors the synth through a small
 mixer's headphone Aux channel while its main-mix level is down.
@@ -37,7 +34,7 @@ the 12 chromatic roots and the major/minor pentatonic palettes. The display may
 show a conventional name such as `D minor pentatonic`, but selection is by ear.
 An accepted root/palette change preserves the pattern's scale-degree shape.
 
-The first terminal interface should prioritize direct controls for:
+The terminal provides direct controls for:
 
 - Start and stop candidate playback.
 - Generate, mutate, undo/reject, and accept.
@@ -51,9 +48,8 @@ When stopped, candidate editing can apply immediately because nothing is being
 sent. Pattern acceptance and saving are separate: acceptance establishes the
 undo point; saving persists it for another session.
 
-Manual MIDI recording and browser UI are outside the initial scope. The console
-is the first UI, while the engine remains independent so an Avalonia interface
-can replace it later without rewriting generation or scheduling.
+Manual MIDI recording and graphical interfaces are outside the current scope.
+The engine remains independent of the terminal UI.
 
 `play` and `mute` enable or silence pattern notes without changing the shared
 transport. Acceptance is immediate bookkeeping once the candidate is audible;

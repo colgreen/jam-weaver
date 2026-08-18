@@ -1,8 +1,5 @@
 # Pattern model
 
-> Implementation status: the domain model, generation, playback, and versioned
-> JSON persistence are implemented and covered by xUnit tests.
-
 A pattern is a deterministic, persistable step sequence for one MIDI-routed
 track. The initial product has one track, but a step can hold several notes so
 the model supports chords and simultaneous drum voices without redesign.
@@ -72,12 +69,12 @@ Unknown properties are tolerated; unknown format/schema versions are rejected.
 A pattern ID identifies an exact musical snapshot. Renaming preserves the ID;
 changing steps, role, or tonal context returns a new pattern with a new ID. A
 manual musical transformation clears the previous generator recipe because that
-recipe no longer reproduces the transformed snapshot. Stage 3 generation and
+recipe no longer reproduces the transformed snapshot. Generation and
 mutation services attach a new recipe with exact ancestry.
 
 Recipe parameters use typed integer, finite-number, Boolean, or text values.
-They are stored in ordinal key order; generator-specific validation belongs to
-Stage 3.
+They are stored in ordinal key order; each generator validates their musical
+meaning.
 
 Related: [pattern generation](../generation/pattern-generation.md) and
 [candidate workflow](../performance/candidate-workflow.md).

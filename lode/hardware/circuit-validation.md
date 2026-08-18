@@ -39,11 +39,7 @@ creating a feedback loop in the tested two-way cabling arrangement.
   patch management.
 - Drum-pattern playback through a configured Circuit drum track.
 
-The saved Stage 7 bass pattern in the local `patterns` library is useful as a
-repeatable smoke-test fixture. It is user data rather than a source-controlled
-test fixture.
-
 Related: [clock and transport](../midi/clock-transport.md),
 [candidate workflow](../performance/candidate-workflow.md), and
-[initial sequencer plan](../plans/initial-sequencer.md). Generic second-device
+[pattern library](../persistence/pattern-library.md). Generic second-device
 evidence is recorded in [Zynthian validation](zynthian-validation.md).

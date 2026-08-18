@@ -1,15 +1,7 @@
 # Project practices
 
-Repository-wide working instructions are in [`AGENTS.md`](../AGENTS.md).
-
-For MIDI behavior, prioritize safe shutdown and predictable live operation.
-Every Note On owned by the application must eventually receive a Note Off.
-Hardware verification is reported separately from compilation and automated
-tests. Device-specific mappings must identify the exact model and relevant
-firmware assumptions.
-
-Automated tests use xUnit v3. Run them through the native executable with
-`dotnet run --project tests/JamWeaver.Core.Tests`.
+Repository-wide working, MIDI-safety, and verification instructions are in
+[`AGENTS.md`](../AGENTS.md). This file records additional project conventions.
 
 ## Type documentation
 

@@ -14,9 +14,6 @@ MIDI output path used for the original Circuit.
 - Stop and Panic leave the instrument silent.
 
 This establishes that the core melodic path is not specific to the Circuit.
-Changing musical role is a manual transformation, so the transformed candidate
-correctly has no generator recipe/seed even though its source was generated from
-a fixed seed.
 
 ## Not yet established
 
@@ -25,5 +22,4 @@ a fixed seed.
   Zynthian-specific configuration.
 - Long-duration timing or behavior under load.
 
-Related: [Circuit validation](circuit-validation.md) and
-[Stage 7](../plans/stage-7-hardware-validation.md).
+Related: [Circuit validation](circuit-validation.md).
