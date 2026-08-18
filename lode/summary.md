@@ -6,6 +6,12 @@ immutable patterns, deterministic generation, playback, candidate audition, and
 JSON persistence. The console owns MIDI-device adapters and line-oriented
 controls.
 
+Jam-session preferences are ergonomic defaults, not product boundaries. The
+application should start in a context that is immediately useful for its regular
+sessions while keeping its musical model and controls capable of other keys,
+scales, styles, roles, and devices. In particular, A minor pentatonic is the
+current startup preference rather than JamWeaver's musical identity.
+
 The application currently plays one MIDI-routed track. Patterns may contain
 several notes per step and can follow internal or external MIDI Clock. Changes
 made during playback take effect at the next bar. A performer can generate,

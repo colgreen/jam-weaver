@@ -32,7 +32,21 @@ variation, turnaround strength, role, and gate length. Recipes store the exact
 resolved settings needed to explain and reproduce the result.
 
 Melodic pitches are stored as scale degrees and resolved through the current
-root, pentatonic palette, and musical role. Default role ranges are:
+root, pentatonic palette, and musical role.
+
+When no candidate supplies a tonal context, console generation starts in A
+minor pentatonic (A, C, D, E, and G). Root and palette controls can then create
+a candidate in a different tonal context. This is a jam-friendly startup choice,
+not a requirement that generated or played music remain in A minor pentatonic.
+
+The current implementation is nevertheless more constrained than the intended
+product: generated melodic material supports all 12 roots but only major and
+minor pentatonic palettes. Arbitrary scales, custom pitch collections, and a
+fully chromatic generation mode are not yet supported. Future palette work
+should expand these choices without weakening the useful startup default or the
+deterministic recipe contract.
+
+Default role ranges are:
 
 | Role | MIDI range | Character |
 | --- | ---: | --- |

@@ -99,7 +99,7 @@ try
                     {
                         var compareSeed = parts.Length > 1 ? U(parts, 1) : seedSource.NextULong();
                         var current = session.Candidate;
-                        var context = current?.TonalContext ?? new TonalContext(new RootPitchClass(0), PitchPalette.MinorPentatonic);
+                        var context = current?.TonalContext ?? DefaultTonalContext();
                         var role = current?.Role ?? MusicalRole.Bass;
                         if (role != MusicalRole.Bass) throw new InvalidOperationException("Groove comparison currently requires the bass role.");
                         var name = new PatternName($"Compare {compareSeed}");
@@ -247,7 +247,7 @@ static Pattern Generate(GeneratorMode mode, ulong seed, Pattern? current, Phrase
     MotifShape motifShape, MelodicPatternGenerator simple, MelodicPhraseGenerator phrase,
     MelodicGrooveGenerator groove, MusicalMotifGenerator motif)
 {
-    var context = current?.TonalContext ?? new TonalContext(new RootPitchClass(0), PitchPalette.MinorPentatonic);
+    var context = current?.TonalContext ?? DefaultTonalContext();
     var role = current?.Role ?? MusicalRole.Bass;
     var name = new PatternName($"Jam {seed}");
     return mode switch
@@ -311,6 +311,7 @@ static void PrintLibrary(IReadOnlyList<PatternLibraryEntry> entries)
     }
 }
 static string PitchClass(int value) => new[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }[value];
+static TonalContext DefaultTonalContext() => new(new RootPitchClass(9), PitchPalette.MinorPentatonic);
 static void Help(string? command)
 {
     if (command is null)
