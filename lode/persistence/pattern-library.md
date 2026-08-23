@@ -58,6 +58,14 @@ file intact and cleans up the temporary file when possible.
 Only the accepted pattern can be saved. An optional new name updates in-memory
 metadata only after the file save succeeds.
 
+The console treats the saved pattern name as the primary load identity. It
+matches names case-insensitively and accepts names containing spaces. Displayed
+one-based library positions are available as `load #<number>` to disambiguate
+duplicate names; a bare number remains a convenience fallback. Generated
+filenames and the library path are implementation details rather than the normal
+save confirmation. Bare `load` lists current entries and the supported name and
+number selection forms.
+
 Load validates the selected file again, adds it to the recent-pattern list, and
 introduces it as a candidate. It does not change the accepted pattern, MIDI
 route, or transport. The loaded candidate becomes active immediately while

@@ -6,7 +6,7 @@ namespace JamWeaver.Core.Generation;
 public sealed class MelodicPatternGenerator
 {
     public const string GeneratorId = "melodic-euclidean-motif";
-    public const int GeneratorVersion = 1;
+    public const int GeneratorVersion = 3;
 
     public Pattern Generate(MelodicGeneratorSettings settings)
     {
@@ -50,7 +50,10 @@ public sealed class MelodicPatternGenerator
     private static IReadOnlyList<MelodicPitch> BuildMotif(IRandomSource random, IReadOnlyList<MelodicPitch> valid,
         int length, MusicalRole role, NormalizedAmount movement)
     {
-        var preferred = role == MusicalRole.Bass ? valid.Where(p => p.ScaleDegree is 0 or 3).ToArray() : valid.ToArray();
+        var preferred = role == MusicalRole.Bass
+            ? valid.Take(Math.Max(1, (valid.Count * 2 + 2) / 3)).Where(p => p.ScaleDegree is 0 or 3).ToArray()
+            : valid.ToArray();
+        if (preferred.Length == 0) preferred = valid.Take(Math.Max(1, valid.Count / 2)).ToArray();
         var current = preferred[random.Next(preferred.Length)];
         var motif = new List<MelodicPitch>(length) { current };
         for (var i = 1; i < length; i++)
@@ -66,7 +69,10 @@ public sealed class MelodicPatternGenerator
     {
         var index = Enumerable.Range(0, valid.Count).First(i => valid[i] == current);
         var maximumMove = 1 + (int)Math.Round(movement.Value * 3, MidpointRounding.AwayFromZero);
-        var delta = random.Next(-maximumMove, maximumMove + 1);
-        return valid[Math.Clamp(index + delta, 0, valid.Count - 1)];
+        var first = Math.Max(0, index - maximumMove);
+        var last = Math.Min(valid.Count - 1, index + maximumMove);
+        var alternatives = Enumerable.Range(first, last - first + 1)
+            .Where(candidate => candidate != index).ToArray();
+        return alternatives.Length == 0 ? current : valid[alternatives[random.Next(alternatives.Length)]];
     }
 }

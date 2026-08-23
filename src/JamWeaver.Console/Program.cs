@@ -11,8 +11,8 @@ using JamWeaver.Core.Sequencer;
 using JamWeaver.Core.Transport;
 using Redzen.Random;
 
-Console.WriteLine("MIDI clock and message prototype");
-Console.WriteLine("Type 'help' for commands.");
+Console.WriteLine("JamWeaver");
+Console.WriteLine("Type 'setup' to choose MIDI devices or 'help' for the live controls.");
 
 using var output = new SafeMidiOutput();
 var transport = new TransportEngine();
@@ -46,12 +46,12 @@ var externalClock = new ExternalMidiClockInput();
 DryWetMidiInput? input = null;
 externalClock.MessageReceived += (_, message) => transport.Process(ClockSource.External, message);
 
-PrintDevices();
+PrintSetup(output, input, transport, internalClock, player);
 try
 {
     while (true)
     {
-        Console.Write("midi> ");
+        PrintPrompt(session, player, transport, generatorMode);
         var line = Console.ReadLine();
         if (line is null) break;
         var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -61,18 +61,27 @@ try
         {
             switch (parts[0].ToLowerInvariant())
             {
-                case "devices": PrintDevices(); break;
+                case "setup": PrintSetup(output, input, transport, internalClock, player); break;
                 case "out":
+                    if (parts.Length == 1) { PrintOutputs(); break; }
                     player.Mute();
                     output.ReplacePort(DryWetMidiPortCatalog.OpenOutput(I(parts, 1)));
                     Console.WriteLine($"Output: {output.PortName}");
+                    Console.WriteLine("Next: new, then go.");
                     break;
                 case "in":
+                    if (parts.Length == 1) { PrintInputs(); break; }
                     input?.Dispose();
                     input = new DryWetMidiInput(DryWetMidiPortCatalog.OpenInput(I(parts, 1)), externalClock);
                     Console.WriteLine($"Input: {input.Name}");
                     break;
                 case "source":
+                    if (parts.Length == 1)
+                    {
+                        Console.WriteLine($"Clock source: {transport.Source.ToString().ToLowerInvariant()}");
+                        Console.WriteLine("Select with: source internal|external");
+                        break;
+                    }
                     var source = S(parts, 1).ToLowerInvariant() switch
                     {
                         "external" => ClockSource.External,
@@ -83,15 +92,34 @@ try
                     transport.SelectSource(source);
                     Console.WriteLine($"Clock source: {source.ToString().ToLowerInvariant()}");
                     break;
-                case "bpm": internalClock.Bpm = D(parts, 1); Console.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM"); break;
+                case "bpm":
+                    if (parts.Length == 1)
+                    {
+                        Console.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM");
+                        Console.WriteLine("Set with: bpm <20..300>");
+                        break;
+                    }
+                    internalClock.Bpm = D(parts, 1);
+                    Console.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM");
+                    break;
                 case "start": if (transport.Source == ClockSource.External) Console.WriteLine("Waiting for external MIDI Start."); else internalClock.Start(); break;
                 case "continue": if (transport.Source == ClockSource.External) Console.WriteLine("Waiting for external MIDI Continue."); else internalClock.Continue(); break;
                 case "stop": if (transport.Source == ClockSource.External) transport.Process(ClockSource.External, RealtimeMessage.Stop); else internalClock.Stop(); break;
-                case "generate":
+                case "go":
+                    player.Play();
+                    if (transport.Source == ClockSource.External)
+                        Console.WriteLine("Pattern playback enabled; waiting for external MIDI Start or Continue.");
+                    else if (!internalClock.IsRunning)
+                        internalClock.Start();
+                    else
+                        Console.WriteLine("Pattern playback enabled; transport is already running.");
+                    break;
+                case "new":
                     var generateSeed = parts.Length > 1 ? U(parts, 1) : seedSource.NextULong();
                     SelectCandidate(session, history, Generate(generatorMode, generateSeed, session.Candidate,
                         phraseLength, phraseActivity, phraseRhythm, phraseMovement, phraseVariation, phraseTurnaround,
-                        grooveSelection, grooveSimilarity, motifShape, melodicGenerator, phraseGenerator, grooveGenerator, motifGenerator));
+                        grooveSelection, grooveSimilarity, motifShape, melodicGenerator, phraseGenerator,
+                        grooveGenerator, motifGenerator));
                     Console.WriteLine($"Generated candidate with seed {generateSeed}.");
                     break;
                 case "compare":
@@ -114,32 +142,61 @@ try
                     session.SetCandidate(comparisonShowsGroove ? comparisonGroove : comparisonPhrase);
                     Console.WriteLine($"Comparison: {(comparisonShowsGroove ? "groove" : "phrase")} (changes at next bar while running).");
                     break;
-                case "mutate":
-                    var parent = session.Candidate ?? throw new InvalidOperationException("Generate a candidate pattern first.");
-                    if (parts.Length > 1 && TryMutationTarget(parts[1], out var mutationTarget))
+                case "vary":
+                    var parent = session.Candidate ?? throw new InvalidOperationException("Create a candidate with 'new' first.");
+                    var variationArgument = 1;
+                    var mutationTarget = default(PhraseMutationTarget);
+                    var hasTarget = parts.Length > variationArgument && TryMutationTarget(parts[variationArgument], out mutationTarget);
+                    if (hasTarget) variationArgument++;
+                    var (variationStrength, variationSeed) = VariationArguments(parts, variationArgument, seedSource);
+                    if (hasTarget)
                     {
-                        var targetedSeed = parts.Length > 2 ? U(parts, 2) : seedSource.NextULong();
-                        var targetedStrength = parts.Length > 3 ? D(parts, 3) : .3;
                         SelectCandidate(session, history, phraseMutator.Mutate(parent,
-                            new PhraseMutationSettings(mutationTarget, new NormalizedAmount(targetedStrength), targetedSeed)));
-                        Console.WriteLine($"Mutated {mutationTarget.ToString().ToLowerInvariant()} with seed {targetedSeed} at strength {targetedStrength:0.##}.");
+                            new PhraseMutationSettings(mutationTarget, new NormalizedAmount(variationStrength), variationSeed)));
+                        Console.WriteLine($"Varied {mutationTarget.ToString().ToLowerInvariant()} with seed {variationSeed} at strength {variationStrength:0.##}.");
                     }
                     else
                     {
-                        var mutationSeed = parts.Length > 1 ? U(parts, 1) : seedSource.NextULong();
-                        var strength = parts.Length > 2 ? D(parts, 2) : .3;
-                        SelectCandidate(session, history, mutator.Mutate(parent, new MutationSettings(new NormalizedAmount(strength), mutationSeed)));
-                        Console.WriteLine($"Legacy mutation with seed {mutationSeed} at strength {strength:0.##}.");
+                        SelectCandidate(session, history, mutator.Mutate(parent,
+                            new MutationSettings(new NormalizedAmount(variationStrength), variationSeed)));
+                        Console.WriteLine($"Varied candidate with seed {variationSeed} at strength {variationStrength:0.##}.");
                     }
                     break;
-                case "previous": session.SetCandidate(history.Previous()); Console.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
-                case "next": session.SetCandidate(history.Next()); Console.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
+                case "back":
+                    session.SetCandidate(history.Previous()); Console.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
+                case "forward":
+                    session.SetCandidate(history.Next()); Console.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
                 case "generator":
+                    if (parts.Length == 1)
+                    {
+                        Console.WriteLine($"Generator: {generatorMode.ToString().ToLowerInvariant()}");
+                        Console.WriteLine("Choices: motif, phrase, groove, simple");
+                        Console.WriteLine($"Controls: {GeneratorControls(generatorMode)}");
+                        Console.WriteLine("Set with: generator <choice>");
+                        break;
+                    }
                     generatorMode = S(parts, 1).ToLowerInvariant() switch { "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "simple" => GeneratorMode.Simple, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be motif, phrase, groove, or simple.") };
                     Console.WriteLine($"Generator: {generatorMode.ToString().ToLowerInvariant()}");
+                    Console.WriteLine($"Controls: {GeneratorControls(generatorMode)}");
                     break;
                 case "groove": grooveSelection = ParseGrooveSelection(S(parts, 1)); break;
-                case "shape": motifShape = ParseMotifShape(S(parts, 1)); break;
+                case "shape":
+                    if (parts.Length == 1)
+                    {
+                        Console.WriteLine($"Motif shape: {MotifText(motifShape)}{(generatorMode == GeneratorMode.Motif ? string.Empty : $" (inactive while generator is {generatorMode.ToString().ToLowerInvariant()})")}");
+                        Console.WriteLine("Choices: auto, pedal, root-fifth, walking, call-response, arch, pickup, riff");
+                        Console.WriteLine("Set with: shape <choice>");
+                        Console.WriteLine("Explain choices with: shape help");
+                        break;
+                    }
+                    if (S(parts, 1).ToLowerInvariant() is "help" or "?")
+                    {
+                        Console.WriteLine(ShapeHelpText());
+                        break;
+                    }
+                    motifShape = ParseMotifShape(S(parts, 1));
+                    Console.WriteLine($"Motif shape: {MotifText(motifShape)}{(generatorMode == GeneratorMode.Motif ? string.Empty : $" (saved for motif; inactive while generator is {generatorMode.ToString().ToLowerInvariant()})")}");
+                    break;
                 case "similarity": grooveSimilarity = EnumValue<GrooveSimilarity>(parts, 1); break;
                 case "length": phraseLength = I(parts, 1) switch { 1 => PhraseLength.OneBar, 2 => PhraseLength.TwoBars, 4 => PhraseLength.FourBars, _ => throw new ArgumentException("Length must be 1, 2, or 4 bars.") }; break;
                 case "activity": phraseActivity = EnumValue<PhraseActivity>(parts, 1); break;
@@ -148,15 +205,17 @@ try
                 case "variation": phraseVariation = EnumValue<PhraseLevel>(parts, 1); break;
                 case "turnaround": phraseTurnaround = EnumValue<PhraseTurnaround>(parts, 1); break;
                 case "settings": Console.WriteLine($"Generator={generatorMode.ToString().ToLowerInvariant()}, Shape={MotifText(motifShape)}, Length={(int)phraseLength}, Activity={phraseActivity.ToString().ToLowerInvariant()}, Rhythm={phraseRhythm.ToString().ToLowerInvariant()}, Groove={GrooveText(grooveSelection)}, Similarity={grooveSimilarity.ToString().ToLowerInvariant()}, Movement={phraseMovement.ToString().ToLowerInvariant()}, Variation={phraseVariation.ToString().ToLowerInvariant()}, Turnaround={phraseTurnaround.ToString().ToLowerInvariant()}"); break;
-                case "accept": session.Accept(); Console.WriteLine("Candidate accepted."); break;
-                case "reject": session.Reject(); Console.WriteLine("Returning to accepted pattern."); break;
-                case "root":
+                case "keep":
+                    session.Accept(); Console.WriteLine("Candidate kept as the safe point."); break;
+                case "revert":
+                    session.Reject(); Console.WriteLine("Returning to the safe point."); break;
+                case "key":
                     var rootPattern = Candidate(session);
                     var direction = S(parts, 1).ToLowerInvariant() switch
                     {
                         "up" => 1,
                         "down" => -1,
-                        _ => throw new ArgumentException("Root direction must be up or down.")
+                        _ => throw new ArgumentException("Key direction must be up or down.")
                     };
                     SelectCandidate(session, history, PatternTransformations.TransposeRoot(rootPattern, direction));
                     PrintPattern(session, player);
@@ -171,9 +230,20 @@ try
                         _ => throw new ArgumentException("Role must be bass, middle, or high.")
                     };
                     SelectCandidate(session, history, PatternTransformations.ChangeRole(Candidate(session), selectedRole));
+                    Console.WriteLine($"Register: {selectedRole.ToString().ToLowerInvariant()} (key unchanged).");
                     PrintPattern(session, player);
                     break;
-                case "channel": player.Channel = C(parts, 1); Console.WriteLine($"Pattern channel: {player.Channel.Number}"); break;
+                case "ch":
+                case "channel":
+                    if (parts.Length == 1)
+                    {
+                        Console.WriteLine($"Pattern channel: {player.Channel.Number}");
+                        Console.WriteLine("Set with: ch <1..16> (or channel <1..16>)");
+                        break;
+                    }
+                    player.Channel = C(parts, 1);
+                    Console.WriteLine($"Pattern channel: {player.Channel.Number}");
+                    break;
                 case "play": player.Play(); Console.WriteLine("Pattern playback enabled."); break;
                 case "mute": player.Mute(); Console.WriteLine("Pattern playback muted."); break;
                 case "pattern": PrintPattern(session, player); break;
@@ -187,13 +257,19 @@ try
                     var patternToSave = requestedName.Length == 0 ? accepted : accepted.Rename(new PatternName(requestedName));
                     var saved = await patternLibrary.SaveAsync(patternToSave);
                     if (patternToSave.Name != accepted.Name) session.RenameAccepted(patternToSave);
-                    Console.WriteLine($"Saved {saved.FileName} in {patternLibrary.RootDirectory}");
+                    Console.WriteLine($"Saved '{saved.Name}'. Load it with: load {saved.Name}");
                     break;
                 case "load":
                     var entries = await patternLibrary.ListAsync();
-                    var loadIndex = I(parts, 1) - 1;
-                    if ((uint)loadIndex >= (uint)entries.Length) throw new ArgumentOutOfRangeException(nameof(loadIndex), "Load number is not in the library menu.");
-                    var loaded = await patternLibrary.LoadAsync(entries[loadIndex]);
+                    var loadQuery = line[parts[0].Length..].Trim();
+                    if (loadQuery.Length == 0)
+                    {
+                        PrintLibrary(entries);
+                        if (entries.Length > 0) Console.WriteLine("Load with: load <name> or load #<number>");
+                        break;
+                    }
+                    var loadEntry = ResolveLibraryEntry(entries, loadQuery);
+                    var loaded = await patternLibrary.LoadAsync(loadEntry);
                     SelectCandidate(session, history, loaded);
                     Console.WriteLine($"Loaded '{loaded.Name}' as a candidate ({(player.CurrentPattern?.Id == loaded.Id ? "audible" : "pending for next bar")}).");
                     break;
@@ -216,10 +292,33 @@ finally { input?.Dispose(); }
 
 static void PrintDevices()
 {
+    PrintOutputs();
+    PrintInputs();
+}
+static void PrintOutputs()
+{
     Console.WriteLine("Outputs:");
     foreach (var item in DryWetMidiPortCatalog.OutputNames().Select((name, index) => (name, index))) Console.WriteLine($"  {item.index}: {item.name}");
+    Console.WriteLine("Select one with: out <number>");
+}
+static void PrintInputs()
+{
     Console.WriteLine("Inputs:");
     foreach (var item in DryWetMidiPortCatalog.InputNames().Select((name, index) => (name, index))) Console.WriteLine($"  {item.index}: {item.name}");
+    Console.WriteLine("Select one with: in <number>");
+}
+static void PrintSetup(SafeMidiOutput output, DryWetMidiInput? input, TransportEngine transport,
+    InternalMidiClock internalClock, PatternPlayer player)
+{
+    Console.WriteLine($"Output: {output.PortName ?? "not selected"}");
+    Console.WriteLine($"Input:  {input?.Name ?? "not selected"}");
+    Console.WriteLine($"Clock:  {transport.Source.ToString().ToLowerInvariant()}, {internalClock.Bpm:0.##} BPM");
+    Console.WriteLine($"Channel: {player.Channel.Number}");
+    Console.WriteLine();
+    PrintDevices();
+    Console.WriteLine("Clock: source internal|external; set internal tempo with bpm <20..300>.");
+    Console.WriteLine("Routing: ch <1..16> (or channel <1..16>).");
+    Console.WriteLine("Next: out <number>, ch <number>, source internal, then new and go.");
 }
 
 static string S(string[] p, int i) => i < p.Length ? p[i] : throw new ArgumentException("Missing argument.");
@@ -233,8 +332,24 @@ static T EnumValue<T>(string[] parts, int index) where T : struct, Enum =>
         ? value : throw new ArgumentException($"Invalid {typeof(T).Name} value.");
 static bool TryMutationTarget(string value, out PhraseMutationTarget target) =>
     Enum.TryParse(value, true, out target) && Enum.IsDefined(target);
+static (double Strength, ulong Seed) VariationArguments(string[] parts, int index, IRandomSource seedSource)
+{
+    var strength = .3;
+    if (index < parts.Length && !parts[index].Equals("seed", StringComparison.OrdinalIgnoreCase))
+        strength = D(parts, index++);
+    ulong? seed = null;
+    if (index < parts.Length)
+    {
+        if (!parts[index].Equals("seed", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Expected 'seed <number>' after variation strength.");
+        seed = U(parts, ++index);
+        index++;
+    }
+    if (index != parts.Length) throw new ArgumentException("Unexpected vary argument.");
+    return (strength, seed ?? seedSource.NextULong());
+}
 static Pattern Candidate(CandidateSession session) =>
-    session.Candidate ?? throw new InvalidOperationException("Generate a candidate pattern first.");
+    session.Candidate ?? throw new InvalidOperationException("Create a candidate with 'new' first.");
 static void SelectCandidate(CandidateSession session, CandidateHistory history, Pattern pattern)
 {
     history.Add(pattern);
@@ -265,7 +380,7 @@ static Pattern Generate(GeneratorMode mode, ulong seed, Pattern? current, Phrase
 static void PrintPattern(CandidateSession session, PatternPlayer player)
 {
     var candidate = session.Candidate;
-    if (candidate is null) { Console.WriteLine("No pattern. Use 'generate'."); return; }
+    if (candidate is null) { Console.WriteLine("No pattern. Use 'new'."); return; }
     var tonal = candidate.TonalContext is { } context
         ? $", Key={PitchClass(context.Root.Value)} {context.Palette.ToString().Replace("Pentatonic", " pentatonic").ToLowerInvariant()}, Role={candidate.Role!.Value.ToString().ToLowerInvariant()}"
         : string.Empty;
@@ -309,29 +424,72 @@ static void PrintLibrary(IReadOnlyList<PatternLibraryEntry> entries)
         Console.WriteLine($"  {index + 1}. {entry.Name} [{entry.Mode!.Value.ToString().ToLowerInvariant()}{tonal}, seed {entry.Seed?.ToString(CultureInfo.InvariantCulture) ?? "n/a"}]");
     }
 }
+static PatternLibraryEntry ResolveLibraryEntry(IReadOnlyList<PatternLibraryEntry> entries, string query)
+{
+    if (query.Length == 0) throw new ArgumentException("Choose a saved pattern with: load <name> or load #<number>.");
+    if (query[0] == '#') return EntryAt(entries, ParseLibraryNumber(query[1..]));
+
+    var matches = entries.Select((entry, index) => (entry, index))
+        .Where(item => item.entry.IsValid && item.entry.Name?.Equals(query, StringComparison.OrdinalIgnoreCase) == true)
+        .ToArray();
+    if (matches.Length == 1) return matches[0].entry;
+    if (matches.Length > 1)
+    {
+        var choices = string.Join(", ", matches.Select(item => $"#{item.index + 1}"));
+        throw new ArgumentException($"More than one pattern is named '{query}'. Choose one from the library with: load {choices.Replace(", ", " or load ")}");
+    }
+    if (int.TryParse(query, NumberStyles.None, CultureInfo.InvariantCulture, out var number))
+        return EntryAt(entries, number);
+    throw new ArgumentException($"No saved pattern is named '{query}'. Type 'library' to list saved patterns.");
+}
+static int ParseLibraryNumber(string value) => int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number)
+    ? number : throw new ArgumentException("Library selection must look like: load #2.");
+static PatternLibraryEntry EntryAt(IReadOnlyList<PatternLibraryEntry> entries, int number)
+{
+    var index = number - 1;
+    if ((uint)index >= (uint)entries.Count) throw new ArgumentOutOfRangeException(nameof(number), "Load number is not in the library list.");
+    return entries[index];
+}
 static string PitchClass(int value) => new[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }[value];
 static TonalContext DefaultTonalContext() => new(new RootPitchClass(9), PitchPalette.MinorPentatonic);
+static void PrintPrompt(CandidateSession session, PatternPlayer player, TransportEngine transport, GeneratorMode generator)
+{
+    var transportText = transport.State.ToString().ToLowerInvariant();
+    var outputText = player.IsEnabled ? "playing" : "muted";
+    var candidate = session.Candidate;
+    var patternText = candidate is null
+        ? "no pattern"
+        : player.PendingPattern?.Id == candidate.Id
+            ? "pending"
+            : session.Accepted?.Id == candidate.Id ? "safe" : "candidate";
+    Console.Write($"jam [{transportText}, {outputText}, {generator.ToString().ToLowerInvariant()}, {patternText}]> ");
+}
 static void Help(string? command)
 {
     if (command is null)
     {
         Console.WriteLine("""
-devices | out <index> | in <index> | source internal|external | bpm <20..300>
-start | continue | stop | note <ch> <note> <vel> [ms] | on <ch> <note> <vel>
-off <ch> <note> [vel] | cc <ch> <controller> <value> | pc <ch> <program>
-generator motif|phrase|groove|simple | length 1|2|4 | activity sparse|medium|busy
-shape auto|pedal|root-fifth|walking|call-response|arch|pickup|riff
-groove auto|foundation|offbeat|anticipation|long-short|sparse-answer|broken
-similarity close|related|contrast
-rhythm steady|syncopated|broken | movement low|medium|high
-variation low|medium|high | turnaround none|subtle|strong | settings
-generate [seed] | compare [seed] | previous | next
-mutate rhythm|notes|expression|turnaround|all [seed] [strength-0..1]
-mutate [seed] [strength-0..1] | accept | reject
-root up|down | palette | role bass|middle|high | channel <1..16>
-play | mute | pattern | panic | status | quit
-library | save [name] | load <number>
-help <command> for syntax, options, defaults, and behavior
+Live controls:
+  setup                    show configuration and available MIDI ports
+  out <number>             select a MIDI output
+  in <number>              select an input for external clock
+  source internal|external select the clock source
+  bpm <20..300>            set the internal-clock tempo
+  ch <1..16>               set the pattern's MIDI channel (`channel` also works)
+  generator                show or select how `new` creates patterns
+  shape                    show or select the motif-only shape
+  go | stop                start or stop the performance
+  new [seed]               create a fresh pattern
+  vary [strength]          create a related pattern
+  back | forward           browse recent patterns
+  keep | revert            move or return to the safe point
+  key up|down | palette    find the key by ear
+  role bass|middle|high    change register
+  pattern                  show the pattern and rhythm grid
+  library | save [name] | load <name>
+  panic | status | quit
+
+Type 'help <command>' for details or 'help advanced' for every control.
 """);
         return;
     }
@@ -339,18 +497,42 @@ help <command> for syntax, options, defaults, and behavior
     var text = command.ToLowerInvariant() switch
     {
         "help" => "help [command]\nWithout an argument, lists all commands. With a command, explains its syntax and options.",
-        "devices" => "devices\nLists available MIDI output and input ports with the indexes used by 'out' and 'in'.",
-        "out" => "out <index>\nOpens the numbered MIDI output shown by 'devices'. Mutes pattern playback while changing ports.",
-        "in" => "in <index>\nOpens the numbered MIDI input shown by 'devices' for external clock and transport messages.",
+        "advanced" => """
+Device/clock: setup | out <index> | in <index> | source internal|external | bpm <20..300>
+Transport: start | continue | stop | play | mute | channel <1..16>
+Generation: generator motif|phrase|groove|simple | new [seed] | compare [seed]
+Shape: shape <shape> | groove <family> | similarity close|related|contrast | length 1|2|4
+Character: activity sparse|medium|busy | rhythm steady|syncopated|broken
+           movement low|medium|high | variation low|medium|high
+           turnaround none|subtle|strong | settings
+Editing: vary [target] [strength] [seed <number>] | back | forward | keep | revert
+         key up|down | palette | role bass|middle|high
+Library: library | save [name] | load <name>|#<number>
+Raw MIDI: note | on | off | cc | pc
+Safety/status: panic | pattern | status | quit
+
+Type 'help <command>' for detailed syntax.
+""",
+        "setup" => "setup\nShows current MIDI and clock configuration, lists available ports, and prints the short commands used to select them.",
+        "go" => "go\nEnables pattern output and starts internal transport if needed. With external clock selected, waits for MIDI Start or Continue.",
+        "new" => "new [seed]\nCreates and auditions a fresh pattern using current settings. Omit seed for fresh material; supply it to reproduce a pattern.",
+        "vary" => "vary [target] [strength-0..1] [seed <number>]\nCreates a related candidate with a fresh seed by default. Targets: rhythm, notes, expression, turnaround, or all. Default strength: 0.3. Examples: vary; vary 0.7; vary rhythm 0.5; vary 0.7 seed 123.",
+        "back" => "back\nSelects the previous pattern in the eight-item recent-pattern list. Does not change the safe point.",
+        "forward" => "forward\nSelects the next pattern in recent history. Does not change the safe point.",
+        "keep" => "keep\nMakes the audible candidate the safe point. Only the safe point can be saved.",
+        "revert" => "revert\nReturns to the safe point without removing patterns from recent history.",
+        "key" => "key up|down\nMoves the candidate's tonal root by one semitone for by-ear key matching. Creates a new audition candidate.",
+        "out" => "out <index>\nOpens the numbered MIDI output shown by 'setup'. Mutes pattern playback while changing ports.",
+        "in" => "in <index>\nOpens the numbered MIDI input shown by 'setup' for external clock and transport messages.",
         "source" => "source internal|external\nSelects the transport clock. External waits for MIDI Start/Continue and Clock; internal uses 'bpm' and 'start'.",
         "bpm" => "bpm <20..300>\nSets the internal-clock tempo. It has no effect while the external clock source is selected.",
         "start" => "start\nStarts internal clock and transport. With external source selected, waits for MIDI Start from the input device.",
         "continue" => "continue\nContinues internal transport without resetting its position. External mode waits for MIDI Continue.",
         "stop" => "stop\nStops transport and releases active pattern notes. External clock disappearing also stops playback.",
-        "generator" => "generator motif|phrase|groove|simple\nSelects how 'generate' creates candidates. Default: motif. Motif and groove currently require role bass.",
-        "shape" => "shape auto|pedal|root-fifth|walking|call-response|arch|pickup|riff\nSelects the motif archetype. Default: auto. Takes effect on the next 'generate'.",
+        "generator" => "generator motif|phrase|groove|simple\nSelects how 'new' creates candidates. Default: motif. Groove requires role bass.",
+        "shape" => ShapeHelpText(),
         "length" => "length 1|2|4\nSets phrase-generator length in bars. Default: 4. Motif and groove always produce four bars.",
-        "activity" => "activity sparse|medium|busy\nControls rhythmic note density. Default: medium. Takes effect on the next 'generate'.",
+        "activity" => "activity sparse|medium|busy\nControls rhythmic note density. Default: medium. Takes effect on the next 'new'.",
         "rhythm" => "rhythm steady|syncopated|broken\nSelects the phrase generator's rhythmic character. Default: syncopated.",
         "groove" => "groove auto|foundation|offbeat|anticipation|long-short|sparse-answer|broken\nSelects a groove-template family. Default: auto. Used only by generator groove.",
         "similarity" => "similarity close|related|contrast\nControls how different later groove bars are from A. Default: related. Used only by generator groove.",
@@ -358,23 +540,17 @@ help <command> for syntax, options, defaults, and behavior
         "variation" => "variation low|medium|high\nControls phrase development. Default: medium. In motif mode, low repeats A exactly as A-prime.",
         "turnaround" => "turnaround none|subtle|strong\nControls the final phrase bar. Default: subtle. Used by phrase and groove generators.",
         "settings" => "settings\nPrints all current generator controls. Some controls apply only to particular generator modes.",
-        "generate" => "generate [seed]\nCreates and auditions a candidate using current settings. Omit seed for fresh material; supply it to reproduce a pattern.",
         "compare" => "compare [seed]\nPrepares matched phrase/groove bass candidates, or toggles an existing comparison. Changes remain next-bar quantized.",
-        "previous" => "previous\nSelects the previous pattern in the eight-item recent-pattern list. Does not change the accepted pattern.",
-        "next" => "next\nSelects the next pattern in the recent-pattern list. Does not change the accepted pattern.",
-        "mutate" => "mutate rhythm|notes|expression|turnaround|all [seed] [strength-0..1]\nCreates a targeted mutation. Legacy form: mutate [seed] [strength]. Default strength: 0.3.",
-        "accept" => "accept\nMakes the audible candidate the accepted safe point. Only the accepted pattern can be saved.",
-        "reject" => "reject\nReturns to the accepted safe point without removing patterns from the recent-pattern list.",
-        "root" => "root up|down\nMoves the candidate's tonal root by one semitone for by-ear key matching. Creates a new audition candidate.",
         "palette" => "palette\nToggles the candidate between major and minor pentatonic. Creates a new audition candidate.",
-        "role" => "role bass|middle|high\nChanges the candidate's register. Motif and groove generation currently support bass only.",
+        "role" => "role bass|middle|high\nChanges the candidate's register without changing its key. Subsequent 'new' patterns inherit the role. Groove generation supports bass only.",
         "channel" => "channel <1..16>\nSets the user-facing MIDI channel for pattern playback.",
+        "ch" => "ch <1..16>\nSets the user-facing MIDI channel for pattern playback. Short form of 'channel'.",
         "play" => "play\nEnables pattern note output. A running internal or external transport is also required to hear notes.",
         "mute" => "mute\nDisables pattern note output and releases active notes without stopping the clock.",
         "pattern" => "pattern\nShows candidate, playback state, tonal context, and note grid: X anchor, x note, g ghost, . rest.",
         "library" => "library\nLists saved patterns and their load numbers.",
         "save" => "save [name]\nSaves the accepted pattern as JSON. An optional name renames it before saving.",
-        "load" => "load <number>\nLoads a saved pattern as a candidate using the number shown by 'library'. Use accept to make it the safe point.",
+        "load" => "load [name|#number]\nWithout an argument, lists saved patterns. With a name or #number, loads that pattern as a candidate. Names may contain spaces. Use keep to make it the safe point.",
         "note" => "note <channel> <note> <velocity> [milliseconds]\nSends a one-shot MIDI note. Default duration: 250 ms. Values are MIDI 1.0 ranges.",
         "on" => "on <channel> <note> <velocity>\nSends MIDI Note On. Remember to use 'off', or 'panic' if a note becomes stuck.",
         "off" => "off <channel> <note> [velocity]\nSends MIDI Note Off. Default release velocity: 0.",
@@ -408,5 +584,25 @@ static MotifShape ParseMotifShape(string value) => value.ToLowerInvariant() swit
 static string MotifText(MotifShape value) => value switch
 {
     MotifShape.RootFifth => "root-fifth", MotifShape.CallResponse => "call-response", _ => value.ToString().ToLowerInvariant()
+};
+static string ShapeHelpText() => """
+shape <choice>
+Selects the motif's contour and rhythm. It takes effect on the next `new` in motif mode.
+
+  auto           choose one of the shapes deterministically from the seed
+  pedal          repeat a central note as a steady anchor
+  root-fifth     alternate around the root and fifth
+  walking        move stepwise through nearby scale tones
+  call-response  alternate a short call with a related answer
+  arch           rise through the scale, then return
+  pickup         emphasize notes that lead into the next bar or loop
+  riff           use a compact, syncopated repeating figure
+""";
+static string GeneratorControls(GeneratorMode mode) => mode switch
+{
+    GeneratorMode.Motif => "shape, activity, movement, variation",
+    GeneratorMode.Phrase => "length, activity, rhythm, movement, variation, turnaround",
+    GeneratorMode.Groove => "groove, similarity, activity, movement, variation, turnaround (bass only)",
+    _ => "key, palette, and role; other settings are fixed"
 };
 enum GeneratorMode { Simple, Phrase, Groove, Motif }

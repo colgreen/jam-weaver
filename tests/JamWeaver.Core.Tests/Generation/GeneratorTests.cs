@@ -10,12 +10,12 @@ namespace JamWeaver.Core.Tests.Generation;
 public sealed class GeneratorTests
 {
     [Theory]
-    [InlineData(MusicalRole.Bass, PitchPalette.MajorPentatonic, 101UL, "14B911486EB0BA3CAD0DB5B77011C0FD1AAD42AB1773D0C70359B6C5C2FC7230")]
-    [InlineData(MusicalRole.Bass, PitchPalette.MinorPentatonic, 102UL, "CB09274EA934985A0CE4ADECA3E53C9535C0261A5A61937227AE0F3231F22340")]
-    [InlineData(MusicalRole.Middle, PitchPalette.MajorPentatonic, 201UL, "6D6FE1906BBEBD4577186CAAF11819B5B9007A7D163626013DD4F930AFFBB645")]
-    [InlineData(MusicalRole.Middle, PitchPalette.MinorPentatonic, 202UL, "14878E1192314E925AF781AC9FDC948063CABE6A555A97ED9D7A43A9F05A46A9")]
-    [InlineData(MusicalRole.High, PitchPalette.MajorPentatonic, 301UL, "2DF4607AA03FC52A1BA3CC5A3AE275C94827087FD873C8F1DA1D8B03C28207FD")]
-    [InlineData(MusicalRole.High, PitchPalette.MinorPentatonic, 302UL, "E38A317260483F0C031D6877174DA6A862FE3269833357721E87B0043373A7CD")]
+    [InlineData(MusicalRole.Bass, PitchPalette.MajorPentatonic, 101UL, "10483613F2D322E8DB66D196C52BAE821D81B220B12CAC7B45AF1EA5DE8856DC")]
+    [InlineData(MusicalRole.Bass, PitchPalette.MinorPentatonic, 102UL, "36FABCD91D5FD697BBB1F44408FF54C61565D60BDDB97912363645068C42D08A")]
+    [InlineData(MusicalRole.Middle, PitchPalette.MajorPentatonic, 201UL, "451934506D1107ACFE25A0F2EA8DC9E770FB82B7006656FD8A59BDF010D15D02")]
+    [InlineData(MusicalRole.Middle, PitchPalette.MinorPentatonic, 202UL, "0287235B227C3CAFD64FB4714D89F5F6F8FB784B3DBC63B4621D7759A0F3A52C")]
+    [InlineData(MusicalRole.High, PitchPalette.MajorPentatonic, 301UL, "EE1037715A229ADD2249C1A0EC5085E9DF611B1FC7BBA7AEEBA9452B65F49EDE")]
+    [InlineData(MusicalRole.High, PitchPalette.MinorPentatonic, 302UL, "1BD8B6DFA1374A37E7AD64D8BB0DE151F29EA5CCA6D0C01F7739B25C76D5CF83")]
     public void Role_and_palette_snapshot(MusicalRole role, PitchPalette palette, ulong seed, string expectedHash)
     {
         var settings = new MelodicGeneratorSettings(new PatternName("Snapshot"), 16, PatternTiming.SixteenthNotes,
@@ -34,13 +34,30 @@ public sealed class GeneratorTests
         Assert.Equal(Signature(first), Signature(second));
         Assert.NotEmpty(first.Steps[0].Notes);
         Assert.All(first.Steps, step => Assert.Equal(1, step.Probability.Value));
-        Assert.Equal("EB3A81757607D69AFB9FA684B45FE1DDCAD17CF6DAF794BFE62B5B0E7146B2BC", Hash(Signature(first)));
+        Assert.Equal("7CE827DA339067023E763E86339451D44D1CCC30882FCE06977F976ECF039B8D", Hash(Signature(first)));
     }
 
     [Fact]
     public void Different_seed_changes_representative_melodic_pattern() =>
         Assert.NotEqual(Signature(new MelodicPatternGenerator().Generate(MelodicSettings(1))),
             Signature(new MelodicPatternGenerator().Generate(MelodicSettings(2))));
+
+    [Theory]
+    [InlineData(MusicalRole.Bass)]
+    [InlineData(MusicalRole.Middle)]
+    [InlineData(MusicalRole.High)]
+    public void Melodic_motif_does_not_collapse_to_one_pitch(MusicalRole role)
+    {
+        foreach (var seed in Enumerable.Range(1, 32).Select(value => (ulong)value))
+        {
+            var source = MelodicSettings(seed);
+            var settings = new MelodicGeneratorSettings(source.Name, source.StepCount, source.Timing,
+                source.TonalContext, role, source.Density, source.Movement, source.Repetition,
+                source.Gate, source.VelocityVariation, source.Seed);
+            var pattern = new MelodicPatternGenerator().Generate(settings);
+            Assert.True(pattern.Steps.SelectMany(step => step.Notes).Select(note => note.Pitch).Distinct().Count() > 1);
+        }
+    }
 
     [Fact]
     public void Drum_generation_supports_multiple_voices_and_is_reproducible()

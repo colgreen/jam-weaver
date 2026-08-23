@@ -110,14 +110,16 @@ public static class GeneratorRecipeReconstruction
         RequireGenerator(recipe, MusicalMotifGenerator.GeneratorId, MusicalMotifGenerator.GeneratorVersion);
         var expected = new HashSet<string>(StringComparer.Ordinal)
         {
-            "shape", "resolved-shape", "activity", "movement", "variation", "root", "palette", "role",
+            "shape", "resolved-shape", "rhythm-variant", "activity", "movement", "variation", "root", "palette", "role",
             "steps", "pulses-per-step", "bar-0-mask", "bar-1-mask", "bar-2-mask", "bar-3-mask",
             "motif-length", "development", "structural-mask", "ghost-mask"
         };
         RequireExactKeys(recipe, expected);
         if (I(recipe, "steps") != 64 || I(recipe, "pulses-per-step") != PatternTiming.SixteenthNotes.PulsesPerStep)
             throw new ArgumentException("Motif recipe timing is inconsistent.", nameof(recipe));
-        _ = E<MotifShape>(recipe, "resolved-shape"); _ = I(recipe, "motif-length"); _ = T(recipe, "development");
+        _ = E<MotifShape>(recipe, "resolved-shape");
+        if (I(recipe, "rhythm-variant") is < 0 or > 3) throw new ArgumentException("Motif recipe rhythm variant is invalid.", nameof(recipe));
+        _ = I(recipe, "motif-length"); _ = T(recipe, "development");
         for (var i = 0; i < 4; i++) _ = ParseHex(recipe, $"bar-{i}-mask", 4);
         _ = ParseHex(recipe, "structural-mask", 16); _ = ParseHex(recipe, "ghost-mask", 16);
         return new MotifGeneratorSettings(name,

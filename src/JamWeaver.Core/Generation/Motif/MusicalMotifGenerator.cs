@@ -8,7 +8,7 @@ namespace JamWeaver.Core.Generation.Motif;
 public sealed class MusicalMotifGenerator
 {
     public const string GeneratorId = "melodic-musical-motif";
-    public const int GeneratorVersion = 1;
+    public const int GeneratorVersion = 4;
 
     public Pattern Generate(MotifGeneratorSettings settings)
     {
@@ -17,7 +17,7 @@ public sealed class MusicalMotifGenerator
         var shape = settings.Shape == MotifShape.Auto
             ? Enum.GetValues<MotifShape>().Where(value => value != MotifShape.Auto).ElementAt(random.Next(7))
             : settings.Shape;
-        var aMask = Rhythm(shape, settings.Activity);
+        var (aMask, rhythmVariant) = Rhythm(shape, settings.Activity, random);
         var masks = DevelopRhythm(aMask, shape, settings.Variation);
         var valid = PentatonicPitchResolver.ValidPitches(settings.TonalContext, settings.Role);
         var motif = Motif(valid, shape, settings.Movement, random);
@@ -43,20 +43,21 @@ public sealed class MusicalMotifGenerator
         var recipe = new GeneratorRecipe(GeneratorId, GeneratorVersion, settings.Seed, null,
         [
             GenerationHelpers.P("shape", settings.Shape.ToString()), GenerationHelpers.P("resolved-shape", shape.ToString()),
+            GenerationHelpers.P("rhythm-variant", rhythmVariant),
             GenerationHelpers.P("activity", settings.Activity.ToString()), GenerationHelpers.P("movement", settings.Movement.ToString()),
             GenerationHelpers.P("variation", settings.Variation.ToString()), GenerationHelpers.P("root", settings.TonalContext.Root.Value),
             GenerationHelpers.P("palette", settings.TonalContext.Palette.ToString()), GenerationHelpers.P("role", settings.Role.ToString()),
             GenerationHelpers.P("steps", 64), GenerationHelpers.P("pulses-per-step", PatternTiming.SixteenthNotes.PulsesPerStep),
             GenerationHelpers.P("bar-0-mask", masks[0].ToString("X4")), GenerationHelpers.P("bar-1-mask", masks[1].ToString("X4")),
             GenerationHelpers.P("bar-2-mask", masks[2].ToString("X4")), GenerationHelpers.P("bar-3-mask", masks[3].ToString("X4")),
-            GenerationHelpers.P("motif-length", motif.Length), GenerationHelpers.P("development", "A,A-prime,related-B,return"),
+            GenerationHelpers.P("motif-length", motif.Length), GenerationHelpers.P("development", "A,varied-A,contrasting-B,return"),
             GenerationHelpers.P("structural-mask", structuralMask.ToString("X16")), GenerationHelpers.P("ghost-mask", "0000000000000000")
         ]);
         return new Pattern(PatternId.New(), settings.Name, PatternSchemaVersion.Current, PatternMode.Melodic,
             PatternTiming.SixteenthNotes, steps, settings.Role, settings.TonalContext, recipe);
     }
 
-    private static ushort Rhythm(MotifShape shape, PhraseActivity activity)
+    private static (ushort Mask, int Variant) Rhythm(MotifShape shape, PhraseActivity activity, IRandomSource random)
     {
         var grids = shape switch
         {
@@ -68,7 +69,17 @@ public sealed class MusicalMotifGenerator
             MotifShape.Pickup => ("1000100010000010", "1000101010000110", "1010101010100110"),
             _ => ("1001000010010000", "1001001010010010", "1011001010110010")
         };
-        return Parse(activity switch { PhraseActivity.Sparse => grids.Item1, PhraseActivity.Medium => grids.Item2, _ => grids.Item3 });
+        var mask = Parse(activity switch { PhraseActivity.Sparse => grids.Item1, PhraseActivity.Medium => grids.Item2, _ => grids.Item3 });
+        var variant = random.Next(4);
+        var onsets = Onsets(mask);
+        mask = variant switch
+        {
+            1 => MoveOnset(mask, Math.Min(1, onsets.Length - 1), 1),
+            2 => MoveOnset(mask, onsets.Length - 1, -1),
+            3 => MoveOnset(mask, onsets.Length / 2, onsets[onsets.Length / 2] % 2 == 0 ? 1 : -1),
+            _ => mask
+        };
+        return (mask, variant);
     }
 
     private static ushort[] DevelopRhythm(ushort a, MotifShape shape, PhraseLevel variation)
@@ -77,9 +88,11 @@ public sealed class MusicalMotifGenerator
         if (variation != PhraseLevel.Low)
         {
             aPrime = MoveLast(aPrime, -1);
-            b = shape is MotifShape.CallResponse or MotifShape.Arch ? RotateHalf(a) : MoveLast(a, 1);
+            b = shape is MotifShape.CallResponse or MotifShape.Arch
+                ? RotateHalf(a)
+                : MoveOnset(a, Onsets(a).Length / 2, shape is MotifShape.Pedal or MotifShape.RootFifth ? 2 : -2);
         }
-        if (variation == PhraseLevel.High) b = RotateHalf(MoveLast(b, 1));
+        if (variation == PhraseLevel.High) b = RotateHalf(MoveOnset(b, Onsets(b).Length - 1, 1));
         if (shape == MotifShape.Pickup || variation != PhraseLevel.Low) turn = (ushort)((a & 0x0fff) | 0x6000);
         return [a, aPrime, b, turn];
     }
@@ -95,8 +108,16 @@ public sealed class MusicalMotifGenerator
             MotifShape.Pickup => [0, 0, -1, 0], _ => [0, 2, 0, 1]
         };
         var scale = movement switch { PhraseLevel.Low => .5, PhraseLevel.Medium => 1, _ => 1.5 };
-        return contour.Select(delta => valid[Math.Clamp(rootIndex + (int)Math.Round(delta * scale), 0, valid.Count - 1)]).ToArray();
+        var deltas = contour.Select(delta => (int)Math.Round(delta * scale)).ToArray();
+        var forward = ResolveContour(valid, rootIndex, deltas);
+        var reflected = ResolveContour(valid, rootIndex, deltas.Select(delta => -delta).ToArray());
+        return DistinctCount(reflected) > DistinctCount(forward) ? reflected : forward;
     }
+
+    private static MelodicPitch[] ResolveContour(IReadOnlyList<MelodicPitch> valid, int rootIndex, int[] deltas) =>
+        deltas.Select(delta => valid[Math.Clamp(rootIndex + delta, 0, valid.Count - 1)]).ToArray();
+
+    private static int DistinctCount(IEnumerable<MelodicPitch> pitches) => pitches.Distinct().Count();
 
     private static MelodicPitch[][] DevelopMotif(MelodicPitch[] motif, IReadOnlyList<MelodicPitch> valid,
         MotifShape shape, PhraseLevel variation, IRandomSource random)
@@ -124,6 +145,19 @@ public sealed class MusicalMotifGenerator
         var last = Onsets(mask).Last(); if (last == 0) return mask;
         var target = Math.Clamp(last + delta, 1, 15); if ((mask & (1 << target)) != 0) return mask;
         return (ushort)((mask & ~(1 << last)) | (1 << target));
+    }
+    private static ushort MoveOnset(ushort mask, int onsetIndex, int delta)
+    {
+        var onsets = Onsets(mask);
+        var source = onsets[Math.Clamp(onsetIndex, 0, onsets.Length - 1)];
+        if (source == 0) return mask;
+        var target = Math.Clamp(source + delta, 1, 15);
+        if ((mask & (1 << target)) != 0)
+        {
+            target = Math.Clamp(source - Math.Sign(delta), 1, 15);
+            if ((mask & (1 << target)) != 0) return mask;
+        }
+        return (ushort)((mask & ~(1 << source)) | (1 << target));
     }
     private static ushort RotateHalf(ushort mask) => (ushort)((mask >> 8) | ((mask & 0xff) << 8));
     private static int[] Onsets(ushort mask) => Enumerable.Range(0, 16).Where(i => (mask & (1 << i)) != 0).ToArray();

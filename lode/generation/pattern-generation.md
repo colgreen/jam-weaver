@@ -12,8 +12,10 @@ version's output contract.
 
 ## Available generators
 
-- `melodic-musical-motif` is the default. It develops a short bass idea through
-  four related bars. See [motif generation](motif-generation.md).
+- `melodic-musical-motif` version 3 is the default. It develops a short idea in
+  the bass, middle, or high role through four related bars and selects one of
+  several seed-driven rhythm variants. See [motif
+  generation](motif-generation.md).
 - `melodic-structured-phrase` builds one-, two-, or four-bar phrases with
   controlled rhythmic and melodic development. See [phrase
   generation](phrase-generation.md).
@@ -21,7 +23,7 @@ version's output contract.
   rhythm vocabulary. It remains an alternative pending comparative hardware
   audition. See [groove generation](groove-generation.md).
 - `melodic-euclidean-motif` is the original simple melodic generator. Its
-  version-1 fixed-seed behavior remains available through `simple` mode.
+  version-3 behavior remains available through `simple` mode.
 - `drum-euclidean-voices` distributes user-supplied MIDI drum notes across
   separate Euclidean rhythms. It does not assign device-specific drum names.
 
@@ -54,8 +56,18 @@ Default role ranges are:
 | Middle | 48-72 | Moderate density and wider movement |
 | High | 67-88 | More space, cautious intervals, and lower velocity |
 
+Role ranges deliberately overlap: they are musical tendencies with room for
+movement, not partitions that clamp a contour at an octave boundary. Simple
+version 3 biases bass motif starts toward the lower part of the range and
+requires each pitch-movement decision to choose a nearby alternative when one
+exists. Motif version 4 reflects contours away from a range boundary when that
+preserves more distinct pitches. Phrase and groove remain version 1.
+
 Changing root, palette, or role creates a candidate and never alters the
-accepted pattern unexpectedly.
+accepted pattern unexpectedly. Role changes preserve the tonal root and palette,
+fit the existing scale-degree shape into the selected register, and are inherited
+by subsequent generation. Motif, phrase, and simple generation support all
+three roles; groove-vocabulary generation remains intentionally bass-only.
 
 ## Mutation and recipes
 

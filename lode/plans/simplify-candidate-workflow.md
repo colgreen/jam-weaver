@@ -11,11 +11,12 @@ without a second invisible accepted-pattern history.
 - Accepted is the single in-memory safe point and the only pattern eligible for
   saving.
 - Candidate history retains the eight most recent generated, transformed,
-  mutated, or loaded patterns for `previous` and `next` browsing.
-- `accept` moves the safe point to the audible candidate.
-- `reject` selects the safe point again without changing candidate history.
-- `previous` and `next` select recent patterns without changing the safe point.
-- `load <number>` loads a library entry as a candidate; it does not accept it.
+  varied, or loaded patterns for `back` and `forward` browsing.
+- `keep` moves the safe point to the audible candidate.
+- `revert` selects the safe point again without changing candidate history.
+- `back` and `forward` select recent patterns without changing the safe point.
+- `load <name>` loads a library entry as a candidate; `load #<number>`
+  disambiguates duplicate names. Loading does not keep the candidate.
 - `save [name]` persists the safe point.
 
 The former safe point has no privileged second slot after acceptance. It can be

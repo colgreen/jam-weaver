@@ -60,6 +60,17 @@ public sealed class MotifGeneratorTests
     }
 
     [Fact]
+    public void Seeds_select_multiple_explainable_rhythm_variants_for_the_same_shape()
+    {
+        var patterns = Enumerable.Range(1, 32)
+            .Select(seed => new MusicalMotifGenerator().Generate(Settings((ulong)seed, MotifShape.Riff)))
+            .ToArray();
+
+        Assert.True(patterns.Select(pattern => pattern.Recipe!.Parameters["rhythm-variant"].Integer).Distinct().Count() >= 3);
+        Assert.True(patterns.Select(pattern => pattern.Recipe!.Parameters["bar-0-mask"].Text).Distinct().Count() >= 3);
+    }
+
+    [Fact]
     public void Recipe_reconstruction_and_json_round_trip_preserve_material()
     {
         var generator = new MusicalMotifGenerator();
@@ -74,15 +85,48 @@ public sealed class MotifGeneratorTests
         Assert.Equal(first.Recipe.Parameters, decoded.Recipe!.Parameters);
     }
 
+    [Theory]
+    [InlineData(MusicalRole.Bass, 36, 52)]
+    [InlineData(MusicalRole.Middle, 48, 72)]
+    [InlineData(MusicalRole.High, 67, 88)]
+    public void Every_role_is_deterministic_and_resolves_inside_its_register(
+        MusicalRole role, int minimumNote, int maximumNote)
+    {
+        var settings = Settings(321, role: role);
+        var generator = new MusicalMotifGenerator();
+        var first = generator.Generate(settings);
+        var second = generator.Generate(settings);
+
+        Assert.Equal(role, first.Role);
+        Assert.Equal(Signature(first), Signature(second));
+        Assert.All(first.Steps.SelectMany(step => step.Notes), note =>
+            Assert.InRange(PentatonicPitchResolver.Resolve(
+                (MelodicPitch)note.Pitch, first.TonalContext!.Value, role).Value, minimumNote, maximumNote));
+    }
+
     [Fact]
-    public void Non_bass_role_is_rejected() => Assert.Throws<ArgumentException>(() =>
-        new MotifGeneratorSettings(new PatternName("bad"), Context, MusicalRole.Middle, MotifShape.Auto,
-            PhraseActivity.Medium, PhraseLevel.Medium, PhraseLevel.Medium, 1));
+    public void Every_shape_uses_multiple_resolved_pitches_across_roots_and_roles()
+    {
+        foreach (var role in Enum.GetValues<MusicalRole>())
+        foreach (var root in Enumerable.Range(0, 12))
+        foreach (var shape in Enum.GetValues<MotifShape>().Where(value => value != MotifShape.Auto))
+        {
+            var settings = new MotifGeneratorSettings(new PatternName("Movement"),
+                new TonalContext(new RootPitchClass(root), PitchPalette.MinorPentatonic), role, shape,
+                PhraseActivity.Medium, PhraseLevel.Medium, PhraseLevel.Medium, 123);
+            var pattern = new MusicalMotifGenerator().Generate(settings);
+            var notes = pattern.Steps.SelectMany(step => step.Notes)
+                .Select(note => PentatonicPitchResolver.Resolve((MelodicPitch)note.Pitch,
+                    pattern.TonalContext!.Value, role).Value).Distinct();
+            Assert.True(notes.Count() > 1, $"{role} {root} {shape} collapsed to one pitch.");
+        }
+    }
 
     private static readonly TonalContext Context = new(new RootPitchClass(2), PitchPalette.MinorPentatonic);
     private static MotifGeneratorSettings Settings(ulong seed, MotifShape shape = MotifShape.Auto,
-        PhraseLevel variation = PhraseLevel.Medium, PhraseActivity activity = PhraseActivity.Medium) =>
-        new(new PatternName("Motif"), Context, MusicalRole.Bass, shape, activity, PhraseLevel.Medium, variation, seed);
+        PhraseLevel variation = PhraseLevel.Medium, PhraseActivity activity = PhraseActivity.Medium,
+        MusicalRole role = MusicalRole.Bass) =>
+        new(new PatternName("Motif"), Context, role, shape, activity, PhraseLevel.Medium, variation, seed);
     private static int Hits(Pattern pattern, int bar) => pattern.Steps.Skip(bar * 16).Take(16).Count(step => step.Notes.Length > 0);
     private static string Signature(Pattern pattern) => string.Join("|", pattern.Steps.Select(Step));
     private static string Step(PatternStep step) => step.Notes.Length == 0 ? "-" :

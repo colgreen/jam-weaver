@@ -16,7 +16,7 @@
   - [Pattern generation](generation/pattern-generation.md) - shared deterministic generation contracts
   - [Phrase generation](generation/phrase-generation.md) - structured phrase behavior
   - [Groove generation](generation/groove-generation.md) - rhythm vocabulary and variation
-  - [Motif generation](generation/motif-generation.md) - default low-entropy bass grammar
+  - [Motif generation](generation/motif-generation.md) - default low-entropy melodic grammar
 - Performance
   - [Candidate workflow](performance/candidate-workflow.md) - audition and live-control state
 - Plans

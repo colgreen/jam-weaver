@@ -18,8 +18,9 @@ made during playback take effect at the next bar. A performer can generate,
 mutate, audition, accept, reject, save, and load patterns without sending
 device-specific patch data.
 
-The default generator develops a small bass motif over four bars. Simpler,
-structured-phrase, groove-vocabulary, and drum generators remain available.
+The default generator develops a small motif over four bars in the selected
+bass, middle, or high register. Simpler, structured-phrase, groove-vocabulary,
+and drum generators remain available.
 Generated material and recipes are deterministic and versioned; saved
 materialized steps remain authoritative for playback.
 
