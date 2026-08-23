@@ -28,7 +28,7 @@ It protects structural anchors and keeps timing, role, tonal context, ancestry,
 and at least one note per bar intact.
 
 Recipes record the friendly inputs and derived masks needed to reconstruct and
-explain the phrase. The original simple generator remains separately versioned;
+explain the phrase. The Euclidean generator remains separately versioned;
 phrase generation does not change its output contract.
 
 The implementation and structural invariants are automatically tested. Its

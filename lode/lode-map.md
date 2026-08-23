@@ -14,9 +14,10 @@
   - [Pattern library](persistence/pattern-library.md) - JSON format, validation, save, and load contracts
 - Generation
   - [Pattern generation](generation/pattern-generation.md) - shared deterministic generation contracts
+  - [Euclidean2 generation](generation/euclidean2-generation.md) - isolated four-bar Euclidean experiment
   - [Phrase generation](generation/phrase-generation.md) - structured phrase behavior
   - [Groove generation](generation/groove-generation.md) - rhythm vocabulary and variation
-  - [Motif generation](generation/motif-generation.md) - default low-entropy melodic grammar
+  - [Motif generation](generation/motif-generation.md) - experimental four-bar melodic grammar
 - Performance
   - [Candidate workflow](performance/candidate-workflow.md) - audition and live-control state
 - Plans

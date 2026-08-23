@@ -1,6 +1,6 @@
 # Motif generation
 
-`melodic-musical-motif` version 4 is the startup default. It creates a small
+`melodic-musical-motif` version 4 is an experimental generator. It creates a small
 melodic idea and develops it conservatively over four bars. Bass is the startup
 role, while middle and high roles apply the same grammar in their own register.
 Every note is deliberate:

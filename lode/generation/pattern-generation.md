@@ -12,7 +12,7 @@ version's output contract.
 
 ## Available generators
 
-- `melodic-musical-motif` version 3 is the default. It develops a short idea in
+- `melodic-musical-motif` version 4 is an experimental option. It develops a short idea in
   the bass, middle, or high role through four related bars and selects one of
   several seed-driven rhythm variants. See [motif
   generation](motif-generation.md).
@@ -22,8 +22,13 @@ version's output contract.
 - `melodic-groove-vocabulary` creates four-bar bass phrases from a versioned
   rhythm vocabulary. It remains an alternative pending comparative hardware
   audition. See [groove generation](groove-generation.md).
-- `melodic-euclidean-motif` is the original simple melodic generator. Its
-  version-3 behavior remains available through `simple` mode.
+- `melodic-euclidean-motif` version 3 is the startup default and is selected as
+  `euclidean` in the console. It creates a concise one-bar onset pattern and
+  short melodic motif. Its implementation and recipe are the frozen comparison
+  baseline for Euclidean experiments.
+- `melodic-euclidean-2` version 1 is selected as `euclidean2`. It keeps the
+  Euclidean ingredients but develops them through a fixed four-bar A, A-prime,
+  B, return form. See [Euclidean2 generation](euclidean2-generation.md).
 - `drum-euclidean-voices` distributes user-supplied MIDI drum notes across
   separate Euclidean rhythms. It does not assign device-specific drum names.
 
@@ -57,7 +62,7 @@ Default role ranges are:
 | High | 67-88 | More space, cautious intervals, and lower velocity |
 
 Role ranges deliberately overlap: they are musical tendencies with room for
-movement, not partitions that clamp a contour at an octave boundary. Simple
+movement, not partitions that clamp a contour at an octave boundary. Euclidean
 version 3 biases bass motif starts toward the lower part of the range and
 requires each pitch-movement decision to choose a nearby alternative when one
 exists. Motif version 4 reflects contours away from a range boundary when that
@@ -66,7 +71,7 @@ preserves more distinct pitches. Phrase and groove remain version 1.
 Changing root, palette, or role creates a candidate and never alters the
 accepted pattern unexpectedly. Role changes preserve the tonal root and palette,
 fit the existing scale-degree shape into the selected register, and are inherited
-by subsequent generation. Motif, phrase, and simple generation support all
+by subsequent generation. Euclidean, motif, and phrase generation support all
 three roles; groove-vocabulary generation remains intentionally bass-only.
 
 ## Mutation and recipes

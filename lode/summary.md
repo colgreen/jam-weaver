@@ -18,9 +18,11 @@ made during playback take effect at the next bar. A performer can generate,
 mutate, audition, accept, reject, save, and load patterns without sending
 device-specific patch data.
 
-The default generator develops a small motif over four bars in the selected
-bass, middle, or high register. Simpler, structured-phrase, groove-vocabulary,
-and drum generators remain available.
+The default Euclidean generator creates concise one-bar melodic patterns in the
+selected bass, middle, or high register. A separate Euclidean2 generator tests
+bounded A, A-prime, B, return development without changing that baseline.
+Four-bar motif, structured-phrase, groove-vocabulary, and drum generators also
+remain available for experimentation.
 Generated material and recipes are deterministic and versioned; saved
 materialized steps remain authoritative for playback.
 

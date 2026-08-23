@@ -21,13 +21,14 @@ await using var watchdog = new ExternalClockWatchdog(transport);
 using var player = new PatternPlayer(output, transport);
 var session = new CandidateSession(player);
 var melodicGenerator = new MelodicPatternGenerator();
+var euclidean2Generator = new Euclidean2PatternGenerator();
 var phraseGenerator = new MelodicPhraseGenerator();
 var grooveGenerator = new MelodicGrooveGenerator();
 var motifGenerator = new MusicalMotifGenerator();
 var mutator = new PatternMutator();
 var phraseMutator = new PhrasePatternMutator();
 var history = new CandidateHistory();
-var generatorMode = GeneratorMode.Motif;
+var generatorMode = GeneratorMode.Euclidean;
 var phraseLength = PhraseLength.FourBars;
 var phraseActivity = PhraseActivity.Medium;
 var phraseRhythm = PhraseRhythm.Syncopated;
@@ -118,7 +119,7 @@ try
                     var generateSeed = parts.Length > 1 ? U(parts, 1) : seedSource.NextULong();
                     SelectCandidate(session, history, Generate(generatorMode, generateSeed, session.Candidate,
                         phraseLength, phraseActivity, phraseRhythm, phraseMovement, phraseVariation, phraseTurnaround,
-                        grooveSelection, grooveSimilarity, motifShape, melodicGenerator, phraseGenerator,
+                        grooveSelection, grooveSimilarity, motifShape, melodicGenerator, euclidean2Generator, phraseGenerator,
                         grooveGenerator, motifGenerator));
                     Console.WriteLine($"Generated candidate with seed {generateSeed}.");
                     break;
@@ -170,12 +171,12 @@ try
                     if (parts.Length == 1)
                     {
                         Console.WriteLine($"Generator: {generatorMode.ToString().ToLowerInvariant()}");
-                        Console.WriteLine("Choices: motif, phrase, groove, simple");
+                        Console.WriteLine("Choices: euclidean, euclidean2, motif, phrase, groove");
                         Console.WriteLine($"Controls: {GeneratorControls(generatorMode)}");
                         Console.WriteLine("Set with: generator <choice>");
                         break;
                     }
-                    generatorMode = S(parts, 1).ToLowerInvariant() switch { "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "simple" => GeneratorMode.Simple, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be motif, phrase, groove, or simple.") };
+                    generatorMode = S(parts, 1).ToLowerInvariant() switch { "euclidean" => GeneratorMode.Euclidean, "euclidean2" => GeneratorMode.Euclidean2, "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be euclidean, euclidean2, motif, phrase, or groove.") };
                     Console.WriteLine($"Generator: {generatorMode.ToString().ToLowerInvariant()}");
                     Console.WriteLine($"Controls: {GeneratorControls(generatorMode)}");
                     break;
@@ -358,7 +359,8 @@ static void SelectCandidate(CandidateSession session, CandidateHistory history, 
 static Pattern Generate(GeneratorMode mode, ulong seed, Pattern? current, PhraseLength length,
     PhraseActivity activity, PhraseRhythm rhythm, PhraseLevel movement, PhraseLevel variation,
     PhraseTurnaround turnaround, GrooveSelection grooveSelection, GrooveSimilarity similarity,
-    MotifShape motifShape, MelodicPatternGenerator simple, MelodicPhraseGenerator phrase,
+    MotifShape motifShape, MelodicPatternGenerator euclidean, Euclidean2PatternGenerator euclidean2,
+    MelodicPhraseGenerator phrase,
     MelodicGrooveGenerator groove, MusicalMotifGenerator motif)
 {
     var context = current?.TonalContext ?? DefaultTonalContext();
@@ -372,9 +374,13 @@ static Pattern Generate(GeneratorMode mode, ulong seed, Pattern? current, Phrase
             similarity, activity, movement, variation, turnaround, seed)),
         GeneratorMode.Motif => motif.Generate(new MotifGeneratorSettings(name, context, role, motifShape,
             activity, movement, variation, seed)),
-        _ => simple.Generate(new MelodicGeneratorSettings(name, 16, PatternTiming.SixteenthNotes,
+        GeneratorMode.Euclidean => euclidean.Generate(new MelodicGeneratorSettings(name, 16, PatternTiming.SixteenthNotes,
             context, role, new NormalizedAmount(.4), new NormalizedAmount(.35),
-            new NormalizedAmount(.65), new NormalizedAmount(.8), new NormalizedAmount(.15), seed))
+            new NormalizedAmount(.65), new NormalizedAmount(.8), new NormalizedAmount(.15), seed)),
+        GeneratorMode.Euclidean2 => euclidean2.Generate(new MelodicGeneratorSettings(name, 64, PatternTiming.SixteenthNotes,
+            context, role, new NormalizedAmount(.4), new NormalizedAmount(.35),
+            new NormalizedAmount(.65), new NormalizedAmount(.8), new NormalizedAmount(.15), seed)),
+        _ => throw new ArgumentOutOfRangeException(nameof(mode))
     };
 }
 static void PrintPattern(CandidateSession session, PatternPlayer player)
@@ -500,7 +506,7 @@ Type 'help <command>' for details or 'help advanced' for every control.
         "advanced" => """
 Device/clock: setup | out <index> | in <index> | source internal|external | bpm <20..300>
 Transport: start | continue | stop | play | mute | channel <1..16>
-Generation: generator motif|phrase|groove|simple | new [seed] | compare [seed]
+Generation: generator euclidean|euclidean2|motif|phrase|groove | new [seed] | compare [seed]
 Shape: shape <shape> | groove <family> | similarity close|related|contrast | length 1|2|4
 Character: activity sparse|medium|busy | rhythm steady|syncopated|broken
            movement low|medium|high | variation low|medium|high
@@ -529,7 +535,7 @@ Type 'help <command>' for detailed syntax.
         "start" => "start\nStarts internal clock and transport. With external source selected, waits for MIDI Start from the input device.",
         "continue" => "continue\nContinues internal transport without resetting its position. External mode waits for MIDI Continue.",
         "stop" => "stop\nStops transport and releases active pattern notes. External clock disappearing also stops playback.",
-        "generator" => "generator motif|phrase|groove|simple\nSelects how 'new' creates candidates. Default: motif. Groove requires role bass.",
+        "generator" => "generator euclidean|euclidean2|motif|phrase|groove\nSelects how 'new' creates candidates. Default: euclidean. Euclidean2 is an experimental four-bar development of Euclidean; motif, phrase, and groove are also experimental. Groove requires role bass.",
         "shape" => ShapeHelpText(),
         "length" => "length 1|2|4\nSets phrase-generator length in bars. Default: 4. Motif and groove always produce four bars.",
         "activity" => "activity sparse|medium|busy\nControls rhythmic note density. Default: medium. Takes effect on the next 'new'.",
@@ -603,6 +609,8 @@ static string GeneratorControls(GeneratorMode mode) => mode switch
     GeneratorMode.Motif => "shape, activity, movement, variation",
     GeneratorMode.Phrase => "length, activity, rhythm, movement, variation, turnaround",
     GeneratorMode.Groove => "groove, similarity, activity, movement, variation, turnaround (bass only)",
-    _ => "key, palette, and role; other settings are fixed"
+    GeneratorMode.Euclidean => "key, palette, and role; other settings are fixed",
+    GeneratorMode.Euclidean2 => "key, palette, and role; experimental four-bar development is fixed",
+    _ => throw new ArgumentOutOfRangeException(nameof(mode))
 };
-enum GeneratorMode { Simple, Phrase, Groove, Motif }
+enum GeneratorMode { Euclidean, Euclidean2, Phrase, Groove, Motif }

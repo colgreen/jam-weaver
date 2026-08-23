@@ -33,6 +33,29 @@ public static class GeneratorRecipeReconstruction
             N(recipe, "gate"), N(recipe, "velocity-variation"), recipe.Seed);
     }
 
+    public static MelodicGeneratorSettings Euclidean2(PatternName name, GeneratorRecipe recipe)
+    {
+        RequireGenerator(recipe, Euclidean2PatternGenerator.GeneratorId, Euclidean2PatternGenerator.GeneratorVersion);
+        RequireExactKeys(recipe, new HashSet<string>(
+        [
+            "steps", "pulses-per-step", "root", "palette", "role", "density", "movement", "repetition",
+            "gate", "velocity-variation", "hits-a", "hits-b", "rotation-a", "rotation-b", "motif-length",
+            "bar-0-mask", "bar-1-mask", "bar-2-mask", "bar-3-mask", "bar-roles", "structural-mask", "ghost-mask"
+        ], StringComparer.Ordinal));
+        if (I(recipe, "steps") != 64 || I(recipe, "pulses-per-step") != PatternTiming.SixteenthNotes.PulsesPerStep)
+            throw new ArgumentException("Euclidean2 recipe timing is inconsistent.", nameof(recipe));
+        if (I(recipe, "hits-a") is < 1 or > 15 || I(recipe, "hits-b") is < 1 or > 15
+            || I(recipe, "rotation-a") is < 0 or > 15 || I(recipe, "rotation-b") is < 0 or > 15
+            || I(recipe, "motif-length") is < 2 or > 4 || T(recipe, "bar-roles") != "A,A-prime,B,return")
+            throw new ArgumentException("Euclidean2 recipe metadata is inconsistent.", nameof(recipe));
+        for (var index = 0; index < 4; index++) _ = ParseHex(recipe, $"bar-{index}-mask", 4);
+        _ = ParseHex(recipe, "structural-mask", 16); _ = ParseHex(recipe, "ghost-mask", 16);
+        return new MelodicGeneratorSettings(name, 64, PatternTiming.SixteenthNotes,
+            new TonalContext(new RootPitchClass(I(recipe, "root")), E<PitchPalette>(recipe, "palette")),
+            E<MusicalRole>(recipe, "role"), N(recipe, "density"), N(recipe, "movement"), N(recipe, "repetition"),
+            N(recipe, "gate"), N(recipe, "velocity-variation"), recipe.Seed);
+    }
+
     public static DrumGeneratorSettings Drums(PatternName name, GeneratorRecipe recipe)
     {
         RequireGenerator(recipe, DrumPatternGenerator.GeneratorId, DrumPatternGenerator.GeneratorVersion);
