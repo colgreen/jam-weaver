@@ -7,7 +7,7 @@ public sealed class ConsoleDisplayTests
     [Fact]
     public void Pattern_grid_renders_four_bars_and_anchor_symbols()
     {
-        var pattern = new MusicalMotifGenerator().Generate(new MotifGeneratorSettings(
+        var pattern = new MotifGenerator().Generate(new MotifGeneratorSettings(
             new PatternName("Grid"), CandidateGenerator.DefaultTonalContext(), MusicalRole.Bass,
             MotifShape.Pedal, PhraseActivity.Medium, PhraseLevel.Medium, PhraseLevel.Medium, 123));
         var writer = new StringWriter();

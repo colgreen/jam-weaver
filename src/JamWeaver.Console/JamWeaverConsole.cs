@@ -20,8 +20,8 @@ public sealed class JamWeaverConsole
     private readonly PhrasePatternMutator phraseMutator;
     private readonly CandidateHistory history;
     private readonly PatternLibrary patternLibrary;
-    private readonly MelodicPhraseGenerator phraseGenerator;
-    private readonly MelodicGrooveGenerator grooveGenerator;
+    private readonly StructuredPhraseGenerator phraseGenerator;
+    private readonly GrooveVocabularyGenerator grooveGenerator;
     private readonly IRandomSource seedSource;
     private readonly ExternalMidiClockInput externalClock;
     private Pattern? comparisonPhrase;
@@ -33,8 +33,8 @@ public sealed class JamWeaverConsole
         TransportEngine transport, InternalMidiClock internalClock, PatternPlayer player,
         CandidateSession session, CandidateGenerator candidateGenerator, GenerationControls generationControls,
         PatternMutator mutator, PhrasePatternMutator phraseMutator, CandidateHistory history,
-        PatternLibrary patternLibrary, MelodicPhraseGenerator phraseGenerator,
-        MelodicGrooveGenerator grooveGenerator, IRandomSource seedSource, ExternalMidiClockInput externalClock)
+        PatternLibrary patternLibrary, StructuredPhraseGenerator phraseGenerator,
+        GrooveVocabularyGenerator grooveGenerator, IRandomSource seedSource, ExternalMidiClockInput externalClock)
     {
         this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
         this.display = display ?? throw new ArgumentNullException(nameof(display));
@@ -181,21 +181,21 @@ public sealed class JamWeaverConsole
                         case "generator":
                             if (parts.Length == 1)
                             {
-                                display.WriteLine($"Generator: {generationControls.Mode.ToString().ToLowerInvariant()}");
-                                display.WriteLine("Choices: euclidean, euclidean2, motif, phrase, groove");
+                                display.WriteLine($"Generator: {ConsoleDisplay.GeneratorText(generationControls.Mode)}");
+                                display.WriteLine("Choices: euclidean, euclidean-phrase, motif, phrase, groove");
                                 display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
                                 display.WriteLine("Set with: generator <choice>");
                                 break;
                             }
-                            generationControls.Mode = S(parts, 1).ToLowerInvariant() switch { "euclidean" => GeneratorMode.Euclidean, "euclidean2" => GeneratorMode.Euclidean2, "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be euclidean, euclidean2, motif, phrase, or groove.") };
-                            display.WriteLine($"Generator: {generationControls.Mode.ToString().ToLowerInvariant()}");
+                            generationControls.Mode = S(parts, 1).ToLowerInvariant() switch { "euclidean" => GeneratorMode.Euclidean, "euclidean-phrase" or "euclidean2" => GeneratorMode.EuclideanPhrase, "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be euclidean, euclidean-phrase, motif, phrase, or groove.") };
+                            display.WriteLine($"Generator: {ConsoleDisplay.GeneratorText(generationControls.Mode)}");
                             display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
                             break;
                         case "groove": generationControls.Groove = ParseGrooveSelection(S(parts, 1)); break;
                         case "shape":
                             if (parts.Length == 1)
                             {
-                                display.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (inactive while generator is {generationControls.Mode.ToString().ToLowerInvariant()})")}");
+                                display.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (inactive while generator is {ConsoleDisplay.GeneratorText(generationControls.Mode)})")}");
                                 display.WriteLine("Choices: auto, pedal, root-fifth, walking, call-response, arch, pickup, riff");
                                 display.WriteLine("Set with: shape <choice>");
                                 display.WriteLine("Explain choices with: shape help");
@@ -207,7 +207,7 @@ public sealed class JamWeaverConsole
                                 break;
                             }
                             generationControls.MotifShape = ParseMotifShape(S(parts, 1));
-                            display.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (saved for motif; inactive while generator is {generationControls.Mode.ToString().ToLowerInvariant()})")}");
+                            display.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (saved for motif; inactive while generator is {ConsoleDisplay.GeneratorText(generationControls.Mode)})")}");
                             break;
                         case "similarity": generationControls.Similarity = EnumValue<GrooveSimilarity>(parts, 1); break;
                         case "length": generationControls.PhraseLength = I(parts, 1) switch { 1 => PhraseLength.OneBar, 2 => PhraseLength.TwoBars, 4 => PhraseLength.FourBars, _ => throw new ArgumentException("Length must be 1, 2, or 4 bars.") }; break;
@@ -216,7 +216,7 @@ public sealed class JamWeaverConsole
                         case "movement": generationControls.Movement = EnumValue<PhraseLevel>(parts, 1); break;
                         case "variation": generationControls.Variation = EnumValue<PhraseLevel>(parts, 1); break;
                         case "turnaround": generationControls.Turnaround = EnumValue<PhraseTurnaround>(parts, 1); break;
-                        case "settings": display.WriteLine($"Generator={generationControls.Mode.ToString().ToLowerInvariant()}, Shape={ConsoleDisplay.MotifText(generationControls.MotifShape)}, Length={(int)generationControls.PhraseLength}, Activity={generationControls.Activity.ToString().ToLowerInvariant()}, Rhythm={generationControls.Rhythm.ToString().ToLowerInvariant()}, Groove={ConsoleDisplay.GrooveText(generationControls.Groove)}, Similarity={generationControls.Similarity.ToString().ToLowerInvariant()}, Movement={generationControls.Movement.ToString().ToLowerInvariant()}, Variation={generationControls.Variation.ToString().ToLowerInvariant()}, Turnaround={generationControls.Turnaround.ToString().ToLowerInvariant()}"); break;
+                        case "settings": display.WriteLine($"Generator={ConsoleDisplay.GeneratorText(generationControls.Mode)}, Shape={ConsoleDisplay.MotifText(generationControls.MotifShape)}, Length={(int)generationControls.PhraseLength}, Activity={generationControls.Activity.ToString().ToLowerInvariant()}, Rhythm={generationControls.Rhythm.ToString().ToLowerInvariant()}, Groove={ConsoleDisplay.GrooveText(generationControls.Groove)}, Similarity={generationControls.Similarity.ToString().ToLowerInvariant()}, Movement={generationControls.Movement.ToString().ToLowerInvariant()}, Variation={generationControls.Variation.ToString().ToLowerInvariant()}, Turnaround={generationControls.Turnaround.ToString().ToLowerInvariant()}"); break;
                         case "keep":
                             session.Accept(); display.WriteLine("Candidate kept as the safe point."); break;
                         case "revert":

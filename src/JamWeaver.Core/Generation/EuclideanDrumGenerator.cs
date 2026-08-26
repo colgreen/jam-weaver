@@ -2,12 +2,12 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation;
 
-public sealed class DrumPatternGenerator : IPatternGenerator<DrumGeneratorSettings>
+public sealed class EuclideanDrumGenerator : IPatternGenerator<EuclideanDrumGeneratorSettings>
 {
     public const string GeneratorId = "drum-euclidean-voices";
     public const int GeneratorVersion = 1;
 
-    public Pattern Generate(DrumGeneratorSettings settings)
+    public Pattern Generate(EuclideanDrumGeneratorSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
         var random = RandomDefaults.CreateRandomSource(settings.Seed);

@@ -2,16 +2,16 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation;
 
-public sealed class Euclidean2PatternGenerator : IPatternGenerator<MelodicGeneratorSettings>
+public sealed class EuclideanPhraseGenerator : IPatternGenerator<EuclideanGeneratorSettings>
 {
     public const string GeneratorId = "melodic-euclidean-2";
     public const int GeneratorVersion = 1;
 
-    public Pattern Generate(MelodicGeneratorSettings settings)
+    public Pattern Generate(EuclideanGeneratorSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
         if (settings.StepCount != 64 || settings.Timing != PatternTiming.SixteenthNotes)
-            throw new ArgumentException("Euclidean2 requires four bars of sixteenth-note steps.", nameof(settings));
+            throw new ArgumentException("The Euclidean phrase generator requires four bars of sixteenth-note steps.", nameof(settings));
         var random = RandomDefaults.CreateRandomSource(settings.Seed);
         var profile = MusicalRoleProfile.For(settings.Role);
         var hits = profile.HitCount(16, settings.Density);

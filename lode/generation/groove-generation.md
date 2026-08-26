@@ -1,7 +1,9 @@
 # Groove generation
 
-`melodic-groove-vocabulary` generator version 1 tests whether a curated rhythm vocabulary
-sounds less mechanical than weighted step selection. It is a four-bar,
+`melodic-groove-vocabulary` version 1 is implemented by
+`GrooveVocabularyGenerator` with `GrooveGeneratorSettings` and selected with
+`generator groove`. It tests whether a curated rhythm vocabulary sounds less
+mechanical than weighted step selection. It is a four-bar,
 bass-only alternative and will not replace the default without comparative
 hardware audition.
 

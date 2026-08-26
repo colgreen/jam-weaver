@@ -1,11 +1,13 @@
-# Euclidean2 generation
+# Euclidean phrase generation
 
-`melodic-euclidean-2` version 1 is an experimental four-bar development of the
-established Euclidean generator. It is selected with `generator euclidean2`.
+`melodic-euclidean-2` version 1 is implemented by `EuclideanPhraseGenerator`
+with `EuclideanGeneratorSettings`. It is an experimental four-bar development
+of the established Euclidean generator and is selected with `generator euclidean-phrase`;
+`generator euclidean2` remains a legacy alias.
 The existing `euclidean` generator remains a separate, frozen one-bar baseline;
-Euclidean2 experiments must not change its implementation or recipe contract.
+Euclidean phrase experiments must not change its implementation or recipe contract.
 
-Euclidean2 keeps the baseline's pentatonic pitch model, role ranges, Euclidean
+Euclidean phrase keeps the baseline's pentatonic pitch model, role ranges, Euclidean
 onsets, velocity, gate, and deterministic seed behavior. It adds a fixed phrase
 form:
 
@@ -26,7 +28,7 @@ determinism, role range safety, pitch movement, bounded rhythmic development,
 and the A return.
 
 Whether this experiment improves live musical usefulness remains a hardware
-audition question. Successful ideas can be adopted in a later Euclidean2
+audition question. Successful ideas can be adopted in a later Euclidean phrase
 version without altering the Euclidean baseline.
 
 Related: [pattern generation](pattern-generation.md) and [candidate

@@ -20,7 +20,7 @@ public sealed class PhraseGeneratorTests
     [InlineData(MusicalRole.High, PhraseRhythm.Broken, 303UL, "69E0D95B065B76E9B062E84713B3F4F1CE30DD2B12CD135C")]
     public void Role_and_rhythm_snapshot(MusicalRole role, PhraseRhythm rhythm, ulong seed, string expectedHash)
     {
-        var pattern = new MelodicPhraseGenerator().Generate(Settings(seed, role, rhythm));
+        var pattern = new StructuredPhraseGenerator().Generate(Settings(seed, role, rhythm));
         Assert.Equal(expectedHash, Hash(Signature(pattern))[..48]);
     }
 
@@ -30,7 +30,7 @@ public sealed class PhraseGeneratorTests
     [InlineData(PhraseLength.FourBars, 64)]
     public void Lengths_have_expected_steps_and_each_bar_sounds(PhraseLength length, int steps)
     {
-        var pattern = new MelodicPhraseGenerator().Generate(Settings(42, length: length));
+        var pattern = new StructuredPhraseGenerator().Generate(Settings(42, length: length));
 
         Assert.Equal(steps, pattern.Steps.Length);
         for (var bar = 0; bar < (int)length; bar++)
@@ -40,7 +40,7 @@ public sealed class PhraseGeneratorTests
     [Fact]
     public void Generation_and_recipe_reconstruction_are_reproducible()
     {
-        var generator = new MelodicPhraseGenerator();
+        var generator = new StructuredPhraseGenerator();
         var first = generator.Generate(Settings(123));
         var reconstructed = GeneratorRecipeReconstruction.Phrase(first.Name, first.Recipe!);
         var second = generator.Generate(reconstructed);
@@ -54,7 +54,7 @@ public sealed class PhraseGeneratorTests
     [Fact]
     public void Structural_hits_always_play_and_ghosts_are_sparse()
     {
-        var pattern = new MelodicPhraseGenerator().Generate(Settings(456));
+        var pattern = new StructuredPhraseGenerator().Generate(Settings(456));
         var structural = Mask(pattern, "structural-mask");
         var ghost = Mask(pattern, "ghost-mask");
 
@@ -78,7 +78,7 @@ public sealed class PhraseGeneratorTests
             var settings = new PhraseGeneratorSettings(new PatternName("matrix"), PhraseLength.FourBars,
                 new TonalContext(new RootPitchClass(root), palette), role, PhraseActivity.Medium,
                 PhraseRhythm.Syncopated, PhraseLevel.Medium, PhraseLevel.Medium, PhraseTurnaround.Subtle, seed);
-            var pattern = new MelodicPhraseGenerator().Generate(settings);
+            var pattern = new StructuredPhraseGenerator().Generate(settings);
             Assert.All(pattern.Steps.SelectMany(step => step.Notes), note =>
                 _ = PentatonicPitchResolver.Resolve((MelodicPitch)note.Pitch, settings.TonalContext, role));
             var a = Sounding(pattern, 0);
@@ -96,7 +96,7 @@ public sealed class PhraseGeneratorTests
     [InlineData(PhraseMutationTarget.Turnaround)]
     public void Targeted_mutation_changes_content_and_preserves_structural_steps(PhraseMutationTarget target)
     {
-        var parent = new MelodicPhraseGenerator().Generate(Settings(999));
+        var parent = new StructuredPhraseGenerator().Generate(Settings(999));
         var mutated = new PhrasePatternMutator().Mutate(parent,
             new PhraseMutationSettings(target, NormalizedAmount.High, 1234));
         var structural = Mask(parent, "structural-mask");

@@ -1,7 +1,8 @@
 # Motif generation
 
-`melodic-musical-motif` version 4 is an experimental generator. It creates a small
-melodic idea and develops it conservatively over four bars. Bass is the startup
+`melodic-musical-motif` version 4 is implemented by `MotifGenerator` with
+`MotifGeneratorSettings` and selected with `generator motif`. It is experimental
+and creates a small melodic idea that develops conservatively over four bars. Bass is the startup
 role, while middle and high roles apply the same grammar in their own register.
 Every note is deliberate:
 trigger probability is always one, and there are no ghost notes or independent

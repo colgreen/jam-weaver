@@ -109,7 +109,7 @@ public sealed class GrooveGeneratorTests
     [Fact]
     public void Recipe_reconstruction_and_json_round_trip_are_exact()
     {
-        var generator = new MelodicGrooveGenerator();
+        var generator = new GrooveVocabularyGenerator();
         var first = Generate(999, GrooveSelection.Broken);
         var reconstructed = generator.Generate(GeneratorRecipeReconstruction.Groove(first.Name, first.Recipe!));
         Assert.Equal(Signature(first), Signature(reconstructed));
@@ -126,7 +126,7 @@ public sealed class GrooveGeneratorTests
         Settings(1, GrooveSelection.Auto, PhraseActivity.Medium, MusicalRole.Middle));
 
     private static Pattern Generate(ulong seed, GrooveSelection selection, PhraseActivity activity = PhraseActivity.Medium) =>
-        new MelodicGrooveGenerator().Generate(Settings(seed, selection, activity));
+        new GrooveVocabularyGenerator().Generate(Settings(seed, selection, activity));
     private static GrooveGeneratorSettings Settings(ulong seed, GrooveSelection selection, PhraseActivity activity,
         MusicalRole role = MusicalRole.Bass) => new(new PatternName("Groove"),
         new TonalContext(new RootPitchClass(2), PitchPalette.MinorPentatonic), role, selection,

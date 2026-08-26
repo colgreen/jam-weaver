@@ -12,25 +12,33 @@ version's output contract.
 
 ## Available generators
 
-- `melodic-musical-motif` version 4 is an experimental option. It develops a short idea in
+- `melodic-musical-motif` version 4 is implemented by `MotifGenerator` with
+  `MotifGeneratorSettings` and selected as `motif`. It develops a short idea in
   the bass, middle, or high role through four related bars and selects one of
   several seed-driven rhythm variants. See [motif
   generation](motif-generation.md).
-- `melodic-structured-phrase` builds one-, two-, or four-bar phrases with
+- `melodic-structured-phrase` is implemented by `StructuredPhraseGenerator`
+  with `PhraseGeneratorSettings` and selected as `phrase`. It builds one-, two-, or four-bar phrases with
   controlled rhythmic and melodic development. See [phrase
   generation](phrase-generation.md).
-- `melodic-groove-vocabulary` creates four-bar bass phrases from a versioned
+- `melodic-groove-vocabulary` is implemented by `GrooveVocabularyGenerator`
+  with `GrooveGeneratorSettings` and selected as `groove`. It creates four-bar bass phrases from a versioned
   rhythm vocabulary. It remains an alternative pending comparative hardware
   audition. See [groove generation](groove-generation.md).
-- `melodic-euclidean-motif` version 3 is the startup default and is selected as
-  `euclidean` in the console. It creates a concise one-bar onset pattern and
+- `melodic-euclidean-motif` version 3 is implemented by
+  `EuclideanMotifGenerator` with `EuclideanGeneratorSettings`. It is the startup
+  default and is selected as `euclidean` in the console. It creates a concise one-bar onset pattern and
   short melodic motif. Its implementation and recipe are the frozen comparison
   baseline for Euclidean experiments.
-- `melodic-euclidean-2` version 1 is selected as `euclidean2`. It keeps the
+- `melodic-euclidean-2` version 1 is implemented by `EuclideanPhraseGenerator`
+  with `EuclideanGeneratorSettings`. It is selected as `euclidean-phrase`
+  (`euclidean2` remains a legacy alias). It keeps the
   Euclidean ingredients but develops them through a fixed four-bar A, A-prime,
-  B, return form. See [Euclidean2 generation](euclidean2-generation.md).
-- `drum-euclidean-voices` distributes user-supplied MIDI drum notes across
-  separate Euclidean rhythms. It does not assign device-specific drum names.
+  B, return form. See [Euclidean phrase generation](euclidean-phrase-generation.md).
+- `drum-euclidean-voices` is implemented by `EuclideanDrumGenerator` with
+  `EuclideanDrumGeneratorSettings`. It distributes user-supplied MIDI drum notes
+  across separate Euclidean rhythms and is not currently a console generator
+  option. It does not assign device-specific drum names.
 
 ## Shared controls and constraints
 

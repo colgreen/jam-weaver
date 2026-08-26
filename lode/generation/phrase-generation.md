@@ -1,7 +1,9 @@
 # Phrase generation
 
-`melodic-structured-phrase` version 1 produces one, two, or four 16-step melodic
-bars. Four-bar phrases use A, A-prime, B, and turnaround roles:
+`melodic-structured-phrase` version 1 is implemented by
+`StructuredPhraseGenerator` with `PhraseGeneratorSettings` and selected with
+`generator phrase`. It produces one, two, or four 16-step melodic bars. Four-bar
+phrases use A, A-prime, B, and turnaround roles:
 
 - A establishes the rhythmic and melodic identity.
 - A-prime keeps at least half of A's rhythmic identity while varying it.

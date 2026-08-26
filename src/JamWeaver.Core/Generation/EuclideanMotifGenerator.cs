@@ -2,12 +2,12 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation;
 
-public sealed class MelodicPatternGenerator : IPatternGenerator<MelodicGeneratorSettings>
+public sealed class EuclideanMotifGenerator : IPatternGenerator<EuclideanGeneratorSettings>
 {
     public const string GeneratorId = "melodic-euclidean-motif";
     public const int GeneratorVersion = 3;
 
-    public Pattern Generate(MelodicGeneratorSettings settings)
+    public Pattern Generate(EuclideanGeneratorSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
         var random = RandomDefaults.CreateRandomSource(settings.Seed);

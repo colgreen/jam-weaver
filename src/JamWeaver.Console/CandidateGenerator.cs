@@ -4,20 +4,20 @@ namespace JamWeaver.ConsoleApp;
 /// <summary>Creates a candidate pattern from the selected console controls and current musical context.</summary>
 public sealed class CandidateGenerator
 {
-    private readonly IPatternGenerator<MelodicGeneratorSettings> euclidean;
-    private readonly IPatternGenerator<MelodicGeneratorSettings> euclidean2;
+    private readonly IPatternGenerator<EuclideanGeneratorSettings> euclidean;
+    private readonly IPatternGenerator<EuclideanGeneratorSettings> euclideanPhrase;
     private readonly IPatternGenerator<PhraseGeneratorSettings> phrase;
     private readonly IPatternGenerator<GrooveGeneratorSettings> groove;
     private readonly IPatternGenerator<MotifGeneratorSettings> motif;
 
-    public CandidateGenerator(IPatternGenerator<MelodicGeneratorSettings> euclidean,
-        IPatternGenerator<MelodicGeneratorSettings> euclidean2,
+    public CandidateGenerator(IPatternGenerator<EuclideanGeneratorSettings> euclidean,
+        IPatternGenerator<EuclideanGeneratorSettings> euclideanPhrase,
         IPatternGenerator<PhraseGeneratorSettings> phrase,
         IPatternGenerator<GrooveGeneratorSettings> groove,
         IPatternGenerator<MotifGeneratorSettings> motif)
     {
         this.euclidean = euclidean;
-        this.euclidean2 = euclidean2;
+        this.euclideanPhrase = euclideanPhrase;
         this.phrase = phrase;
         this.groove = groove;
         this.motif = motif;
@@ -40,8 +40,8 @@ public sealed class CandidateGenerator
                 controls.Turnaround, seed)),
             GeneratorMode.Motif => motif.Generate(new MotifGeneratorSettings(name, context, role,
                 controls.MotifShape, controls.Activity, controls.Movement, controls.Variation, seed)),
-            GeneratorMode.Euclidean => euclidean.Generate(MelodicSettings(name, 16, context, role, seed)),
-            GeneratorMode.Euclidean2 => euclidean2.Generate(MelodicSettings(name, 64, context, role, seed)),
+            GeneratorMode.Euclidean => euclidean.Generate(EuclideanSettings(name, 16, context, role, seed)),
+            GeneratorMode.EuclideanPhrase => euclideanPhrase.Generate(EuclideanSettings(name, 64, context, role, seed)),
             _ => throw new ArgumentOutOfRangeException(nameof(controls), controls.Mode, "Unknown generator mode.")
         };
     }
@@ -49,7 +49,7 @@ public sealed class CandidateGenerator
     public static TonalContext DefaultTonalContext() =>
         new(new RootPitchClass(9), PitchPalette.MinorPentatonic);
 
-    private static MelodicGeneratorSettings MelodicSettings(PatternName name, int stepCount,
+    private static EuclideanGeneratorSettings EuclideanSettings(PatternName name, int stepCount,
         TonalContext context, MusicalRole role, ulong seed) =>
         new(name, stepCount, PatternTiming.SixteenthNotes, context, role, new NormalizedAmount(.4),
             new NormalizedAmount(.35), new NormalizedAmount(.65), new NormalizedAmount(.8),

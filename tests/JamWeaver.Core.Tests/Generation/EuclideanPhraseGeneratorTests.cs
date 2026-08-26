@@ -1,7 +1,7 @@
 
 namespace JamWeaver.Core.Tests.Generation;
 
-public sealed class Euclidean2PatternGeneratorTests
+public sealed class EuclideanPhraseGeneratorTests
 {
     [Theory]
     [InlineData(MusicalRole.Bass)]
@@ -9,7 +9,7 @@ public sealed class Euclidean2PatternGeneratorTests
     [InlineData(MusicalRole.High)]
     public void Generates_reproducible_four_bar_patterns_in_the_selected_role(MusicalRole role)
     {
-        var generator = new Euclidean2PatternGenerator();
+        var generator = new EuclideanPhraseGenerator();
         foreach (var seed in Enumerable.Range(1, 32).Select(value => (ulong)value))
         {
             var settings = Settings(seed, role);
@@ -28,7 +28,7 @@ public sealed class Euclidean2PatternGeneratorTests
     [Fact]
     public void Uses_bounded_A_Aprime_B_return_rhythm_development()
     {
-        var pattern = new Euclidean2PatternGenerator().Generate(Settings(123, MusicalRole.Bass));
+        var pattern = new EuclideanPhraseGenerator().Generate(Settings(123, MusicalRole.Bass));
         var bars = Enumerable.Range(0, 4)
             .Select(bar => pattern.Steps.Skip(bar * 16).Take(16).Select(step => step.Notes.Length > 0).ToArray())
             .ToArray();
@@ -45,25 +45,25 @@ public sealed class Euclidean2PatternGeneratorTests
     public void Rejects_non_four_bar_timing()
     {
         var source = Settings(1, MusicalRole.Bass);
-        var settings = new MelodicGeneratorSettings(source.Name, 16, source.Timing, source.TonalContext,
+        var settings = new EuclideanGeneratorSettings(source.Name, 16, source.Timing, source.TonalContext,
             source.Role, source.Density, source.Movement, source.Repetition, source.Gate,
             source.VelocityVariation, source.Seed);
 
-        Assert.Throws<ArgumentException>(() => new Euclidean2PatternGenerator().Generate(settings));
+        Assert.Throws<ArgumentException>(() => new EuclideanPhraseGenerator().Generate(settings));
     }
 
     [Fact]
     public void Recipe_reconstructs_the_same_pattern()
     {
-        var generator = new Euclidean2PatternGenerator();
+        var generator = new EuclideanPhraseGenerator();
         var first = generator.Generate(Settings(456, MusicalRole.Middle));
-        var reconstructed = GeneratorRecipeReconstruction.Euclidean2(first.Name, first.Recipe!);
+        var reconstructed = GeneratorRecipeReconstruction.EuclideanPhrase(first.Name, first.Recipe!);
 
         Assert.Equal(Signature(first), Signature(generator.Generate(reconstructed)));
     }
 
-    private static MelodicGeneratorSettings Settings(ulong seed, MusicalRole role) => new(
-        new PatternName("Euclidean2"), 64, PatternTiming.SixteenthNotes,
+    private static EuclideanGeneratorSettings Settings(ulong seed, MusicalRole role) => new(
+        new PatternName("Euclidean phrase"), 64, PatternTiming.SixteenthNotes,
         new TonalContext(new RootPitchClass(2), PitchPalette.MinorPentatonic), role,
         new NormalizedAmount(.4), new NormalizedAmount(.35), new NormalizedAmount(.65),
         new NormalizedAmount(.8), new NormalizedAmount(.15), seed);

@@ -69,8 +69,8 @@ value and syntax. `channel` remains the readable long form of this conventional
 MIDI abbreviation.
 
 Musical creation controls are part of default help rather than diagnostics.
-Bare `generator` reports the current generator and the euclidean, euclidean2,
-motif, phrase, and groove choices. Euclidean is the startup default; Euclidean2
+Bare `generator` reports the current generator and the `euclidean`,
+`euclidean-phrase`, `motif`, `phrase`, and `groove` choices. Euclidean is the startup default; Euclidean phrase
 is an isolated four-bar experiment and the other non-default choices remain
 experimental options. Bare `shape` reports the current motif shape and all shape
 choices. Both show their selection syntax, and setting either confirms the new

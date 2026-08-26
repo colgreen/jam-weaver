@@ -12,12 +12,12 @@ public sealed class GeneratorTests
     [Fact]
     public void Generators_implement_their_typed_contracts()
     {
-        Assert.IsAssignableFrom<IPatternGenerator<MelodicGeneratorSettings>>(new MelodicPatternGenerator());
-        Assert.IsAssignableFrom<IPatternGenerator<MelodicGeneratorSettings>>(new Euclidean2PatternGenerator());
-        Assert.IsAssignableFrom<IPatternGenerator<DrumGeneratorSettings>>(new DrumPatternGenerator());
-        Assert.IsAssignableFrom<IPatternGenerator<PhraseGeneratorSettings>>(new MelodicPhraseGenerator());
-        Assert.IsAssignableFrom<IPatternGenerator<GrooveGeneratorSettings>>(new MelodicGrooveGenerator());
-        Assert.IsAssignableFrom<IPatternGenerator<MotifGeneratorSettings>>(new MusicalMotifGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new EuclideanMotifGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new EuclideanPhraseGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<EuclideanDrumGeneratorSettings>>(new EuclideanDrumGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<PhraseGeneratorSettings>>(new StructuredPhraseGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<GrooveGeneratorSettings>>(new GrooveVocabularyGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<MotifGeneratorSettings>>(new MotifGenerator());
     }
 
     [Theory]
@@ -29,18 +29,18 @@ public sealed class GeneratorTests
     [InlineData(MusicalRole.High, PitchPalette.MinorPentatonic, 302UL, "1BD8B6DFA1374A37E7AD64D8BB0DE151F29EA5CCA6D0C01F7739B25C76D5CF83")]
     public void Role_and_palette_snapshot(MusicalRole role, PitchPalette palette, ulong seed, string expectedHash)
     {
-        var settings = new MelodicGeneratorSettings(new PatternName("Snapshot"), 16, PatternTiming.SixteenthNotes,
+        var settings = new EuclideanGeneratorSettings(new PatternName("Snapshot"), 16, PatternTiming.SixteenthNotes,
             new TonalContext(new RootPitchClass(0), palette), role, new NormalizedAmount(.5),
             new NormalizedAmount(.5), new NormalizedAmount(.5), new NormalizedAmount(.5), new NormalizedAmount(.5), seed);
-        Assert.Equal(expectedHash, Hash(Signature(new MelodicPatternGenerator().Generate(settings))));
+        Assert.Equal(expectedHash, Hash(Signature(new EuclideanMotifGenerator().Generate(settings))));
     }
 
     [Fact]
     public void Melodic_generation_is_reproducible_and_starts_on_downbeat()
     {
-        var generator = new MelodicPatternGenerator();
-        var first = generator.Generate(MelodicSettings(123));
-        var second = generator.Generate(MelodicSettings(123));
+        var generator = new EuclideanMotifGenerator();
+        var first = generator.Generate(EuclideanSettings(123));
+        var second = generator.Generate(EuclideanSettings(123));
         Assert.NotEqual(first.Id, second.Id);
         Assert.Equal(Signature(first), Signature(second));
         Assert.NotEmpty(first.Steps[0].Notes);
@@ -50,8 +50,8 @@ public sealed class GeneratorTests
 
     [Fact]
     public void Different_seed_changes_representative_melodic_pattern() =>
-        Assert.NotEqual(Signature(new MelodicPatternGenerator().Generate(MelodicSettings(1))),
-            Signature(new MelodicPatternGenerator().Generate(MelodicSettings(2))));
+        Assert.NotEqual(Signature(new EuclideanMotifGenerator().Generate(EuclideanSettings(1))),
+            Signature(new EuclideanMotifGenerator().Generate(EuclideanSettings(2))));
 
     [Theory]
     [InlineData(MusicalRole.Bass)]
@@ -61,11 +61,11 @@ public sealed class GeneratorTests
     {
         foreach (var seed in Enumerable.Range(1, 32).Select(value => (ulong)value))
         {
-            var source = MelodicSettings(seed);
-            var settings = new MelodicGeneratorSettings(source.Name, source.StepCount, source.Timing,
+            var source = EuclideanSettings(seed);
+            var settings = new EuclideanGeneratorSettings(source.Name, source.StepCount, source.Timing,
                 source.TonalContext, role, source.Density, source.Movement, source.Repetition,
                 source.Gate, source.VelocityVariation, source.Seed);
-            var pattern = new MelodicPatternGenerator().Generate(settings);
+            var pattern = new EuclideanMotifGenerator().Generate(settings);
             Assert.True(pattern.Steps.SelectMany(step => step.Notes).Select(note => note.Pitch).Distinct().Count() > 1);
         }
     }
@@ -73,13 +73,13 @@ public sealed class GeneratorTests
     [Fact]
     public void Drum_generation_supports_multiple_voices_and_is_reproducible()
     {
-        var settings = new DrumGeneratorSettings(new PatternName("Drums"), 16, PatternTiming.SixteenthNotes,
+        var settings = new EuclideanDrumGeneratorSettings(new PatternName("Drums"), 16, PatternTiming.SixteenthNotes,
         [
             new DrumVoiceSettings(new MidiValue(36), new NormalizedAmount(.4)),
             new DrumVoiceSettings(new MidiValue(38), new NormalizedAmount(.25)),
             new DrumVoiceSettings(new MidiValue(42), new NormalizedAmount(.6))
         ], new NormalizedAmount(.4), new NormalizedAmount(.25), 456);
-        var generator = new DrumPatternGenerator();
+        var generator = new EuclideanDrumGenerator();
         var first = generator.Generate(settings);
         var second = generator.Generate(settings);
         Assert.Equal(Signature(first), Signature(second));
@@ -91,7 +91,7 @@ public sealed class GeneratorTests
     [Fact]
     public void Mutation_creates_changed_snapshot_with_bounded_edits_and_ancestry()
     {
-        var parent = new MelodicPatternGenerator().Generate(MelodicSettings(123));
+        var parent = new EuclideanMotifGenerator().Generate(EuclideanSettings(123));
         var settings = new MutationSettings(new NormalizedAmount(.1), 999);
         var mutated = new PatternMutator().Mutate(parent, settings);
         Assert.NotEqual(parent.Id, mutated.Id);
@@ -105,29 +105,29 @@ public sealed class GeneratorTests
     [Fact]
     public void Melodic_recipe_reconstructs_equivalent_settings_and_pattern()
     {
-        var generator = new MelodicPatternGenerator();
-        var generated = generator.Generate(MelodicSettings(123));
-        var settings = GeneratorRecipeReconstruction.Melodic(generated.Name, generated.Recipe!);
+        var generator = new EuclideanMotifGenerator();
+        var generated = generator.Generate(EuclideanSettings(123));
+        var settings = GeneratorRecipeReconstruction.Euclidean(generated.Name, generated.Recipe!);
         Assert.Equal(Signature(generated), Signature(generator.Generate(settings)));
     }
 
     [Fact]
     public void Recipe_reconstruction_rejects_unknown_parameter()
     {
-        var generated = new MelodicPatternGenerator().Generate(MelodicSettings(123));
+        var generated = new EuclideanMotifGenerator().Generate(EuclideanSettings(123));
         var parameters = generated.Recipe!.Parameters.Add("unknown", RecipeValue.FromBoolean(true));
         var malformed = new GeneratorRecipe(generated.Recipe.GeneratorId, generated.Recipe.GeneratorVersion,
             generated.Recipe.Seed, null, parameters);
-        Assert.Throws<ArgumentException>(() => GeneratorRecipeReconstruction.Melodic(generated.Name, malformed));
+        Assert.Throws<ArgumentException>(() => GeneratorRecipeReconstruction.Euclidean(generated.Name, malformed));
     }
 
     [Fact]
     public void Drum_recipe_reconstructs_equivalent_pattern()
     {
-        var settings = new DrumGeneratorSettings(new PatternName("Drums"), 16, PatternTiming.SixteenthNotes,
+        var settings = new EuclideanDrumGeneratorSettings(new PatternName("Drums"), 16, PatternTiming.SixteenthNotes,
             [new DrumVoiceSettings(new MidiValue(36), new NormalizedAmount(.4)), new DrumVoiceSettings(new MidiValue(42), new NormalizedAmount(.6))],
             new NormalizedAmount(.4), new NormalizedAmount(.2), 88);
-        var generator = new DrumPatternGenerator();
+        var generator = new EuclideanDrumGenerator();
         var generated = generator.Generate(settings);
         var reconstructed = GeneratorRecipeReconstruction.Drums(generated.Name, generated.Recipe!);
         Assert.Equal(Signature(generated), Signature(generator.Generate(reconstructed)));
@@ -136,13 +136,13 @@ public sealed class GeneratorTests
     [Fact]
     public void Mutation_is_repeatable_for_same_parent_settings_and_seed()
     {
-        var parent = new MelodicPatternGenerator().Generate(MelodicSettings(123));
+        var parent = new EuclideanMotifGenerator().Generate(EuclideanSettings(123));
         var settings = new MutationSettings(new NormalizedAmount(.6), 777);
         var mutator = new PatternMutator();
         Assert.Equal(Signature(mutator.Mutate(parent, settings)), Signature(mutator.Mutate(parent, settings)));
     }
 
-    private static MelodicGeneratorSettings MelodicSettings(ulong seed) => new(
+    private static EuclideanGeneratorSettings EuclideanSettings(ulong seed) => new(
         new PatternName("Bass"), 16, PatternTiming.SixteenthNotes,
         new TonalContext(new RootPitchClass(2), PitchPalette.MinorPentatonic), MusicalRole.Bass,
         new NormalizedAmount(.5), new NormalizedAmount(.35), new NormalizedAmount(.75),

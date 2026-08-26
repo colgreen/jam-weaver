@@ -16,10 +16,10 @@ public sealed class JamWeaverConsoleTests
         await using var internalClock = new InternalMidiClock(output, transport);
         using var player = new PatternPlayer(output, transport);
         var session = new CandidateSession(player);
-        var phraseGenerator = new MelodicPhraseGenerator();
-        var grooveGenerator = new MelodicGrooveGenerator();
-        var candidateGenerator = new CandidateGenerator(new MelodicPatternGenerator(),
-            new Euclidean2PatternGenerator(), phraseGenerator, grooveGenerator, new MusicalMotifGenerator());
+        var phraseGenerator = new StructuredPhraseGenerator();
+        var grooveGenerator = new GrooveVocabularyGenerator();
+        var candidateGenerator = new CandidateGenerator(new EuclideanMotifGenerator(),
+            new EuclideanPhraseGenerator(), phraseGenerator, grooveGenerator, new MotifGenerator());
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
         var application = new JamWeaverConsole(new StringReader("bpm invalid\nhelp\nquit\n"),
@@ -42,14 +42,14 @@ public sealed class JamWeaverConsoleTests
         await using var internalClock = new InternalMidiClock(output, transport);
         using var player = new PatternPlayer(output, transport);
         var session = new CandidateSession(player);
-        var phraseGenerator = new MelodicPhraseGenerator();
-        var grooveGenerator = new MelodicGrooveGenerator();
+        var phraseGenerator = new StructuredPhraseGenerator();
+        var grooveGenerator = new GrooveVocabularyGenerator();
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
-        var application = new JamWeaverConsole(new StringReader("bpm\nquit\n"), new ConsoleDisplay(writer), output,
+        var application = new JamWeaverConsole(new StringReader("generator euclidean-phrase\ngenerator euclidean2\nbpm\nquit\n"), new ConsoleDisplay(writer), output,
             transport, internalClock, player, session,
-            new CandidateGenerator(new MelodicPatternGenerator(), new Euclidean2PatternGenerator(), phraseGenerator,
-                grooveGenerator, new MusicalMotifGenerator()),
+            new CandidateGenerator(new EuclideanMotifGenerator(), new EuclideanPhraseGenerator(), phraseGenerator,
+                grooveGenerator, new MotifGenerator()),
             new GenerationControls(), new PatternMutator(), new PhrasePatternMutator(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),
             new ExternalMidiClockInput());
@@ -57,5 +57,7 @@ public sealed class JamWeaverConsoleTests
         await application.RunAsync();
 
         Assert.Contains("Tempo: 120 BPM", writer.ToString());
+        Assert.Contains("Generator: euclidean-phrase", writer.ToString());
+        Assert.DoesNotContain("Error:", writer.ToString());
     }
 }

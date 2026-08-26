@@ -19,7 +19,7 @@ mutate, audition, accept, reject, save, and load patterns without sending
 device-specific patch data.
 
 The default Euclidean generator creates concise one-bar melodic patterns in the
-selected bass, middle, or high register. A separate Euclidean2 generator tests
+selected bass, middle, or high register. A separate Euclidean phrase generator tests
 bounded A, A-prime, B, return development without changing that baseline.
 Four-bar motif, structured-phrase, groove-vocabulary, and drum generators also
 remain available for experimentation.

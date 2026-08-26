@@ -17,7 +17,7 @@ public sealed class MotifGeneratorTests
     [InlineData(MotifShape.Riff)]
     public void Every_shape_is_deterministic_bounded_and_has_no_random_triggers(MotifShape shape)
     {
-        var generator = new MusicalMotifGenerator();
+        var generator = new MotifGenerator();
         var first = generator.Generate(Settings(123, shape));
         var second = generator.Generate(Settings(123, shape));
 
@@ -34,14 +34,14 @@ public sealed class MotifGeneratorTests
     [Fact]
     public void Low_variation_repeats_A_exactly_as_A_prime()
     {
-        var pattern = new MusicalMotifGenerator().Generate(Settings(456, MotifShape.RootFifth, PhraseLevel.Low));
+        var pattern = new MotifGenerator().Generate(Settings(456, MotifShape.RootFifth, PhraseLevel.Low));
         Assert.Equal(pattern.Steps.Take(16).Select(Step), pattern.Steps.Skip(16).Take(16).Select(Step));
     }
 
     [Fact]
     public void Medium_variation_changes_only_a_bounded_part_of_A_prime()
     {
-        var pattern = new MusicalMotifGenerator().Generate(Settings(789, MotifShape.Walking));
+        var pattern = new MotifGenerator().Generate(Settings(789, MotifShape.Walking));
         var differences = pattern.Steps.Take(16).Select(Step).Zip(pattern.Steps.Skip(16).Take(16).Select(Step))
             .Count(pair => pair.First != pair.Second);
         Assert.InRange(differences, 1, 3);
@@ -50,9 +50,9 @@ public sealed class MotifGeneratorTests
     [Fact]
     public void Activity_has_clear_density_levels()
     {
-        var sparse = new MusicalMotifGenerator().Generate(Settings(1, activity: PhraseActivity.Sparse));
-        var medium = new MusicalMotifGenerator().Generate(Settings(1, activity: PhraseActivity.Medium));
-        var busy = new MusicalMotifGenerator().Generate(Settings(1, activity: PhraseActivity.Busy));
+        var sparse = new MotifGenerator().Generate(Settings(1, activity: PhraseActivity.Sparse));
+        var medium = new MotifGenerator().Generate(Settings(1, activity: PhraseActivity.Medium));
+        var busy = new MotifGenerator().Generate(Settings(1, activity: PhraseActivity.Busy));
         Assert.True(Hits(sparse, 0) < Hits(medium, 0));
         Assert.True(Hits(medium, 0) < Hits(busy, 0));
     }
@@ -61,7 +61,7 @@ public sealed class MotifGeneratorTests
     public void Seeds_select_multiple_explainable_rhythm_variants_for_the_same_shape()
     {
         var patterns = Enumerable.Range(1, 32)
-            .Select(seed => new MusicalMotifGenerator().Generate(Settings((ulong)seed, MotifShape.Riff)))
+            .Select(seed => new MotifGenerator().Generate(Settings((ulong)seed, MotifShape.Riff)))
             .ToArray();
 
         Assert.True(patterns.Select(pattern => pattern.Recipe!.Parameters["rhythm-variant"].Integer).Distinct().Count() >= 3);
@@ -71,7 +71,7 @@ public sealed class MotifGeneratorTests
     [Fact]
     public void Recipe_reconstruction_and_json_round_trip_preserve_material()
     {
-        var generator = new MusicalMotifGenerator();
+        var generator = new MotifGenerator();
         var first = generator.Generate(Settings(999, MotifShape.CallResponse));
         var reconstructed = generator.Generate(GeneratorRecipeReconstruction.Motif(first.Name, first.Recipe!));
         Assert.Equal(Signature(first), Signature(reconstructed));
@@ -91,7 +91,7 @@ public sealed class MotifGeneratorTests
         MusicalRole role, int minimumNote, int maximumNote)
     {
         var settings = Settings(321, role: role);
-        var generator = new MusicalMotifGenerator();
+        var generator = new MotifGenerator();
         var first = generator.Generate(settings);
         var second = generator.Generate(settings);
 
@@ -112,7 +112,7 @@ public sealed class MotifGeneratorTests
             var settings = new MotifGeneratorSettings(new PatternName("Movement"),
                 new TonalContext(new RootPitchClass(root), PitchPalette.MinorPentatonic), role, shape,
                 PhraseActivity.Medium, PhraseLevel.Medium, PhraseLevel.Medium, 123);
-            var pattern = new MusicalMotifGenerator().Generate(settings);
+            var pattern = new MotifGenerator().Generate(settings);
             var notes = pattern.Steps.SelectMany(step => step.Notes)
                 .Select(note => PentatonicPitchResolver.Resolve((MelodicPitch)note.Pitch,
                     pattern.TonalContext!.Value, role).Value).Distinct();

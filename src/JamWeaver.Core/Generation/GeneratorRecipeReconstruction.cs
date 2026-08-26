@@ -16,24 +16,24 @@ public static class GeneratorRecipeReconstruction
         return new MutationSettings(N(recipe, "strength"), recipe.Seed);
     }
 
-    public static MelodicGeneratorSettings Melodic(PatternName name, GeneratorRecipe recipe)
+    public static EuclideanGeneratorSettings Euclidean(PatternName name, GeneratorRecipe recipe)
     {
-        RequireGenerator(recipe, MelodicPatternGenerator.GeneratorId, MelodicPatternGenerator.GeneratorVersion);
+        RequireGenerator(recipe, EuclideanMotifGenerator.GeneratorId, EuclideanMotifGenerator.GeneratorVersion);
         var expected = new HashSet<string>(StringComparer.Ordinal)
         {
             "steps", "pulses-per-step", "root", "palette", "role", "density", "movement", "repetition",
             "gate", "velocity-variation", "hits", "rotation", "motif-length"
         };
         RequireExactKeys(recipe, expected);
-        return new MelodicGeneratorSettings(name, I(recipe, "steps"), new PatternTiming(I(recipe, "pulses-per-step")),
+        return new EuclideanGeneratorSettings(name, I(recipe, "steps"), new PatternTiming(I(recipe, "pulses-per-step")),
             new TonalContext(new RootPitchClass(I(recipe, "root")), E<PitchPalette>(recipe, "palette")),
             E<MusicalRole>(recipe, "role"), N(recipe, "density"), N(recipe, "movement"), N(recipe, "repetition"),
             N(recipe, "gate"), N(recipe, "velocity-variation"), recipe.Seed);
     }
 
-    public static MelodicGeneratorSettings Euclidean2(PatternName name, GeneratorRecipe recipe)
+    public static EuclideanGeneratorSettings EuclideanPhrase(PatternName name, GeneratorRecipe recipe)
     {
-        RequireGenerator(recipe, Euclidean2PatternGenerator.GeneratorId, Euclidean2PatternGenerator.GeneratorVersion);
+        RequireGenerator(recipe, EuclideanPhraseGenerator.GeneratorId, EuclideanPhraseGenerator.GeneratorVersion);
         RequireExactKeys(recipe, new HashSet<string>(
         [
             "steps", "pulses-per-step", "root", "palette", "role", "density", "movement", "repetition",
@@ -41,22 +41,22 @@ public static class GeneratorRecipeReconstruction
             "bar-0-mask", "bar-1-mask", "bar-2-mask", "bar-3-mask", "bar-roles", "structural-mask", "ghost-mask"
         ], StringComparer.Ordinal));
         if (I(recipe, "steps") != 64 || I(recipe, "pulses-per-step") != PatternTiming.SixteenthNotes.PulsesPerStep)
-            throw new ArgumentException("Euclidean2 recipe timing is inconsistent.", nameof(recipe));
+            throw new ArgumentException("Euclidean phrase recipe timing is inconsistent.", nameof(recipe));
         if (I(recipe, "hits-a") is < 1 or > 15 || I(recipe, "hits-b") is < 1 or > 15
             || I(recipe, "rotation-a") is < 0 or > 15 || I(recipe, "rotation-b") is < 0 or > 15
             || I(recipe, "motif-length") is < 2 or > 4 || T(recipe, "bar-roles") != "A,A-prime,B,return")
-            throw new ArgumentException("Euclidean2 recipe metadata is inconsistent.", nameof(recipe));
+            throw new ArgumentException("Euclidean phrase recipe metadata is inconsistent.", nameof(recipe));
         for (var index = 0; index < 4; index++) _ = ParseHex(recipe, $"bar-{index}-mask", 4);
         _ = ParseHex(recipe, "structural-mask", 16); _ = ParseHex(recipe, "ghost-mask", 16);
-        return new MelodicGeneratorSettings(name, 64, PatternTiming.SixteenthNotes,
+        return new EuclideanGeneratorSettings(name, 64, PatternTiming.SixteenthNotes,
             new TonalContext(new RootPitchClass(I(recipe, "root")), E<PitchPalette>(recipe, "palette")),
             E<MusicalRole>(recipe, "role"), N(recipe, "density"), N(recipe, "movement"), N(recipe, "repetition"),
             N(recipe, "gate"), N(recipe, "velocity-variation"), recipe.Seed);
     }
 
-    public static DrumGeneratorSettings Drums(PatternName name, GeneratorRecipe recipe)
+    public static EuclideanDrumGeneratorSettings Drums(PatternName name, GeneratorRecipe recipe)
     {
-        RequireGenerator(recipe, DrumPatternGenerator.GeneratorId, DrumPatternGenerator.GeneratorVersion);
+        RequireGenerator(recipe, EuclideanDrumGenerator.GeneratorId, EuclideanDrumGenerator.GeneratorVersion);
         var voiceCount = I(recipe, "voice-count");
         if (voiceCount is < 1 or > 8) throw new ArgumentException("Recipe voice count must be 1-8.", nameof(recipe));
         var expected = new HashSet<string>(["steps", "pulses-per-step", "gate", "velocity-variation", "voice-count"], StringComparer.Ordinal);
@@ -68,13 +68,13 @@ public static class GeneratorRecipeReconstruction
             voices.Add(new DrumVoiceSettings(new MidiValue(I(recipe, $"{prefix}-note")), N(recipe, $"{prefix}-density")));
         }
         RequireExactKeys(recipe, expected);
-        return new DrumGeneratorSettings(name, I(recipe, "steps"), new PatternTiming(I(recipe, "pulses-per-step")),
+        return new EuclideanDrumGeneratorSettings(name, I(recipe, "steps"), new PatternTiming(I(recipe, "pulses-per-step")),
             voices, N(recipe, "gate"), N(recipe, "velocity-variation"), recipe.Seed);
     }
 
     public static PhraseGeneratorSettings Phrase(PatternName name, GeneratorRecipe recipe)
     {
-        RequireGenerator(recipe, MelodicPhraseGenerator.GeneratorId, MelodicPhraseGenerator.GeneratorVersion);
+        RequireGenerator(recipe, StructuredPhraseGenerator.GeneratorId, StructuredPhraseGenerator.GeneratorVersion);
         RequireExactKeys(recipe, new HashSet<string>(
         [
             "length", "activity", "rhythm", "movement", "variation", "turnaround", "root", "palette",
@@ -103,7 +103,7 @@ public static class GeneratorRecipeReconstruction
 
     public static GrooveGeneratorSettings Groove(PatternName name, GeneratorRecipe recipe)
     {
-        RequireGenerator(recipe, MelodicGrooveGenerator.GeneratorId, MelodicGrooveGenerator.GeneratorVersion);
+        RequireGenerator(recipe, GrooveVocabularyGenerator.GeneratorId, GrooveVocabularyGenerator.GeneratorVersion);
         var expected = new HashSet<string>(StringComparer.Ordinal)
         {
             "vocabulary-version", "metric-version", "template", "groove", "similarity", "activity",
@@ -128,7 +128,7 @@ public static class GeneratorRecipeReconstruction
 
     public static MotifGeneratorSettings Motif(PatternName name, GeneratorRecipe recipe)
     {
-        RequireGenerator(recipe, MusicalMotifGenerator.GeneratorId, MusicalMotifGenerator.GeneratorVersion);
+        RequireGenerator(recipe, MotifGenerator.GeneratorId, MotifGenerator.GeneratorVersion);
         var expected = new HashSet<string>(StringComparer.Ordinal)
         {
             "shape", "resolved-shape", "rhythm-variant", "activity", "movement", "variation", "root", "palette", "role",

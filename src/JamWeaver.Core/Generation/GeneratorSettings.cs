@@ -2,9 +2,9 @@ using System.Collections.Immutable;
 
 namespace JamWeaver.Core.Generation;
 
-public sealed record MelodicGeneratorSettings
+public sealed record EuclideanGeneratorSettings
 {
-    public MelodicGeneratorSettings(PatternName name, int stepCount, PatternTiming timing, TonalContext tonalContext,
+    public EuclideanGeneratorSettings(PatternName name, int stepCount, PatternTiming timing, TonalContext tonalContext,
         MusicalRole role, NormalizedAmount density, NormalizedAmount movement, NormalizedAmount repetition,
         NormalizedAmount gate, NormalizedAmount velocityVariation, ulong seed)
     {
@@ -27,9 +27,9 @@ public sealed record MelodicGeneratorSettings
 
 public sealed record DrumVoiceSettings(MidiValue Note, NormalizedAmount Density);
 
-public sealed class DrumGeneratorSettings
+public sealed class EuclideanDrumGeneratorSettings
 {
-    public DrumGeneratorSettings(PatternName name, int stepCount, PatternTiming timing,
+    public EuclideanDrumGeneratorSettings(PatternName name, int stepCount, PatternTiming timing,
         IEnumerable<DrumVoiceSettings> voices, NormalizedAmount gate, NormalizedAmount velocityVariation, ulong seed)
     {
         if (stepCount is < 1 or > 256) throw new ArgumentOutOfRangeException(nameof(stepCount));

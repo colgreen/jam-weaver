@@ -2,7 +2,7 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation.Phrase;
 
-public sealed class MelodicPhraseGenerator : IPatternGenerator<PhraseGeneratorSettings>
+public sealed class StructuredPhraseGenerator : IPatternGenerator<PhraseGeneratorSettings>
 {
     public const string GeneratorId = "melodic-structured-phrase";
     public const int GeneratorVersion = 1;

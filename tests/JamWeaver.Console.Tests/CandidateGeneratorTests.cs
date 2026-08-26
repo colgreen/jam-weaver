@@ -20,11 +20,11 @@ public sealed class CandidateGeneratorTests
     }
 
     [Theory]
-    [InlineData(GeneratorMode.Euclidean, MelodicPatternGenerator.GeneratorId, 16)]
-    [InlineData(GeneratorMode.Euclidean2, Euclidean2PatternGenerator.GeneratorId, 64)]
-    [InlineData(GeneratorMode.Phrase, MelodicPhraseGenerator.GeneratorId, 64)]
-    [InlineData(GeneratorMode.Groove, MelodicGrooveGenerator.GeneratorId, 64)]
-    [InlineData(GeneratorMode.Motif, MusicalMotifGenerator.GeneratorId, 64)]
+    [InlineData(GeneratorMode.Euclidean, EuclideanMotifGenerator.GeneratorId, 16)]
+    [InlineData(GeneratorMode.EuclideanPhrase, EuclideanPhraseGenerator.GeneratorId, 64)]
+    [InlineData(GeneratorMode.Phrase, StructuredPhraseGenerator.GeneratorId, 64)]
+    [InlineData(GeneratorMode.Groove, GrooveVocabularyGenerator.GeneratorId, 64)]
+    [InlineData(GeneratorMode.Motif, MotifGenerator.GeneratorId, 64)]
     public void Mode_selects_the_expected_generator(GeneratorMode mode, string generatorId, int stepCount)
     {
         var controls = new GenerationControls { Mode = mode };
@@ -64,7 +64,7 @@ public sealed class CandidateGeneratorTests
     public void Generation_inherits_tonal_context_and_role_from_the_current_candidate()
     {
         var context = new TonalContext(new RootPitchClass(4), PitchPalette.MajorPentatonic);
-        var current = new MelodicPatternGenerator().Generate(new MelodicGeneratorSettings(
+        var current = new EuclideanMotifGenerator().Generate(new EuclideanGeneratorSettings(
             new PatternName("Current"), 16, PatternTiming.SixteenthNotes, context, MusicalRole.High,
             new NormalizedAmount(.4), new NormalizedAmount(.35), new NormalizedAmount(.65),
             new NormalizedAmount(.8), new NormalizedAmount(.15), 1));
@@ -80,7 +80,7 @@ public sealed class CandidateGeneratorTests
     public void Groove_rejects_an_inherited_non_bass_role()
     {
         var context = CandidateGenerator.DefaultTonalContext();
-        var current = new MelodicPatternGenerator().Generate(new MelodicGeneratorSettings(
+        var current = new EuclideanMotifGenerator().Generate(new EuclideanGeneratorSettings(
             new PatternName("Current"), 16, PatternTiming.SixteenthNotes, context, MusicalRole.Middle,
             new NormalizedAmount(.4), new NormalizedAmount(.35), new NormalizedAmount(.65),
             new NormalizedAmount(.8), new NormalizedAmount(.15), 1));
@@ -95,7 +95,7 @@ public sealed class CandidateGeneratorTests
     public void Same_controls_context_and_seed_produce_equivalent_material()
     {
         var generator = CreateGenerator();
-        var controls = new GenerationControls { Mode = GeneratorMode.Euclidean2 };
+        var controls = new GenerationControls { Mode = GeneratorMode.EuclideanPhrase };
 
         var first = generator.Generate(123, null, controls);
         var second = generator.Generate(123, null, controls);
@@ -109,8 +109,8 @@ public sealed class CandidateGeneratorTests
     }
 
     private static CandidateGenerator CreateGenerator() => new(
-        new MelodicPatternGenerator(), new Euclidean2PatternGenerator(), new MelodicPhraseGenerator(),
-        new MelodicGrooveGenerator(), new MusicalMotifGenerator());
+        new EuclideanMotifGenerator(), new EuclideanPhraseGenerator(), new StructuredPhraseGenerator(),
+        new GrooveVocabularyGenerator(), new MotifGenerator());
 
     private static string Signature(Pattern pattern) => string.Join("|", pattern.Steps.Select(step =>
         string.Join("+", step.Notes.Select(note => $"{note.Pitch}:{note.Velocity.Value}:{note.Gate.Value:R}"))));
