@@ -86,20 +86,20 @@ public sealed class JamWeaverConsole
                             if (parts.Length == 1) { display.WriteOutputs(); break; }
                             player.Mute();
                             output.ReplacePort(DryWetMidiPortCatalog.OpenOutput(I(parts, 1)));
-                            Console.WriteLine($"Output: {output.PortName}");
-                            Console.WriteLine("Next: new, then go.");
+                            display.WriteLine($"Output: {output.PortName}");
+                            display.WriteLine("Next: new, then go.");
                             break;
                         case "in":
                             if (parts.Length == 1) { display.WriteInputs(); break; }
                             input?.Dispose();
                             input = new DryWetMidiInput(DryWetMidiPortCatalog.OpenInput(I(parts, 1)), externalClock);
-                            Console.WriteLine($"Input: {input.Name}");
+                            display.WriteLine($"Input: {input.Name}");
                             break;
                         case "source":
                             if (parts.Length == 1)
                             {
-                                Console.WriteLine($"Clock source: {transport.Source.ToString().ToLowerInvariant()}");
-                                Console.WriteLine("Select with: source internal|external");
+                                display.WriteLine($"Clock source: {transport.Source.ToString().ToLowerInvariant()}");
+                                display.WriteLine("Select with: source internal|external");
                                 break;
                             }
                             var source = S(parts, 1).ToLowerInvariant() switch
@@ -110,35 +110,35 @@ public sealed class JamWeaverConsole
                             };
                             if (transport.Source == ClockSource.Internal && internalClock.IsRunning) internalClock.Stop();
                             transport.SelectSource(source);
-                            Console.WriteLine($"Clock source: {source.ToString().ToLowerInvariant()}");
+                            display.WriteLine($"Clock source: {source.ToString().ToLowerInvariant()}");
                             break;
                         case "bpm":
                             if (parts.Length == 1)
                             {
-                                Console.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM");
-                                Console.WriteLine("Set with: bpm <20..300>");
+                                display.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM");
+                                display.WriteLine("Set with: bpm <20..300>");
                                 break;
                             }
                             internalClock.Bpm = D(parts, 1);
-                            Console.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM");
+                            display.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM");
                             break;
-                        case "start": if (transport.Source == ClockSource.External) Console.WriteLine("Waiting for external MIDI Start."); else internalClock.Start(); break;
-                        case "continue": if (transport.Source == ClockSource.External) Console.WriteLine("Waiting for external MIDI Continue."); else internalClock.Continue(); break;
+                        case "start": if (transport.Source == ClockSource.External) display.WriteLine("Waiting for external MIDI Start."); else internalClock.Start(); break;
+                        case "continue": if (transport.Source == ClockSource.External) display.WriteLine("Waiting for external MIDI Continue."); else internalClock.Continue(); break;
                         case "stop": if (transport.Source == ClockSource.External) transport.Process(ClockSource.External, RealtimeMessage.Stop); else internalClock.Stop(); break;
                         case "go":
                             player.Play();
                             if (transport.Source == ClockSource.External)
-                                Console.WriteLine("Pattern playback enabled; waiting for external MIDI Start or Continue.");
+                                display.WriteLine("Pattern playback enabled; waiting for external MIDI Start or Continue.");
                             else if (!internalClock.IsRunning)
                                 internalClock.Start();
                             else
-                                Console.WriteLine("Pattern playback enabled; transport is already running.");
+                                display.WriteLine("Pattern playback enabled; transport is already running.");
                             break;
                         case "new":
                             var generateSeed = parts.Length > 1 ? U(parts, 1) : seedSource.NextULong();
                             SelectCandidate(session, history, candidateGenerator.Generate(generateSeed, session.Candidate,
                                 generationControls));
-                            Console.WriteLine($"Generated candidate with seed {generateSeed}.");
+                            display.WriteLine($"Generated candidate with seed {generateSeed}.");
                             break;
                         case "compare":
                             if (parts.Length > 1 || comparisonPhrase is null || comparisonGroove is null)
@@ -156,11 +156,11 @@ public sealed class JamWeaverConsole
                                     generationControls.Groove, generationControls.Similarity, generationControls.Activity,
                                     generationControls.Movement, generationControls.Variation, generationControls.Turnaround, compareSeed));
                                 history.Add(comparisonPhrase); history.Add(comparisonGroove); comparisonShowsGroove = false;
-                                Console.WriteLine($"Prepared matched comparison with seed {compareSeed}.");
+                                display.WriteLine($"Prepared matched comparison with seed {compareSeed}.");
                             }
                             comparisonShowsGroove = !comparisonShowsGroove;
                             session.SetCandidate(comparisonShowsGroove ? comparisonGroove : comparisonPhrase);
-                            Console.WriteLine($"Comparison: {(comparisonShowsGroove ? "groove" : "phrase")} (changes at next bar while running).");
+                            display.WriteLine($"Comparison: {(comparisonShowsGroove ? "groove" : "phrase")} (changes at next bar while running).");
                             break;
                         case "vary":
                             var parent = session.Candidate ?? throw new InvalidOperationException("Create a candidate with 'new' first.");
@@ -173,40 +173,40 @@ public sealed class JamWeaverConsole
                             {
                                 SelectCandidate(session, history, phraseMutator.Mutate(parent,
                                     new PhraseMutationSettings(mutationTarget, new NormalizedAmount(variationStrength), variationSeed)));
-                                Console.WriteLine($"Varied {mutationTarget.ToString().ToLowerInvariant()} with seed {variationSeed} at strength {variationStrength:0.##}.");
+                                display.WriteLine($"Varied {mutationTarget.ToString().ToLowerInvariant()} with seed {variationSeed} at strength {variationStrength:0.##}.");
                             }
                             else
                             {
                                 SelectCandidate(session, history, mutator.Mutate(parent,
                                     new MutationSettings(new NormalizedAmount(variationStrength), variationSeed)));
-                                Console.WriteLine($"Varied candidate with seed {variationSeed} at strength {variationStrength:0.##}.");
+                                display.WriteLine($"Varied candidate with seed {variationSeed} at strength {variationStrength:0.##}.");
                             }
                             break;
                         case "back":
-                            session.SetCandidate(history.Previous()); Console.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
+                            session.SetCandidate(history.Previous()); display.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
                         case "forward":
-                            session.SetCandidate(history.Next()); Console.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
+                            session.SetCandidate(history.Next()); display.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
                         case "generator":
                             if (parts.Length == 1)
                             {
-                                Console.WriteLine($"Generator: {generationControls.Mode.ToString().ToLowerInvariant()}");
-                                Console.WriteLine("Choices: euclidean, euclidean2, motif, phrase, groove");
-                                Console.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
-                                Console.WriteLine("Set with: generator <choice>");
+                                display.WriteLine($"Generator: {generationControls.Mode.ToString().ToLowerInvariant()}");
+                                display.WriteLine("Choices: euclidean, euclidean2, motif, phrase, groove");
+                                display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
+                                display.WriteLine("Set with: generator <choice>");
                                 break;
                             }
                             generationControls.Mode = S(parts, 1).ToLowerInvariant() switch { "euclidean" => GeneratorMode.Euclidean, "euclidean2" => GeneratorMode.Euclidean2, "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be euclidean, euclidean2, motif, phrase, or groove.") };
-                            Console.WriteLine($"Generator: {generationControls.Mode.ToString().ToLowerInvariant()}");
-                            Console.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
+                            display.WriteLine($"Generator: {generationControls.Mode.ToString().ToLowerInvariant()}");
+                            display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
                             break;
                         case "groove": generationControls.Groove = ParseGrooveSelection(S(parts, 1)); break;
                         case "shape":
                             if (parts.Length == 1)
                             {
-                                Console.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (inactive while generator is {generationControls.Mode.ToString().ToLowerInvariant()})")}");
-                                Console.WriteLine("Choices: auto, pedal, root-fifth, walking, call-response, arch, pickup, riff");
-                                Console.WriteLine("Set with: shape <choice>");
-                                Console.WriteLine("Explain choices with: shape help");
+                                display.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (inactive while generator is {generationControls.Mode.ToString().ToLowerInvariant()})")}");
+                                display.WriteLine("Choices: auto, pedal, root-fifth, walking, call-response, arch, pickup, riff");
+                                display.WriteLine("Set with: shape <choice>");
+                                display.WriteLine("Explain choices with: shape help");
                                 break;
                             }
                             if (S(parts, 1).ToLowerInvariant() is "help" or "?")
@@ -215,7 +215,7 @@ public sealed class JamWeaverConsole
                                 break;
                             }
                             generationControls.MotifShape = ParseMotifShape(S(parts, 1));
-                            Console.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (saved for motif; inactive while generator is {generationControls.Mode.ToString().ToLowerInvariant()})")}");
+                            display.WriteLine($"Motif shape: {ConsoleDisplay.MotifText(generationControls.MotifShape)}{(generationControls.Mode == GeneratorMode.Motif ? string.Empty : $" (saved for motif; inactive while generator is {generationControls.Mode.ToString().ToLowerInvariant()})")}");
                             break;
                         case "similarity": generationControls.Similarity = EnumValue<GrooveSimilarity>(parts, 1); break;
                         case "length": generationControls.PhraseLength = I(parts, 1) switch { 1 => PhraseLength.OneBar, 2 => PhraseLength.TwoBars, 4 => PhraseLength.FourBars, _ => throw new ArgumentException("Length must be 1, 2, or 4 bars.") }; break;
@@ -224,11 +224,11 @@ public sealed class JamWeaverConsole
                         case "movement": generationControls.Movement = EnumValue<PhraseLevel>(parts, 1); break;
                         case "variation": generationControls.Variation = EnumValue<PhraseLevel>(parts, 1); break;
                         case "turnaround": generationControls.Turnaround = EnumValue<PhraseTurnaround>(parts, 1); break;
-                        case "settings": Console.WriteLine($"Generator={generationControls.Mode.ToString().ToLowerInvariant()}, Shape={ConsoleDisplay.MotifText(generationControls.MotifShape)}, Length={(int)generationControls.PhraseLength}, Activity={generationControls.Activity.ToString().ToLowerInvariant()}, Rhythm={generationControls.Rhythm.ToString().ToLowerInvariant()}, Groove={ConsoleDisplay.GrooveText(generationControls.Groove)}, Similarity={generationControls.Similarity.ToString().ToLowerInvariant()}, Movement={generationControls.Movement.ToString().ToLowerInvariant()}, Variation={generationControls.Variation.ToString().ToLowerInvariant()}, Turnaround={generationControls.Turnaround.ToString().ToLowerInvariant()}"); break;
+                        case "settings": display.WriteLine($"Generator={generationControls.Mode.ToString().ToLowerInvariant()}, Shape={ConsoleDisplay.MotifText(generationControls.MotifShape)}, Length={(int)generationControls.PhraseLength}, Activity={generationControls.Activity.ToString().ToLowerInvariant()}, Rhythm={generationControls.Rhythm.ToString().ToLowerInvariant()}, Groove={ConsoleDisplay.GrooveText(generationControls.Groove)}, Similarity={generationControls.Similarity.ToString().ToLowerInvariant()}, Movement={generationControls.Movement.ToString().ToLowerInvariant()}, Variation={generationControls.Variation.ToString().ToLowerInvariant()}, Turnaround={generationControls.Turnaround.ToString().ToLowerInvariant()}"); break;
                         case "keep":
-                            session.Accept(); Console.WriteLine("Candidate kept as the safe point."); break;
+                            session.Accept(); display.WriteLine("Candidate kept as the safe point."); break;
                         case "revert":
-                            session.Reject(); Console.WriteLine("Returning to the safe point."); break;
+                            session.Reject(); display.WriteLine("Returning to the safe point."); break;
                         case "key":
                             var rootPattern = Candidate(session);
                             var direction = S(parts, 1).ToLowerInvariant() switch
@@ -250,26 +250,26 @@ public sealed class JamWeaverConsole
                                 _ => throw new ArgumentException("Role must be bass, middle, or high.")
                             };
                             SelectCandidate(session, history, PatternTransformations.ChangeRole(Candidate(session), selectedRole));
-                            Console.WriteLine($"Register: {selectedRole.ToString().ToLowerInvariant()} (key unchanged).");
+                            display.WriteLine($"Register: {selectedRole.ToString().ToLowerInvariant()} (key unchanged).");
                             display.WritePattern(session, player);
                             break;
                         case "ch":
                         case "channel":
                             if (parts.Length == 1)
                             {
-                                Console.WriteLine($"Pattern channel: {player.Channel.Number}");
-                                Console.WriteLine("Set with: ch <1..16> (or channel <1..16>)");
+                                display.WriteLine($"Pattern channel: {player.Channel.Number}");
+                                display.WriteLine("Set with: ch <1..16> (or channel <1..16>)");
                                 break;
                             }
                             player.Channel = C(parts, 1);
-                            Console.WriteLine($"Pattern channel: {player.Channel.Number}");
+                            display.WriteLine($"Pattern channel: {player.Channel.Number}");
                             break;
-                        case "play": player.Play(); Console.WriteLine("Pattern playback enabled."); break;
-                        case "mute": player.Mute(); Console.WriteLine("Pattern playback muted."); break;
+                        case "play": player.Play(); display.WriteLine("Pattern playback enabled."); break;
+                        case "mute": player.Mute(); display.WriteLine("Pattern playback muted."); break;
                         case "pattern": display.WritePattern(session, player); break;
                         case "library":
                             display.WriteLibrary(await patternLibrary.ListAsync());
-                            Console.WriteLine($"Library: {patternLibrary.RootDirectory}");
+                            display.WriteLine($"Library: {patternLibrary.RootDirectory}");
                             break;
                         case "save":
                             var accepted = session.Accepted ?? throw new InvalidOperationException("There is no accepted pattern to save.");
@@ -277,7 +277,7 @@ public sealed class JamWeaverConsole
                             var patternToSave = requestedName.Length == 0 ? accepted : accepted.Rename(new PatternName(requestedName));
                             var saved = await patternLibrary.SaveAsync(patternToSave);
                             if (patternToSave.Name != accepted.Name) session.RenameAccepted(patternToSave);
-                            Console.WriteLine($"Saved '{saved.Name}'. Load it with: load {saved.Name}");
+                            display.WriteLine($"Saved '{saved.Name}'. Load it with: load {saved.Name}");
                             break;
                         case "load":
                             var entries = await patternLibrary.ListAsync();
@@ -285,13 +285,13 @@ public sealed class JamWeaverConsole
                             if (loadQuery.Length == 0)
                             {
                                 display.WriteLibrary(entries);
-                                if (entries.Length > 0) Console.WriteLine("Load with: load <name> or load #<number>");
+                                if (entries.Length > 0) display.WriteLine("Load with: load <name> or load #<number>");
                                 break;
                             }
                             var loadEntry = ResolveLibraryEntry(entries, loadQuery);
                             var loaded = await patternLibrary.LoadAsync(loadEntry);
                             SelectCandidate(session, history, loaded);
-                            Console.WriteLine($"Loaded '{loaded.Name}' as a candidate ({(player.CurrentPattern?.Id == loaded.Id ? "audible" : "pending for next bar")}).");
+                            display.WriteLine($"Loaded '{loaded.Name}' as a candidate ({(player.CurrentPattern?.Id == loaded.Id ? "audible" : "pending for next bar")}).");
                             break;
                         case "note": await output.SendNoteAsync(C(parts, 1), V(parts, 2), V(parts, 3), TimeSpan.FromMilliseconds(parts.Length > 4 ? I(parts, 4) : 250)); break;
                         case "on": output.NoteOn(C(parts, 1), V(parts, 2), V(parts, 3)); break;
@@ -302,7 +302,7 @@ public sealed class JamWeaverConsole
                         case "status": display.WriteStatus(output, input?.Name, transport, internalClock, player); break;
                         case "help": display.WriteHelp(parts.Length > 1 ? parts[1] : null); break;
                         case "quit" or "exit": return;
-                        default: Console.WriteLine("Unknown command. Type 'help'."); break;
+                        default: display.WriteLine("Unknown command. Type 'help'."); break;
                     }
                 }
                 catch (Exception ex) { display.WriteLine($"Error: {ex.Message}"); }
@@ -318,18 +318,18 @@ public sealed class JamWeaverConsole
     private void ProcessExternalMessage(object? sender, RealtimeMessage message) =>
         transport.Process(ClockSource.External, message);
 
-    static string S(string[] p, int i) => i < p.Length ? p[i] : throw new ArgumentException("Missing argument.");
-    static int I(string[] p, int i) => int.Parse(S(p, i), CultureInfo.InvariantCulture);
-    static double D(string[] p, int i) => double.Parse(S(p, i), CultureInfo.InvariantCulture);
-    static ulong U(string[] p, int i) => ulong.Parse(S(p, i), CultureInfo.InvariantCulture);
-    static MidiChannel C(string[] p, int i) => new(I(p, i));
-    static MidiValue V(string[] p, int i) => new(I(p, i));
-    static T EnumValue<T>(string[] parts, int index) where T : struct, Enum =>
+    private static string S(string[] p, int i) => i < p.Length ? p[i] : throw new ArgumentException("Missing argument.");
+    private static int I(string[] p, int i) => int.Parse(S(p, i), CultureInfo.InvariantCulture);
+    private static double D(string[] p, int i) => double.Parse(S(p, i), CultureInfo.InvariantCulture);
+    private static ulong U(string[] p, int i) => ulong.Parse(S(p, i), CultureInfo.InvariantCulture);
+    private static MidiChannel C(string[] p, int i) => new(I(p, i));
+    private static MidiValue V(string[] p, int i) => new(I(p, i));
+    private static T EnumValue<T>(string[] parts, int index) where T : struct, Enum =>
         Enum.TryParse<T>(S(parts, index), true, out var value) && Enum.IsDefined(value)
             ? value : throw new ArgumentException($"Invalid {typeof(T).Name} value.");
-    static bool TryMutationTarget(string value, out PhraseMutationTarget target) =>
+    private static bool TryMutationTarget(string value, out PhraseMutationTarget target) =>
         Enum.TryParse(value, true, out target) && Enum.IsDefined(target);
-    static (double Strength, ulong Seed) VariationArguments(string[] parts, int index, IRandomSource seedSource)
+    private static (double Strength, ulong Seed) VariationArguments(string[] parts, int index, IRandomSource seedSource)
     {
         var strength = .3;
         if (index < parts.Length && !parts[index].Equals("seed", StringComparison.OrdinalIgnoreCase))
@@ -345,14 +345,14 @@ public sealed class JamWeaverConsole
         if (index != parts.Length) throw new ArgumentException("Unexpected vary argument.");
         return (strength, seed ?? seedSource.NextULong());
     }
-    static Pattern Candidate(CandidateSession session) =>
+    private static Pattern Candidate(CandidateSession session) =>
         session.Candidate ?? throw new InvalidOperationException("Create a candidate with 'new' first.");
-    static void SelectCandidate(CandidateSession session, CandidateHistory history, Pattern pattern)
+    private static void SelectCandidate(CandidateSession session, CandidateHistory history, Pattern pattern)
     {
         history.Add(pattern);
         session.SetCandidate(pattern);
     }
-    static PatternLibraryEntry ResolveLibraryEntry(IReadOnlyList<PatternLibraryEntry> entries, string query)
+    private static PatternLibraryEntry ResolveLibraryEntry(IReadOnlyList<PatternLibraryEntry> entries, string query)
     {
         if (query.Length == 0) throw new ArgumentException("Choose a saved pattern with: load <name> or load #<number>.");
         if (query[0] == '#') return EntryAt(entries, ParseLibraryNumber(query[1..]));
@@ -370,15 +370,15 @@ public sealed class JamWeaverConsole
             return EntryAt(entries, number);
         throw new ArgumentException($"No saved pattern is named '{query}'. Type 'library' to list saved patterns.");
     }
-    static int ParseLibraryNumber(string value) => int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number)
+    private static int ParseLibraryNumber(string value) => int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number)
         ? number : throw new ArgumentException("Library selection must look like: load #2.");
-    static PatternLibraryEntry EntryAt(IReadOnlyList<PatternLibraryEntry> entries, int number)
+    private static PatternLibraryEntry EntryAt(IReadOnlyList<PatternLibraryEntry> entries, int number)
     {
         var index = number - 1;
         if ((uint)index >= (uint)entries.Count) throw new ArgumentOutOfRangeException(nameof(number), "Load number is not in the library list.");
         return entries[index];
     }
-    static GrooveSelection ParseGrooveSelection(string value) => value.ToLowerInvariant() switch
+    private static GrooveSelection ParseGrooveSelection(string value) => value.ToLowerInvariant() switch
     {
         "auto" => GrooveSelection.Auto,
         "foundation" => GrooveSelection.Foundation,
@@ -389,7 +389,7 @@ public sealed class JamWeaverConsole
         "broken" => GrooveSelection.Broken,
         _ => throw new ArgumentException("Unknown groove category.")
     };
-    static MotifShape ParseMotifShape(string value) => value.ToLowerInvariant() switch
+    private static MotifShape ParseMotifShape(string value) => value.ToLowerInvariant() switch
     {
         "auto" => MotifShape.Auto,
         "pedal" => MotifShape.Pedal,

@@ -40,7 +40,7 @@ public sealed class JamWeaverConsoleTests
     }
 
     [Fact]
-    public async Task End_of_input_ends_the_interactive_session()
+    public async Task Command_responses_use_the_injected_display_writer()
     {
         using var output = new SafeMidiOutput();
         var transport = new TransportEngine();
@@ -51,7 +51,7 @@ public sealed class JamWeaverConsoleTests
         var grooveGenerator = new MelodicGrooveGenerator();
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
-        var application = new JamWeaverConsole(new StringReader(string.Empty), new ConsoleDisplay(writer), output,
+        var application = new JamWeaverConsole(new StringReader("bpm\nquit\n"), new ConsoleDisplay(writer), output,
             transport, internalClock, player, session,
             new CandidateGenerator(new MelodicPatternGenerator(), new Euclidean2PatternGenerator(), phraseGenerator,
                 grooveGenerator, new MusicalMotifGenerator()),
@@ -61,6 +61,6 @@ public sealed class JamWeaverConsoleTests
 
         await application.RunAsync();
 
-        Assert.NotEmpty(writer.ToString());
+        Assert.Contains("Tempo: 120 BPM", writer.ToString());
     }
 }

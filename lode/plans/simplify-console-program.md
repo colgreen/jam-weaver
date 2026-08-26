@@ -1,14 +1,15 @@
 # Simplify the console program
 
-Stages 1, 2, and 3 are complete. Generation controls, candidate construction,
-terminal presentation, and the interactive application now have focused
-console-layer owners with deterministic tests. Stage 4 remains.
+All four stages are complete. Generation controls, candidate construction,
+terminal presentation, and the interactive application have focused
+console-layer owners with deterministic tests. The final review found no
+additional responsibility with enough independence to justify another type.
 
-`JamWeaver.Console/Program.cs` currently combines application composition,
-resource lifetime, interactive state, command parsing and dispatch, generation
-configuration, candidate workflows, MIDI device and transport control,
-persistence workflows, and console rendering. Its size is a symptom of these
-multiple responsibilities rather than the problem by itself.
+`JamWeaver.Console/Program.cs` is the composition root and explicit resource
+lifetime boundary. Interactive state, command parsing and dispatch, candidate
+workflows, device and transport coordination, and persistence workflows live in
+`JamWeaverConsole`; generation configuration and presentation have their own
+focused console-layer owners.
 
 The target is a small composition root supported by focused console-layer
 types. Core musical and MIDI behavior remains in `JamWeaver.Core`; terminal
@@ -114,7 +115,7 @@ Preserve the current error boundary: command failures receive useful terminal
 context without terminating the interactive session, while application startup
 and disposal failures remain visible.
 
-## Stage 4: review remaining responsibilities
+## Stage 4: review remaining responsibilities (complete)
 
 After the first three stages, reassess `JamWeaverConsole` using the resulting
 code rather than predicting further abstractions. Consider additional
@@ -124,6 +125,12 @@ pattern-library command coordination.
 Review type names, XML summaries, and remarks against [project
 practices](../practices.md). Put detailed theory of operation in focused Lode
 documents rather than expanding XML documentation.
+
+The resulting `JamWeaverConsole` remains one cohesive interactive coordinator.
+MIDI port switching and pattern-library commands do not currently have a second
+consumer or independently testable policy that warrants extraction. Command
+responses use the injected `ConsoleDisplay`, keeping terminal output testable;
+the explicit dispatcher and existing type names remain appropriate.
 
 ## Verification
 
