@@ -1,7 +1,9 @@
-global using JamWeaver.ConsoleApp;
 global using JamWeaver.Core.Generation;
 global using JamWeaver.Core.Generation.Groove;
 global using JamWeaver.Core.Generation.Motif;
 global using JamWeaver.Core.Generation.Phrase;
+global using JamWeaver.Core.Midi;
+global using JamWeaver.Core.Performance;
+global using JamWeaver.Core.Persistence;
 global using JamWeaver.Core.Sequencer;
-global using Xunit;
+global using JamWeaver.Core.Transport;

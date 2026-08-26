@@ -21,6 +21,19 @@ not presumed to comply and do not need opportunistic renaming or restructuring.
 Review them separately when there is a clear benefit and enough context to make
 a sound design decision.
 
+## Global usings
+
+Use each project's `Usings.cs` for namespaces that form its frequently used
+vocabulary and would otherwise be repeated across many files. Keep uncommon
+framework namespaces and specialized third-party dependencies local so a
+file's unusual requirements remain visible. In particular, MIDI-library
+adapters and generator-specific random-number dependencies should not become
+global merely to shorten a few files.
+
+Review global usings as the project changes. Add one only when repeated use is
+established, and remove one when it no longer represents a broadly shared
+dependency. Prefer a local using when the choice is borderline.
+
 ## Type documentation
 
 Give classes, records, structs, and interfaces a concise XML `<summary>` when

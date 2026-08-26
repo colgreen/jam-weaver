@@ -1,6 +1,5 @@
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
-using JamWeaver.Core.Transport;
 
 namespace JamWeaver.ConsoleApp.DryWetMidi;
 

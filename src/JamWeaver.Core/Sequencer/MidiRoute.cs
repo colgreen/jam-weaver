@@ -1,5 +1,3 @@
-using JamWeaver.Core.Midi;
-
 namespace JamWeaver.Core.Sequencer;
 
 public sealed record MidiRoute

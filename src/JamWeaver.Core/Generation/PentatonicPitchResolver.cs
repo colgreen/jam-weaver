@@ -1,6 +1,3 @@
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Sequencer;
-
 namespace JamWeaver.Core.Generation;
 
 public static class PentatonicPitchResolver

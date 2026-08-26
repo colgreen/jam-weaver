@@ -1,10 +1,8 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using JamWeaver.Core.Generation;
 using JamWeaver.Core.Generation.Phrase;
 using JamWeaver.Core.Performance;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Core.Tests.Generation;
 

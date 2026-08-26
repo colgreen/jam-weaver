@@ -1,6 +1,4 @@
-using JamWeaver.Core.Midi;
 using JamWeaver.Core.Performance;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Core.Tests.Performance;
 

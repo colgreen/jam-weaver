@@ -1,4 +1,2 @@
-global using JamWeaver.Core.Generation;
 global using JamWeaver.Core.Midi;
 global using JamWeaver.Core.Sequencer;
-global using Xunit;

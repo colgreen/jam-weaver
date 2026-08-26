@@ -1,6 +1,3 @@
-using JamWeaver.Core.Generation.Groove;
-using JamWeaver.Core.Generation.Motif;
-using JamWeaver.Core.Generation.Phrase;
 
 namespace JamWeaver.ConsoleApp;
 

@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Text;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Core.Persistence;
 

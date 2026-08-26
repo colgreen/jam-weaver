@@ -1,12 +1,9 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using JamWeaver.Core.Generation;
 using JamWeaver.Core.Generation.Groove;
 using JamWeaver.Core.Generation.Motif;
 using JamWeaver.Core.Generation.Phrase;
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Core.Tests.Generation;
 

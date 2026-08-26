@@ -1,5 +1,4 @@
 using JamWeaver.Core.Generation.Phrase;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Core.Generation.Motif;
 

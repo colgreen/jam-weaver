@@ -1,9 +1,4 @@
-using JamWeaver.ConsoleApp;
-using JamWeaver.Core.Generation;
-using JamWeaver.Core.Generation.Motif;
-using JamWeaver.Core.Generation.Phrase;
 using JamWeaver.Core.Persistence;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Console.Tests;
 

@@ -1,5 +1,3 @@
-using JamWeaver.Core.Sequencer;
-
 namespace JamWeaver.Core.Transport;
 
 public readonly record struct TimelineBoundary(TransportPosition Position, bool IsBeatBoundary,

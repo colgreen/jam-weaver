@@ -1,5 +1,3 @@
-using JamWeaver.Core.Sequencer;
-
 namespace JamWeaver.Core.Performance;
 
 public static class StepTriggerDecision

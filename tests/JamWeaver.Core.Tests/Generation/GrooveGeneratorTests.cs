@@ -1,11 +1,9 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using JamWeaver.Core.Generation;
 using JamWeaver.Core.Generation.Groove;
 using JamWeaver.Core.Generation.Phrase;
 using JamWeaver.Core.Persistence;
-using JamWeaver.Core.Sequencer;
 using Redzen.Random;
 
 namespace JamWeaver.Core.Tests.Generation;

@@ -1,4 +1,3 @@
-using JamWeaver.Core.Midi;
 
 namespace JamWeaver.Core.Tests;
 

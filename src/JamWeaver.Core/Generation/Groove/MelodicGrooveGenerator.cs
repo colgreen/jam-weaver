@@ -1,7 +1,5 @@
 using System.Globalization;
 using JamWeaver.Core.Generation.Phrase;
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Sequencer;
 using Redzen.Random;
 
 namespace JamWeaver.Core.Generation.Groove;

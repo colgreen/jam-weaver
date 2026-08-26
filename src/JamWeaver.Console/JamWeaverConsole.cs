@@ -1,15 +1,7 @@
 using System.Globalization;
 using JamWeaver.ConsoleApp.DryWetMidi;
-using JamWeaver.Core.Generation;
-using JamWeaver.Core.Generation.Phrase;
-using JamWeaver.Core.Generation.Groove;
-using JamWeaver.Core.Generation.Motif;
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Performance;
-using JamWeaver.Core.Persistence;
-using JamWeaver.Core.Sequencer;
-using JamWeaver.Core.Transport;
 using Redzen.Random;
+
 namespace JamWeaver.ConsoleApp;
 
 /// <summary>Runs JamWeaver's interactive command loop and coordinates command effects.</summary>

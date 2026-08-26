@@ -1,5 +1,3 @@
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Sequencer;
 using JamWeaver.Core.Generation.Phrase;
 using JamWeaver.Core.Generation.Groove;
 using JamWeaver.Core.Generation.Motif;

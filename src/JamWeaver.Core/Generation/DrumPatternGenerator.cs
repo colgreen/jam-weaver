@@ -1,4 +1,3 @@
-using JamWeaver.Core.Sequencer;
 using Redzen.Random;
 
 namespace JamWeaver.Core.Generation;

@@ -1,13 +1,5 @@
 using System.Globalization;
 using JamWeaver.ConsoleApp.DryWetMidi;
-using JamWeaver.Core.Generation;
-using JamWeaver.Core.Generation.Groove;
-using JamWeaver.Core.Generation.Motif;
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Performance;
-using JamWeaver.Core.Persistence;
-using JamWeaver.Core.Sequencer;
-using JamWeaver.Core.Transport;
 
 namespace JamWeaver.ConsoleApp;
 

@@ -1,5 +1,3 @@
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Sequencer;
 using Redzen.Random;
 
 namespace JamWeaver.Core.Generation.Phrase;

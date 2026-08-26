@@ -1,5 +1,3 @@
-using JamWeaver.Core.Midi;
-
 namespace JamWeaver.Core.Transport;
 
 public sealed class InternalMidiClock : IAsyncDisposable

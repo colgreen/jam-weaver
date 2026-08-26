@@ -1,5 +1,4 @@
 using JamWeaver.Core.Generation;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Core.Performance;
 

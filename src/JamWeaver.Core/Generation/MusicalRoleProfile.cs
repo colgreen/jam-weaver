@@ -1,5 +1,3 @@
-using JamWeaver.Core.Sequencer;
-
 namespace JamWeaver.Core.Generation;
 
 public sealed record MusicalRoleProfile(int MinimumNote, int MaximumNote, int MinimumHitsPer16,

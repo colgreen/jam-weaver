@@ -1,8 +1,3 @@
-using JamWeaver.ConsoleApp;
-using JamWeaver.Core.Generation;
-using JamWeaver.Core.Generation.Groove;
-using JamWeaver.Core.Generation.Motif;
-using JamWeaver.Core.Generation.Phrase;
 using JamWeaver.Core.Midi;
 using JamWeaver.Core.Performance;
 using JamWeaver.Core.Persistence;

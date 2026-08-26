@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using JamWeaver.Core.Midi;
 
 namespace JamWeaver.Core.Sequencer;
 

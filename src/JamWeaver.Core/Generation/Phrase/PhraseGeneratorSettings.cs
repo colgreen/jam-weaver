@@ -1,5 +1,3 @@
-using JamWeaver.Core.Sequencer;
-
 namespace JamWeaver.Core.Generation.Phrase;
 
 public enum PhraseLength { OneBar = 1, TwoBars = 2, FourBars = 4 }

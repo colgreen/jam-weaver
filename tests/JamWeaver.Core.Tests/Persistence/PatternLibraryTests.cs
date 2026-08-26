@@ -1,5 +1,4 @@
 using JamWeaver.Core.Persistence;
-using JamWeaver.Core.Sequencer;
 
 namespace JamWeaver.Core.Tests.Persistence;
 

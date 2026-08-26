@@ -1,5 +1,3 @@
-using JamWeaver.Core.Midi;
-using JamWeaver.Core.Sequencer;
 using JamWeaver.Core.Transport;
 
 namespace JamWeaver.Core.Tests;
