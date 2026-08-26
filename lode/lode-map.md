@@ -17,6 +17,7 @@
   - [Pattern library](persistence/pattern-library.md) - JSON format, validation, save, and load contracts
 - Generation
   - [Pattern generation](generation/pattern-generation.md) - shared deterministic generation contracts
+  - [Pleasing sequence research](generation/pleasing-sequence-research.md) - research basis and testable strategies for rhythm, melody, repetition, and development
   - [Euclidean phrase generation](generation/euclidean-phrase-generation.md) - isolated four-bar Euclidean experiment
   - [Phrase generation](generation/phrase-generation.md) - structured phrase behavior
   - [Groove generation](generation/groove-generation.md) - rhythm vocabulary and variation
@@ -25,6 +26,7 @@
   - [Candidate workflow](performance/candidate-workflow.md) - audition and live-control state
 - Plans
   - [Simplify candidate workflow](plans/simplify-candidate-workflow.md) - unify short-term browsing around one accepted safe point
+  - [Generator strategy](plans/generator-strategy.md) - evaluate, cull, and experiment with generators around a proven concise-loop baseline
 - Hardware
   - [Original Circuit validation](hardware/circuit-validation.md) - confirmed melodic and clock behavior
   - [Zynthian validation](hardware/zynthian-validation.md) - confirmed generic melodic routing
