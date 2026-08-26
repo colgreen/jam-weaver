@@ -24,6 +24,7 @@
 - Performance
   - [Candidate workflow](performance/candidate-workflow.md) - audition and live-control state
 - Plans
+  - [Simplify the console program](plans/simplify-console-program.md) - separate composition, commands, generation controls, and presentation
   - [Simplify candidate workflow](plans/simplify-candidate-workflow.md) - unify short-term browsing around one accepted safe point
 - Hardware
   - [Original Circuit validation](hardware/circuit-validation.md) - confirmed melodic and clock behavior
