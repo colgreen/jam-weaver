@@ -10,8 +10,11 @@ links to the focused contract for the subsystem involved.
   mutation, candidate state, playback, transport, MIDI safety, and persistence.
   It has no dependency on DryWetMIDI or console APIs.
 - `JamWeaver.Console` owns composition, command parsing, port discovery, and
-  DryWetMIDI adapters. It translates performer intent into strongly typed core
-  operations.
+  DryWetMIDI adapters. `GenerationControls` holds performer-selectable generator
+  state, while `CandidateGenerator` translates it into strongly typed core
+  settings using the current candidate's tonal context and role. `ConsoleDisplay`
+  owns terminal rendering through a `TextWriter` and does not mutate application
+  state.
 - `JamWeaver.Core.Tests` exercises the core through deterministic inputs and
   fake MIDI ports. Hardware tests remain a separate validation activity.
 
@@ -56,10 +59,10 @@ operation produces a `Pattern` from generator-specific, validated settings.
 Settings remain strongly typed because phrase, groove, motif, melodic, and drum
 controls are not interchangeable.
 
-The console's generator-mode switch constructs the appropriate settings and
-calls the corresponding implementation. There is deliberately no generic
-registry: console controls and settings differ enough that explicit composition
-is clearer and preserves type safety.
+The console's `CandidateGenerator` contains an explicit generator-mode switch
+that constructs the appropriate settings and calls the composed implementation.
+There is deliberately no generic registry: console controls and settings differ
+enough that explicit composition is clearer and preserves type safety.
 
 `CandidateSession` separates private audition from the accepted pattern.
 Changing a candidate during playback schedules it at the next bar rather than
@@ -101,6 +104,7 @@ and command parsing. Put hardware access behind core interfaces and never claim
 hardware behavior from automated tests alone.
 
 Build with `dotnet build JamWeaver.sln`. Run tests with
-`dotnet run --project tests/JamWeaver.Core.Tests`.
+`dotnet run --project tests/JamWeaver.Core.Tests` and
+`dotnet run --project tests/JamWeaver.Console.Tests`.
 
 To extend generation, follow [adding a generator](adding-a-generator.md).

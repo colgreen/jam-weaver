@@ -72,15 +72,16 @@ For a performer-selectable generator, update the console explicitly:
 
 1. Add its `GeneratorMode` value and construct its implementation at startup.
 2. Add its command name, help text, and relevant controls.
-3. Extend the `Generate` switch to build typed settings from current candidate
-   context and performer controls.
+3. Add its state to `GenerationControls` and extend `CandidateGenerator` to
+   build typed settings from the current candidate context and performer
+   controls.
 4. Decide which controls it supports and reject incompatible ones clearly.
 5. Preserve the current tonal context and role where the generator supports
    them.
 
 Do not add a generic registry unless another concrete consumer needs runtime
-discovery. The interface provides a testable core contract; the explicit switch
-documents console-specific composition.
+discovery. The interface provides a testable core contract; the explicit
+`CandidateGenerator` switch documents console-specific composition.
 
 If a generator is intentionally experimental or core-only, document that and
 omit console wiring rather than exposing an incomplete command path.

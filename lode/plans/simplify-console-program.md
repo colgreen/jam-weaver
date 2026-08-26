@@ -1,5 +1,9 @@
 # Simplify the console program
 
+Stages 1 and 2 are complete. Generation controls, candidate construction, and
+terminal presentation now have focused console-layer owners with deterministic
+tests. Stages 3 and 4 remain.
+
 `JamWeaver.Console/Program.cs` currently combines application composition,
 resource lifetime, interactive state, command parsing and dispatch, generation
 configuration, candidate workflows, MIDI device and transport control,
@@ -58,7 +62,7 @@ The top-level command dispatcher remains explicit. Do not introduce one command
 class per command or a runtime command registry unless a concrete second use
 requires discovery or independent command composition.
 
-## Stage 1: isolate generation configuration
+## Stage 1: isolate generation configuration (complete)
 
 Introduce `GenerationControls` and `CandidateGenerator` first. Replace the
 current generation method's long parameter list with these cohesive types.
@@ -75,12 +79,11 @@ Add tests for generator-mode mapping, constructed settings, inherited context,
 unsupported role or control combinations, and deterministic output. Prefer
 testing observable patterns and recipes rather than implementation details.
 
-## Stage 2: isolate console presentation
+## Stage 2: isolate console presentation (complete)
 
-Move prompt, setup, status, pattern-grid, library-list, help, and domain-to-text
-rendering into `ConsoleDisplay`. Decide whether it receives a `TextWriter` when
-extracting it; use one if it materially simplifies deterministic tests without
-obscuring normal `Console.Out` use.
+Prompt, setup, status, pattern-grid, library-list, help, and domain-to-text
+rendering live in `ConsoleDisplay`. It receives a `TextWriter`; production passes
+`Console.Out`, while tests use `StringWriter` for focused deterministic checks.
 
 Rendering methods must not mutate candidate, playback, transport, device, or
 library state. Preserve existing user-facing text unless a deliberate interface
