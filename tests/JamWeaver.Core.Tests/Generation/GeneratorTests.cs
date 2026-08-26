@@ -2,6 +2,9 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using JamWeaver.Core.Generation;
+using JamWeaver.Core.Generation.Groove;
+using JamWeaver.Core.Generation.Motif;
+using JamWeaver.Core.Generation.Phrase;
 using JamWeaver.Core.Midi;
 using JamWeaver.Core.Sequencer;
 
@@ -9,6 +12,17 @@ namespace JamWeaver.Core.Tests.Generation;
 
 public sealed class GeneratorTests
 {
+    [Fact]
+    public void Generators_implement_their_typed_contracts()
+    {
+        Assert.IsAssignableFrom<IPatternGenerator<MelodicGeneratorSettings>>(new MelodicPatternGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<MelodicGeneratorSettings>>(new Euclidean2PatternGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<DrumGeneratorSettings>>(new DrumPatternGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<PhraseGeneratorSettings>>(new MelodicPhraseGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<GrooveGeneratorSettings>>(new MelodicGrooveGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<MotifGeneratorSettings>>(new MusicalMotifGenerator());
+    }
+
     [Theory]
     [InlineData(MusicalRole.Bass, PitchPalette.MajorPentatonic, 101UL, "10483613F2D322E8DB66D196C52BAE821D81B220B12CAC7B45AF1EA5DE8856DC")]
     [InlineData(MusicalRole.Bass, PitchPalette.MinorPentatonic, 102UL, "36FABCD91D5FD697BBB1F44408FF54C61565D60BDDB97912363645068C42D08A")]

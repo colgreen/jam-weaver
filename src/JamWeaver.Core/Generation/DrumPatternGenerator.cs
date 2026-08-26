@@ -3,7 +3,7 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation;
 
-public sealed class DrumPatternGenerator
+public sealed class DrumPatternGenerator : IPatternGenerator<DrumGeneratorSettings>
 {
     public const string GeneratorId = "drum-euclidean-voices";
     public const int GeneratorVersion = 1;

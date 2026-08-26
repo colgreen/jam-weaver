@@ -6,7 +6,7 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation.Groove;
 
-public sealed class MelodicGrooveGenerator
+public sealed class MelodicGrooveGenerator : IPatternGenerator<GrooveGeneratorSettings>
 {
     public const string GeneratorId = "melodic-groove-vocabulary";
     public const int GeneratorVersion = 1;

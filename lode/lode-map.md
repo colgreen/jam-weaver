@@ -3,6 +3,9 @@
 - [Project summary](summary.md) - purpose, current capabilities, and limitations
 - [Terminology](terminology.md) - project-specific domain language
 - [Project practices](practices.md) - conventions not covered by `AGENTS.md`
+- Development
+  - [Developer primer](development/developer-primer.md) - core concepts, types, and runtime relationships
+  - [Adding a generator](development/adding-a-generator.md) - typed contract, recipes, wiring, and verification
 - Architecture
   - [Project structure](architecture/project-structure.md) - core, console, and test boundaries
 - MIDI

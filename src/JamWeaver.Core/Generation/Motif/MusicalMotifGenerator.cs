@@ -5,7 +5,7 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation.Motif;
 
-public sealed class MusicalMotifGenerator
+public sealed class MusicalMotifGenerator : IPatternGenerator<MotifGeneratorSettings>
 {
     public const string GeneratorId = "melodic-musical-motif";
     public const int GeneratorVersion = 4;

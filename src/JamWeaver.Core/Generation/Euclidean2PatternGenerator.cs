@@ -3,7 +3,7 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation;
 
-public sealed class Euclidean2PatternGenerator
+public sealed class Euclidean2PatternGenerator : IPatternGenerator<MelodicGeneratorSettings>
 {
     public const string GeneratorId = "melodic-euclidean-2";
     public const int GeneratorVersion = 1;
