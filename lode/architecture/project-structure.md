@@ -19,9 +19,12 @@ These responsibilities remain separated by namespace so timing, generation,
 persistence, and MIDI safety can be tested independently.
 
 `JamWeaver.Console` owns port enumeration, DryWetMIDI event conversion,
-command parsing, and performer-selectable generation controls. `Program` composes
-the generator implementations; `CandidateGenerator` maps `GenerationControls`, a
-seed, and the current candidate context to strongly typed core settings.
+command parsing, and performer-selectable generation controls. `Program` is the
+composition root and owns the stable MIDI, transport, playback, and persistence
+resources. `JamWeaverConsole` runs the interactive read/dispatch loop, owns its
+session state and replaceable MIDI input, and keeps command failures inside the
+interactive session. `CandidateGenerator` maps `GenerationControls`, a seed, and
+the current candidate context to strongly typed core settings.
 `ConsoleDisplay` renders setup, prompts, status, patterns, library entries, help,
 and console-specific labels through an injected `TextWriter`; rendering does not
 change application state. Incoming external clock/transport drives the local

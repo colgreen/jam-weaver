@@ -1,8 +1,8 @@
 # Simplify the console program
 
-Stages 1 and 2 are complete. Generation controls, candidate construction, and
-terminal presentation now have focused console-layer owners with deterministic
-tests. Stages 3 and 4 remain.
+Stages 1, 2, and 3 are complete. Generation controls, candidate construction,
+terminal presentation, and the interactive application now have focused
+console-layer owners with deterministic tests. Stage 4 remains.
 
 `JamWeaver.Console/Program.cs` currently combines application composition,
 resource lifetime, interactive state, command parsing and dispatch, generation
@@ -94,7 +94,7 @@ especially pattern grids, generator-specific labels, and ambiguous library
 entries. Avoid brittle snapshots of the entire help document when smaller
 behavioral assertions suffice.
 
-## Stage 3: extract the interactive application
+## Stage 3: extract the interactive application (complete)
 
 Move the read/dispatch loop into `JamWeaverConsole.RunAsync`. Keep `Program` as
 the composition root. Group private command handlers by responsibility when

@@ -10,11 +10,13 @@ links to the focused contract for the subsystem involved.
   mutation, candidate state, playback, transport, MIDI safety, and persistence.
   It has no dependency on DryWetMIDI or console APIs.
 - `JamWeaver.Console` owns composition, command parsing, port discovery, and
-  DryWetMIDI adapters. `GenerationControls` holds performer-selectable generator
-  state, while `CandidateGenerator` translates it into strongly typed core
-  settings using the current candidate's tonal context and role. `ConsoleDisplay`
-  owns terminal rendering through a `TextWriter` and does not mutate application
-  state.
+  DryWetMIDI adapters. `Program` composes and disposes stable resources, while
+  `JamWeaverConsole.RunAsync` owns the interactive read/dispatch loop and its
+  replaceable MIDI input. `GenerationControls` holds performer-selectable
+  generator state, while `CandidateGenerator` translates it into strongly typed
+  core settings using the current candidate's tonal context and role.
+  `ConsoleDisplay` owns terminal rendering through a `TextWriter` and does not
+  mutate application state.
 - `JamWeaver.Core.Tests` exercises the core through deterministic inputs and
   fake MIDI ports. Hardware tests remain a separate validation activity.
 
