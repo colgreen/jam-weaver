@@ -18,7 +18,7 @@ public sealed class JamWeaverConsoleTests
         var session = new CandidateSession(player);
         var phraseGenerator = new StructuredPhraseGenerator();
         var grooveGenerator = new GrooveVocabularyGenerator();
-        var candidateGenerator = new CandidateGenerator(new EuclideanMotifGenerator(),
+        var candidateGenerator = new CandidateGenerator(new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(),
             new EuclideanPhraseGenerator(), phraseGenerator, grooveGenerator, new MotifGenerator());
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
@@ -48,7 +48,7 @@ public sealed class JamWeaverConsoleTests
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
         var application = new JamWeaverConsole(new StringReader("generator euclidean-phrase\ngenerator euclidean2\nbpm\nquit\n"), new ConsoleDisplay(writer), output,
             transport, internalClock, player, session,
-            new CandidateGenerator(new EuclideanMotifGenerator(), new EuclideanPhraseGenerator(), phraseGenerator,
+            new CandidateGenerator(new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(), new EuclideanPhraseGenerator(), phraseGenerator,
                 grooveGenerator, new MotifGenerator()),
             new GenerationControls(), new PatternMutator(), new PhrasePatternMutator(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),

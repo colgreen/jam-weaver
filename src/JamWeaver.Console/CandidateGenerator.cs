@@ -5,18 +5,21 @@ namespace JamWeaver.ConsoleApp;
 public sealed class CandidateGenerator
 {
     private readonly IPatternGenerator<EuclideanGeneratorSettings> euclidean;
+    private readonly IPatternGenerator<EuclideanGeneratorSettings> research;
     private readonly IPatternGenerator<EuclideanGeneratorSettings> euclideanPhrase;
     private readonly IPatternGenerator<PhraseGeneratorSettings> phrase;
     private readonly IPatternGenerator<GrooveGeneratorSettings> groove;
     private readonly IPatternGenerator<MotifGeneratorSettings> motif;
 
     public CandidateGenerator(IPatternGenerator<EuclideanGeneratorSettings> euclidean,
+        IPatternGenerator<EuclideanGeneratorSettings> research,
         IPatternGenerator<EuclideanGeneratorSettings> euclideanPhrase,
         IPatternGenerator<PhraseGeneratorSettings> phrase,
         IPatternGenerator<GrooveGeneratorSettings> groove,
         IPatternGenerator<MotifGeneratorSettings> motif)
     {
         this.euclidean = euclidean;
+        this.research = research;
         this.euclideanPhrase = euclideanPhrase;
         this.phrase = phrase;
         this.groove = groove;
@@ -41,6 +44,7 @@ public sealed class CandidateGenerator
             GeneratorMode.Motif => motif.Generate(new MotifGeneratorSettings(name, context, role,
                 controls.MotifShape, controls.Activity, controls.Movement, controls.Variation, seed)),
             GeneratorMode.Euclidean => euclidean.Generate(EuclideanSettings(name, 16, context, role, seed)),
+            GeneratorMode.Research => research.Generate(EuclideanSettings(name, 16, context, role, seed)),
             GeneratorMode.EuclideanPhrase => euclideanPhrase.Generate(EuclideanSettings(name, 64, context, role, seed)),
             _ => throw new ArgumentOutOfRangeException(nameof(controls), controls.Mode, "Unknown generator mode.")
         };

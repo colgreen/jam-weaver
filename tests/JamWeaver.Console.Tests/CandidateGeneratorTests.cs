@@ -21,6 +21,7 @@ public sealed class CandidateGeneratorTests
 
     [Theory]
     [InlineData(GeneratorMode.Euclidean, EuclideanMotifGenerator.GeneratorId, 16)]
+    [InlineData(GeneratorMode.Research, ResearchEuclideanGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.EuclideanPhrase, EuclideanPhraseGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.Phrase, StructuredPhraseGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.Groove, GrooveVocabularyGenerator.GeneratorId, 64)]
@@ -109,7 +110,7 @@ public sealed class CandidateGeneratorTests
     }
 
     private static CandidateGenerator CreateGenerator() => new(
-        new EuclideanMotifGenerator(), new EuclideanPhraseGenerator(), new StructuredPhraseGenerator(),
+        new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(), new EuclideanPhraseGenerator(), new StructuredPhraseGenerator(),
         new GrooveVocabularyGenerator(), new MotifGenerator());
 
     private static string Signature(Pattern pattern) => string.Join("|", pattern.Steps.Select(step =>

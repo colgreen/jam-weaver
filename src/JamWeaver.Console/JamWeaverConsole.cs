@@ -182,12 +182,12 @@ public sealed class JamWeaverConsole
                             if (parts.Length == 1)
                             {
                                 display.WriteLine($"Generator: {ConsoleDisplay.GeneratorText(generationControls.Mode)}");
-                                display.WriteLine("Choices: euclidean, euclidean-phrase, motif, phrase, groove");
+                                display.WriteLine("Choices: euclidean, research, euclidean-phrase, motif, phrase, groove");
                                 display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
                                 display.WriteLine("Set with: generator <choice>");
                                 break;
                             }
-                            generationControls.Mode = S(parts, 1).ToLowerInvariant() switch { "euclidean" => GeneratorMode.Euclidean, "euclidean-phrase" or "euclidean2" => GeneratorMode.EuclideanPhrase, "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be euclidean, euclidean-phrase, motif, phrase, or groove.") };
+                            generationControls.Mode = S(parts, 1).ToLowerInvariant() switch { "euclidean" => GeneratorMode.Euclidean, "research" => GeneratorMode.Research, "euclidean-phrase" or "euclidean2" => GeneratorMode.EuclideanPhrase, "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be euclidean, research, euclidean-phrase, motif, phrase, or groove.") };
                             display.WriteLine($"Generator: {ConsoleDisplay.GeneratorText(generationControls.Mode)}");
                             display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
                             break;

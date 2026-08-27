@@ -11,11 +11,12 @@ await using var watchdog = new ExternalClockWatchdog(transport);
 using var player = new PatternPlayer(output, transport);
 var session = new CandidateSession(player);
 var euclideanGenerator = new EuclideanMotifGenerator();
+var researchGenerator = new ResearchEuclideanGenerator();
 var euclideanPhraseGenerator = new EuclideanPhraseGenerator();
 var phraseGenerator = new StructuredPhraseGenerator();
 var grooveGenerator = new GrooveVocabularyGenerator();
 var motifGenerator = new MotifGenerator();
-var candidateGenerator = new CandidateGenerator(euclideanGenerator, euclideanPhraseGenerator, phraseGenerator,
+var candidateGenerator = new CandidateGenerator(euclideanGenerator, researchGenerator, euclideanPhraseGenerator, phraseGenerator,
     grooveGenerator, motifGenerator);
 var generationControls = new GenerationControls();
 var mutator = new PatternMutator();

@@ -30,6 +30,12 @@ version's output contract.
   default and is selected as `euclidean` in the console. It creates a concise one-bar onset pattern and
   short melodic motif. Its implementation and recipe are the frozen comparison
   baseline for Euclidean experiments.
+- `experimental-euclidean-turnaround` version 1 is implemented by
+  `ResearchEuclideanGenerator` and selected as `research`. It repeats a
+  version-3 Euclidean source bar in the form `A | A | A | A-turnaround`, changing
+  only the final two pitches into an approach and stable resolution. Rhythm,
+  velocity, and gate remain exact repetitions. It is a provisional listening
+  experiment and its recipes are not reconstructable.
 - `melodic-euclidean-2` version 1 is implemented by `EuclideanPhraseGenerator`
   with `EuclideanGeneratorSettings`. It is selected as `euclidean-phrase`
   (`euclidean2` remains a legacy alias). It keeps the

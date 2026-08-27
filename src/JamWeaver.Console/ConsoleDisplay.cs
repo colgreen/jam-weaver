@@ -172,6 +172,7 @@ Type 'help <command>' for details or 'help advanced' for every control.
         GeneratorMode.Phrase => "length, activity, rhythm, movement, variation, turnaround",
         GeneratorMode.Groove => "groove, similarity, activity, movement, variation, turnaround (bass only)",
         GeneratorMode.Euclidean => "key, palette, and role; other settings are fixed",
+        GeneratorMode.Research => "key, palette, and role; experimental four-bar turnaround is fixed",
         GeneratorMode.EuclideanPhrase => "key, palette, and role; experimental four-bar development is fixed",
         _ => throw new ArgumentOutOfRangeException(nameof(mode))
     };
@@ -182,7 +183,7 @@ Type 'help <command>' for details or 'help advanced' for every control.
         "advanced" => """
 Device/clock: setup | out <index> | in <index> | source internal|external | bpm <20..300>
 Transport: start | continue | stop | play | mute | channel <1..16>
-Generation: generator euclidean|euclidean-phrase|motif|phrase|groove | new [seed] | compare [seed]
+Generation: generator euclidean|research|euclidean-phrase|motif|phrase|groove | new [seed] | compare [seed]
 Shape: shape <shape> | groove <family> | similarity close|related|contrast | length 1|2|4
 Character: activity sparse|medium|busy | rhythm steady|syncopated|broken
            movement low|medium|high | variation low|medium|high
@@ -211,7 +212,7 @@ Type 'help <command>' for detailed syntax.
         "start" => "start\nStarts internal clock and transport. With external source selected, waits for MIDI Start from the input device.",
         "continue" => "continue\nContinues internal transport without resetting its position. External mode waits for MIDI Continue.",
         "stop" => "stop\nStops transport and releases active pattern notes. External clock disappearing also stops playback.",
-        "generator" => "generator euclidean|euclidean-phrase|motif|phrase|groove\nSelects how 'new' creates candidates. Default: euclidean. Euclidean phrase is an experimental four-bar development of Euclidean; motif, phrase, and groove are also experimental. The legacy name euclidean2 remains accepted. Groove requires role bass.",
+        "generator" => "generator euclidean|research|euclidean-phrase|motif|phrase|groove\nSelects how 'new' creates candidates. Default: euclidean. Research repeats the baseline for three bars and adds a pitch-only turnaround in bar four; the other non-default generators are also experimental. The legacy name euclidean2 remains accepted. Groove requires role bass.",
         "shape" => ShapeHelpText(),
         "length" => "length 1|2|4\nSets phrase-generator length in bars. Default: 4. Motif and groove always produce four bars.",
         "activity" => "activity sparse|medium|busy\nControls rhythmic note density. Default: medium. Takes effect on the next 'new'.",

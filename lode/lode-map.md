@@ -27,6 +27,7 @@
 - Plans
   - [Simplify candidate workflow](plans/simplify-candidate-workflow.md) - unify short-term browsing around one accepted safe point
   - [Generator strategy](plans/generator-strategy.md) - evaluate, cull, and experiment with generators around a proven concise-loop baseline
+  - [Generator-specific variation](plans/generator-specific-variation.md) - refactor `vary` around recipe lineage and family-preserving mutation
 - Hardware
   - [Original Circuit validation](hardware/circuit-validation.md) - confirmed melodic and clock behavior
   - [Zynthian validation](hardware/zynthian-validation.md) - confirmed generic melodic routing

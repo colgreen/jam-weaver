@@ -13,6 +13,7 @@ public sealed class GeneratorTests
     public void Generators_implement_their_typed_contracts()
     {
         Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new EuclideanMotifGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new ResearchEuclideanGenerator());
         Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new EuclideanPhraseGenerator());
         Assert.IsAssignableFrom<IPatternGenerator<EuclideanDrumGeneratorSettings>>(new EuclideanDrumGenerator());
         Assert.IsAssignableFrom<IPatternGenerator<PhraseGeneratorSettings>>(new StructuredPhraseGenerator());
@@ -52,6 +53,30 @@ public sealed class GeneratorTests
     public void Different_seed_changes_representative_melodic_pattern() =>
         Assert.NotEqual(Signature(new EuclideanMotifGenerator().Generate(EuclideanSettings(1))),
             Signature(new EuclideanMotifGenerator().Generate(EuclideanSettings(2))));
+
+    [Fact]
+    public void Research_generator_repeats_three_bars_and_changes_only_two_late_pitches_in_bar_four()
+    {
+        var generator = new ResearchEuclideanGenerator();
+        var first = generator.Generate(EuclideanSettings(123));
+        var second = generator.Generate(EuclideanSettings(123));
+
+        Assert.Equal(Signature(first), Signature(second));
+        Assert.Equal(ResearchEuclideanGenerator.GeneratorId, first.Recipe!.GeneratorId);
+        Assert.Equal("a-a-a-a-turnaround", first.Recipe.Parameters["form"].Text);
+        Assert.Equal(64, first.Steps.Length);
+
+        for (var step = 0; step < 16; step++)
+        {
+            Assert.Equal(StepSignature(first.Steps[step]), StepSignature(first.Steps[step + 16]));
+            Assert.Equal(StepSignature(first.Steps[step]), StepSignature(first.Steps[step + 32]));
+            if (step < 8) Assert.Equal(StepSignature(first.Steps[step]), StepSignature(first.Steps[step + 48]));
+        }
+
+        var changed = Enumerable.Range(56, 8)
+            .Count(step => StepSignature(first.Steps[step - 48]) != StepSignature(first.Steps[step]));
+        Assert.Equal(2, changed);
+    }
 
     [Theory]
     [InlineData(MusicalRole.Bass)]
@@ -159,6 +184,9 @@ public sealed class GeneratorTests
             };
             return $"{pitch},v{note.Velocity.Value},g{note.Gate.Value.ToString("0.###", CultureInfo.InvariantCulture)}";
         }))));
+
+    private static string StepSignature(PatternStep step) => string.Join("+", step.Notes.Select(note =>
+        $"{note.Pitch}:{note.Velocity.Value}:{note.Gate.Value:R}:{step.Probability.Value:R}"));
 
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 }
