@@ -26,7 +26,9 @@ changes only the final two pitches to create a restrained turnaround.
 Four-bar motif, structured-phrase, groove-vocabulary, and drum generators also
 remain available for experimentation.
 Generated material and recipes are deterministic and versioned; saved
-materialized steps remain authoritative for playback.
+materialized steps remain authoritative for playback. Each generator owns both
+generation and variation, and mutation recipes retain the original generator
+lineage so repeated variation returns to the same generator.
 
 The generic melodic path, note cleanup, internal and external clock, candidate
 workflow, and save/restart/load have been exercised on physical devices.

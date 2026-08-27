@@ -6,6 +6,14 @@ public sealed class EuclideanDrumGenerator : IPatternGenerator<EuclideanDrumGene
 {
     public const string GeneratorId = "drum-euclidean-voices";
     public const int GeneratorVersion = 1;
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings)
+    {
+        if (settings.Target is not null)
+            throw new NotSupportedException("Targeted drum variation is not supported.");
+        return CurrentGeneratorVariation.Vary(parent, settings, Lineage);
+    }
 
     public Pattern Generate(EuclideanDrumGeneratorSettings settings)
     {

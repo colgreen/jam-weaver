@@ -109,6 +109,25 @@ public sealed class CandidateGeneratorTests
             .SequenceEqual(second.Recipe.Parameters.OrderBy(pair => pair.Key)));
     }
 
+    [Fact]
+    public void Variation_routes_from_recipe_lineage_and_retains_it()
+    {
+        var generator = CreateGenerator();
+        var controls = new GenerationControls { Mode = GeneratorMode.Research };
+        var parent = generator.Generate(123, null, controls);
+        controls.Mode = GeneratorMode.Euclidean;
+
+        var first = generator.Vary(parent,
+            new GeneratorVariationSettings(null, new NormalizedAmount(.3), 456));
+        var second = generator.Vary(first,
+            new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.3), 789));
+
+        var expected = new GeneratorLineage(ResearchEuclideanGenerator.GeneratorId,
+            ResearchEuclideanGenerator.GeneratorVersion);
+        Assert.Equal(expected, first.Recipe!.Lineage);
+        Assert.Equal(expected, second.Recipe!.Lineage);
+    }
+
     private static CandidateGenerator CreateGenerator() => new(
         new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(), new EuclideanPhraseGenerator(), new StructuredPhraseGenerator(),
         new GrooveVocabularyGenerator(), new MotifGenerator());

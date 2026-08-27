@@ -22,10 +22,13 @@ public sealed class PatternMutator
             GenerationHelpers.P("strength", settings.Strength.Value),
             GenerationHelpers.P("edit-count", editCount),
             GenerationHelpers.P("mode", parent.Mode.ToString())
-        ]);
+        ], RequiredLineage(parent));
         return new Pattern(PatternId.New(), parent.Name, parent.SchemaVersion, parent.Mode, parent.Timing,
             steps, parent.Role, parent.TonalContext, recipe);
     }
+
+    private static GeneratorLineage RequiredLineage(Pattern parent) => parent.Recipe?.Lineage
+        ?? throw new InvalidOperationException("Variation requires a pattern with generator lineage.");
 
     private static PatternStep MutateStep(Pattern parent, PatternStep[] steps, int index, IRandomSource random)
     {

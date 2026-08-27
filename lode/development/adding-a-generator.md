@@ -20,10 +20,16 @@ public sealed class ExamplePatternGenerator
 {
     public const string GeneratorId = "melodic-example";
     public const int GeneratorVersion = 1;
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
 
     public Pattern Generate(ExampleGeneratorSettings settings)
     {
         // Validate cross-field constraints, generate steps, and create recipe.
+    }
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings)
+    {
+        // Preserve this generator's musical identity and structural invariants.
     }
 }
 ```
@@ -75,8 +81,10 @@ For a performer-selectable generator, update the console explicitly:
 3. Add its state to `GenerationControls` and extend `CandidateGenerator` to
    build typed settings from the current candidate context and performer
    controls.
-4. Decide which controls it supports and reject incompatible ones clearly.
-5. Preserve the current tonal context and role where the generator supports
+4. Add the generator to `CandidateGenerator`'s lineage lookup for `vary`.
+5. Decide which variation targets and controls it supports, and reject
+   incompatible ones clearly.
+6. Preserve the current tonal context and role where the generator supports
    them.
 
 Do not add a generic registry unless another concrete consumer needs runtime
@@ -91,6 +99,8 @@ omit console wiring rather than exposing an incomplete command path.
 At minimum, add automated coverage for:
 
 - Implementation of `IPatternGenerator<TSettings>`.
+- Variation rejects material from another generator and retains lineage through
+  repeated variation.
 - Identical musical output for identical settings and seed.
 - Representative different seeds producing different material.
 - A fixed-seed signature or snapshot protecting the version contract.

@@ -90,12 +90,18 @@ three roles; groove-vocabulary generation remains intentionally bass-only.
 
 ## Mutation and recipes
 
-Mutation starts from materialized parent content and returns a new candidate.
-It uses a bounded edit budget, preserves the parent, and records ancestry in the
-new recipe. Supported operations change rhythm, notes, expression, turnaround,
-or a conservative combination of them. Structured mutation protects identified
-anchors; patterns without compatible generator metadata use conservative
-downbeat and accent analysis instead.
+Each generator implements `Vary` alongside `Generate`. Console variation finds
+the generator from the candidate recipe's lineage ID and version; the generator
+selected for new material has no effect. Mutation starts from materialized
+parent content, preserves the parent, and records both immediate ancestry and
+the original generator lineage in the new recipe. Repeated variation therefore
+returns to the same generator.
+
+The current generator implementations share the existing bounded mutation
+algorithms. Bare variation uses the conservative structure-blind algorithm;
+targeted rhythm, note, expression, and turnaround variation uses the existing
+structured-phrase algorithm. Generator ownership is now explicit, but the
+musical rules are not yet specialized for each generator's structure.
 
 Recipe reconstruction validates the exact generator ID and version, required
 parameter names and types, musical ranges, and relationships between settings.

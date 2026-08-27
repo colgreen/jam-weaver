@@ -9,6 +9,8 @@
   its timeout; Start or Continue is required to recover.
 - Generator version - Stable identifier for the exact deterministic algorithm
   used by a recipe.
+- Generator lineage - Original generator ID and version that own variation of a
+  pattern, retained when mutation recipes record a new operation ID.
 - Groove vocabulary - A versioned set of project-authored rhythmic skeletons
   used as recognizable starting points for controlled bass-pattern variation.
 - MIDI Clock - MIDI real-time timing messages sent at 24 PPQN.

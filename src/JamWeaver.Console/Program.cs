@@ -19,14 +19,12 @@ var motifGenerator = new MotifGenerator();
 var candidateGenerator = new CandidateGenerator(euclideanGenerator, researchGenerator, euclideanPhraseGenerator, phraseGenerator,
     grooveGenerator, motifGenerator);
 var generationControls = new GenerationControls();
-var mutator = new PatternMutator();
-var phraseMutator = new PhrasePatternMutator();
 var history = new CandidateHistory();
 using var patternLibrary = new PatternLibrary(Path.Combine(Environment.CurrentDirectory, "patterns"));
 var seedSource = RandomDefaults.CreateRandomSource();
 var externalClock = new ExternalMidiClockInput();
 
 var application = new JamWeaverConsole(Console.In, display, output, transport, internalClock, player, session,
-    candidateGenerator, generationControls, mutator, phraseMutator, history, patternLibrary, phraseGenerator,
+    candidateGenerator, generationControls, history, patternLibrary, phraseGenerator,
     grooveGenerator, seedSource, externalClock);
 await application.RunAsync();

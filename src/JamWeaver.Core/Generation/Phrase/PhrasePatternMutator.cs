@@ -42,7 +42,8 @@ public sealed class PhrasePatternMutator
             GenerationHelpers.P("strength", settings.Strength.Value),
             GenerationHelpers.P("edit-count", changes),
             GenerationHelpers.P("structural-mask", structuralMask.ToString("X16"))
-        ]);
+        ], parent.Recipe?.Lineage
+            ?? throw new InvalidOperationException("Variation requires a pattern with generator lineage."));
         return new Pattern(PatternId.New(), parent.Name, parent.SchemaVersion, parent.Mode, parent.Timing,
             steps, parent.Role, parent.TonalContext, recipe);
     }

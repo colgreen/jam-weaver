@@ -6,6 +6,10 @@ public sealed class EuclideanPhraseGenerator : IPatternGenerator<EuclideanGenera
 {
     public const string GeneratorId = "melodic-euclidean-2";
     public const int GeneratorVersion = 1;
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings) =>
+        CurrentGeneratorVariation.Vary(parent, settings, Lineage);
 
     public Pattern Generate(EuclideanGeneratorSettings settings)
     {

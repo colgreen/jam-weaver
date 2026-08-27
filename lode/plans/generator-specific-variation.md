@@ -13,20 +13,36 @@ candidate.
 
 ## Current problem
 
-Bare `vary` uses `PatternMutator`, whose bounded but structure-blind edits can
+Bare `vary` currently delegates to `PatternMutator`, whose bounded but
+structure-blind edits can
 change rests, pitches, velocity, and gate anywhere in a pattern. On a repeated
 four-bar loop it can independently edit several copies of the same bar and
 destroy their audible relationship.
 
-Targeted forms such as `vary rhythm` use `PhrasePatternMutator` for every
+Targeted forms such as `vary rhythm` currently delegate to
+`PhrasePatternMutator` for every
 melodic pattern, regardless of which generator created it. That mutator
 protects a structural mask but does not understand Euclidean loop identity,
 motif archetypes, groove vocabulary, or a repeated A bar with a turnaround.
 
-Mutation recipes currently replace the parent generator ID with a generic
-mutation ID without retaining a dispatchable generator-family identity.
-Consequently, repeated variation cannot reliably select the source family's
-rules from the immediate recipe alone.
+Mutation recipes use a generic mutation operation ID but separately retain the
+dispatchable source-generator lineage. The remaining problem is that the
+generator-owned methods still share algorithms that do not understand their
+individual structures.
+
+## Current implementation boundary
+
+Generators now implement `Vary` alongside `Generate`. Every recipe carries the
+original generator ID and version as lineage, mutation retains that lineage,
+and console composition resolves `vary` from the candidate lineage rather than
+the mode selected for `new`. Saved format version 2 requires lineage; migration
+from the earlier format is intentionally out of scope.
+
+All current generators initially delegate to the pre-existing mutation
+algorithms. This establishes ownership and repeated dispatch without claiming
+that those algorithms preserve each generator's musical identity. The next
+work is to replace that shared behavior one generator at a time, beginning with
+the repeated-loop/turnaround experiment.
 
 ## Intended contracts
 
@@ -89,13 +105,15 @@ persistence support.
 
 1. Introduce a small typed mutation contract that accepts a materialized parent
    and generator-specific settings. Do not add runtime discovery or a generic
-   strategy registry.
+   strategy registry. **Established:** `IPatternGenerator.Vary` owns the
+   operation and accepts `GeneratorVariationSettings`.
 2. Define a stable generator-family lineage value and carry it through mutation
    recipes. Decide how existing generator and mutation recipes map to that
-   lineage without changing materialized playback.
-3. Move console mutation selection into an explicit core-facing dispatcher
-   composed from known mutators. Keep the switch visible until a second runtime
-   discovery consumer exists.
+   lineage without changing materialized playback. **Established:** lineage is
+   the original generator ID and version; old saved recipes are not migrated.
+3. Route console mutation through the known generator composition.
+   **Established:** `CandidateGenerator` resolves the recipe lineage to one of
+   its explicitly composed generators, then calls that generator's `Vary`.
 4. Implement the repeated-loop/turnaround mutator first. Verify mirrored A
    edits, isolated turnaround edits, deterministic output, and repeated
    variation dispatch.

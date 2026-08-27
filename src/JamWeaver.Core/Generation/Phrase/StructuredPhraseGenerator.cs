@@ -6,8 +6,12 @@ public sealed class StructuredPhraseGenerator : IPatternGenerator<PhraseGenerato
 {
     public const string GeneratorId = "melodic-structured-phrase";
     public const int GeneratorVersion = 1;
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
     private const double Gate = .8;
     private const double VelocityVariation = .15;
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings) =>
+        CurrentGeneratorVariation.Vary(parent, settings, Lineage);
 
     public Pattern Generate(PhraseGeneratorSettings settings)
     {

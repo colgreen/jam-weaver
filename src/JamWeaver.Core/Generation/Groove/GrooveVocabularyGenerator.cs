@@ -9,6 +9,11 @@ public sealed class GrooveVocabularyGenerator : IPatternGenerator<GrooveGenerato
     public const string GeneratorId = "melodic-groove-vocabulary";
     public const int GeneratorVersion = 1;
 
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings) =>
+        CurrentGeneratorVariation.Vary(parent, settings, Lineage);
+
     public Pattern Generate(GrooveGeneratorSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);

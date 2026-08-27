@@ -50,6 +50,27 @@ public sealed class CandidateGenerator
         };
     }
 
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(parent);
+        var lineage = parent.Recipe?.Lineage
+            ?? throw new InvalidOperationException("This candidate has no generator lineage and cannot be varied.");
+        var generator = Generators().SingleOrDefault(candidate => candidate.Lineage == lineage)
+            ?? throw new NotSupportedException(
+                $"Variation is not supported for generator '{lineage.GeneratorId}' version {lineage.GeneratorVersion}.");
+        return generator.Vary(parent, settings);
+    }
+
+    private IEnumerable<IPatternGenerator> Generators()
+    {
+        yield return euclidean;
+        yield return research;
+        yield return euclideanPhrase;
+        yield return phrase;
+        yield return groove;
+        yield return motif;
+    }
+
     public static TonalContext DefaultTonalContext() =>
         new(new RootPitchClass(9), PitchPalette.MinorPentatonic);
 

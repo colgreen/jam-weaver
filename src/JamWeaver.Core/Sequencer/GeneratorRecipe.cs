@@ -5,6 +5,20 @@ namespace JamWeaver.Core.Sequencer;
 
 public enum RecipeValueKind { Integer, Number, Boolean, Text }
 
+public readonly record struct GeneratorLineage
+{
+    public GeneratorLineage(string generatorId, int generatorVersion)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(generatorId);
+        if (generatorVersion < 1) throw new ArgumentOutOfRangeException(nameof(generatorVersion));
+        GeneratorId = generatorId.Trim();
+        GeneratorVersion = generatorVersion;
+    }
+
+    public string GeneratorId { get; }
+    public int GeneratorVersion { get; }
+}
+
 public readonly record struct RecipeValue
 {
     private RecipeValue(RecipeValueKind kind, long integer, double number, bool boolean, string? text) =>
@@ -28,7 +42,8 @@ public sealed class GeneratorRecipe
     private static readonly Regex KeyPattern = new("^[A-Za-z0-9_-]+$", RegexOptions.CultureInvariant);
 
     public GeneratorRecipe(string generatorId, int generatorVersion, ulong seed,
-        PatternId? parentPatternId, IEnumerable<KeyValuePair<string, RecipeValue>> parameters)
+        PatternId? parentPatternId, IEnumerable<KeyValuePair<string, RecipeValue>> parameters,
+        GeneratorLineage? lineage = null)
     {
         ArgumentNullException.ThrowIfNull(generatorId);
         generatorId = generatorId.Trim();
@@ -48,6 +63,7 @@ public sealed class GeneratorRecipe
         Seed = seed;
         ParentPatternId = parentPatternId;
         Parameters = builder.ToImmutable();
+        Lineage = lineage ?? new GeneratorLineage(generatorId, generatorVersion);
     }
 
     public string GeneratorId { get; }
@@ -55,4 +71,5 @@ public sealed class GeneratorRecipe
     public ulong Seed { get; }
     public PatternId? ParentPatternId { get; }
     public ImmutableSortedDictionary<string, RecipeValue> Parameters { get; }
+    public GeneratorLineage Lineage { get; }
 }

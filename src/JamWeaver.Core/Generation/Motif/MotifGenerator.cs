@@ -8,6 +8,11 @@ public sealed class MotifGenerator : IPatternGenerator<MotifGeneratorSettings>
     public const string GeneratorId = "melodic-musical-motif";
     public const int GeneratorVersion = 4;
 
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings) =>
+        CurrentGeneratorVariation.Vary(parent, settings, Lineage);
+
     public Pattern Generate(MotifGeneratorSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);

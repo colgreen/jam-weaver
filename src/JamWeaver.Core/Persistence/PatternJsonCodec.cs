@@ -6,7 +6,7 @@ public readonly record struct DecodedPattern(Pattern Pattern, DateTimeOffset Sav
 
 public sealed class PatternJsonCodec
 {
-    public const int CurrentFormatVersion = 1;
+    public const int CurrentFormatVersion = 2;
     public const int MaximumDocumentBytes = 1024 * 1024;
 
     public byte[] Encode(Pattern pattern, DateTimeOffset savedUtc)
@@ -125,6 +125,8 @@ public sealed class PatternJsonCodec
         writer.WriteStartObject();
         writer.WriteString("generatorId", recipe.GeneratorId);
         writer.WriteNumber("generatorVersion", recipe.GeneratorVersion);
+        writer.WriteString("lineageGeneratorId", recipe.Lineage.GeneratorId);
+        writer.WriteNumber("lineageGeneratorVersion", recipe.Lineage.GeneratorVersion);
         writer.WriteString("seed", recipe.Seed.ToString(System.Globalization.CultureInfo.InvariantCulture));
         if (recipe.ParentPatternId is { } parent) writer.WriteString("parentPatternId", parent.Value);
         else writer.WriteNull("parentPatternId");
@@ -223,7 +225,9 @@ public sealed class PatternJsonCodec
         var parameters = parametersElement.EnumerateObject().Select(parameter =>
             new KeyValuePair<string, RecipeValue>(parameter.Name, ReadRecipeValue(parameter.Value, context))).ToArray();
         return new GeneratorRecipe(RequiredString(value, "generatorId", context),
-            Required(value, "generatorVersion", context).GetInt32(), seed, parent, parameters);
+            Required(value, "generatorVersion", context).GetInt32(), seed, parent, parameters,
+            new GeneratorLineage(RequiredString(value, "lineageGeneratorId", context),
+                Required(value, "lineageGeneratorVersion", context).GetInt32()));
     }
 
     private static RecipeValue ReadRecipeValue(JsonElement element, string context)

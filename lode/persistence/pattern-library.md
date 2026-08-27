@@ -21,21 +21,22 @@ silently overwritten or deleted.
 
 ## Stored data
 
-Format version 1 stores:
+Format version 2 stores:
 
 - Save time and pattern schema version.
 - Pattern ID, name, mode, timing, and ordered steps.
 - Each note's pitch, velocity, and gate, plus each step's trigger probability.
 - Musical role and tonal context for melodic patterns.
-- An optional generator recipe with generator ID, version, seed, parameters, and
-  parent pattern ID.
+- An optional generator recipe with operation ID and version, original generator
+  lineage ID and version, seed, parameters, and parent pattern ID.
 
 Pitch and recipe values carry explicit type labels. Seeds are decimal strings so
 all unsigned 64-bit values round-trip exactly. JSON is indented UTF-8 without a
 byte-order mark.
 
-Materialized steps are authoritative for playback. A recipe supports
-reproduction and further mutation but never replaces the stored steps.
+Materialized steps are authoritative for playback. Recipe lineage routes
+further variation back to the generator that created the original material; a
+recipe never replaces the stored steps.
 
 ## Validation and compatibility
 
@@ -71,9 +72,9 @@ introduces it as a candidate. It does not change the accepted pattern, MIDI
 route, or transport. The loaded candidate becomes active immediately while
 stopped or at the next bar while running.
 
-The library deliberately has no delete command, migrations from nonexistent
-older formats, route persistence, cloud synchronization, or automatic repair of
-invalid hand-edited data.
+The library deliberately has no delete command, migration from format version 1,
+route persistence, cloud synchronization, or automatic repair of invalid
+hand-edited data.
 
 Related: [pattern model](../sequencer/pattern-model.md) and [candidate
 workflow](../performance/candidate-workflow.md).

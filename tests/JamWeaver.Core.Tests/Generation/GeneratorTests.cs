@@ -21,6 +21,23 @@ public sealed class GeneratorTests
         Assert.IsAssignableFrom<IPatternGenerator<MotifGeneratorSettings>>(new MotifGenerator());
     }
 
+    [Fact]
+    public void Generator_owns_variation_and_preserves_its_lineage_across_repeated_variation()
+    {
+        var generator = new ResearchEuclideanGenerator();
+        var generated = generator.Generate(EuclideanSettings(123));
+        var first = generator.Vary(generated,
+            new GeneratorVariationSettings(null, new NormalizedAmount(.3), 456));
+        var second = generator.Vary(first,
+            new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.3), 789));
+
+        Assert.Equal(generator.Lineage, generated.Recipe!.Lineage);
+        Assert.Equal(generator.Lineage, first.Recipe!.Lineage);
+        Assert.Equal(generator.Lineage, second.Recipe!.Lineage);
+        Assert.Equal(generated.Id, first.Recipe.ParentPatternId);
+        Assert.Equal(first.Id, second.Recipe.ParentPatternId);
+    }
+
     [Theory]
     [InlineData(MusicalRole.Bass, PitchPalette.MajorPentatonic, 101UL, "10483613F2D322E8DB66D196C52BAE821D81B220B12CAC7B45AF1EA5DE8856DC")]
     [InlineData(MusicalRole.Bass, PitchPalette.MinorPentatonic, 102UL, "36FABCD91D5FD697BBB1F44408FF54C61565D60BDDB97912363645068C42D08A")]

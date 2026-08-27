@@ -8,9 +8,13 @@ public sealed class ResearchEuclideanGenerator : IPatternGenerator<EuclideanGene
 {
     public const string GeneratorId = "experimental-euclidean-turnaround";
     public const int GeneratorVersion = 1;
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
     private const int StepsPerBar = 16;
 
     private readonly EuclideanMotifGenerator baseline = new();
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings) =>
+        CurrentGeneratorVariation.Vary(parent, settings, Lineage);
 
     public Pattern Generate(EuclideanGeneratorSettings settings)
     {

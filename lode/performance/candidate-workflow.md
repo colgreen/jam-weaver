@@ -84,7 +84,9 @@ retained selection is inactive rather than implying that it affects `new`.
 fresh seed at strength 0.7, while bare `vary` uses a fresh seed at the 0.3
 default. Targeted forms place the target first, such as `vary rhythm 0.5`.
 Reproducibility is deliberately explicit through a named suffix, for example
-`vary 0.7 seed 123`.
+`vary 0.7 seed 123`. Variation is owned by the generator recorded in the
+candidate's recipe lineage; changing the generator selected for `new` does not
+change how the current candidate is varied.
 
 Playback-affecting changes made while running become active on the next bar.
 When stopped, candidate editing can apply immediately because nothing is being

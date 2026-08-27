@@ -40,7 +40,7 @@ public sealed class PatternJsonCodecTests
     public void Unknown_properties_are_tolerated()
     {
         var json = Encoding.UTF8.GetString(_codec.Encode(MelodicPattern(), SavedUtc))
-            .Replace("\"formatVersion\": 1,", "\"formatVersion\": 1,\n  \"futureRootValue\": true,");
+            .Replace("\"formatVersion\": 2,", "\"formatVersion\": 2,\n  \"futureRootValue\": true,");
 
         var decoded = _codec.Decode(Encoding.UTF8.GetBytes(json));
 
@@ -48,7 +48,7 @@ public sealed class PatternJsonCodecTests
     }
 
     [Theory]
-    [InlineData("\"formatVersion\": 1", "\"formatVersion\": 2", "unsupported format version")]
+    [InlineData("\"formatVersion\": 2", "\"formatVersion\": 1", "unsupported format version")]
     [InlineData("\"schemaVersion\": 1", "\"schemaVersion\": 2", "unsupported pattern schema version")]
     [InlineData("\"mode\": \"melodic\"", "\"mode\": \"future\"", "unknown pattern mode")]
     [InlineData("\"kind\": \"melodic\"", "\"kind\": \"future\"", "unknown pitch kind")]
@@ -66,7 +66,7 @@ public sealed class PatternJsonCodecTests
     public void Duplicate_properties_are_rejected()
     {
         var json = Encoding.UTF8.GetString(_codec.Encode(MelodicPattern(), SavedUtc))
-            .Replace("\"formatVersion\": 1,", "\"formatVersion\": 1, \"formatVersion\": 1,");
+            .Replace("\"formatVersion\": 2,", "\"formatVersion\": 2, \"formatVersion\": 2,");
 
         var error = Assert.Throws<PatternPersistenceException>(() => _codec.Decode(Encoding.UTF8.GetBytes(json)));
 
@@ -116,6 +116,7 @@ public sealed class PatternJsonCodecTests
         Assert.Equal(expected.Recipe?.GeneratorVersion, actual.Recipe?.GeneratorVersion);
         Assert.Equal(expected.Recipe?.Seed, actual.Recipe?.Seed);
         Assert.Equal(expected.Recipe?.ParentPatternId, actual.Recipe?.ParentPatternId);
+        Assert.Equal(expected.Recipe?.Lineage, actual.Recipe?.Lineage);
         Assert.Equal(expected.Recipe?.Parameters, actual.Recipe?.Parameters);
     }
 }

@@ -6,6 +6,10 @@ public sealed class EuclideanMotifGenerator : IPatternGenerator<EuclideanGenerat
 {
     public const string GeneratorId = "melodic-euclidean-motif";
     public const int GeneratorVersion = 3;
+    public GeneratorLineage Lineage => new(GeneratorId, GeneratorVersion);
+
+    public Pattern Vary(Pattern parent, GeneratorVariationSettings settings) =>
+        CurrentGeneratorVariation.Vary(parent, settings, Lineage);
 
     public Pattern Generate(EuclideanGeneratorSettings settings)
     {

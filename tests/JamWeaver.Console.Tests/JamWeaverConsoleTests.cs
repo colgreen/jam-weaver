@@ -24,7 +24,7 @@ public sealed class JamWeaverConsoleTests
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
         var application = new JamWeaverConsole(new StringReader("bpm invalid\nhelp\nquit\n"),
             new ConsoleDisplay(writer), output, transport, internalClock, player, session, candidateGenerator,
-            new GenerationControls(), new PatternMutator(), new PhrasePatternMutator(), new CandidateHistory(),
+            new GenerationControls(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),
             new ExternalMidiClockInput());
 
@@ -50,7 +50,7 @@ public sealed class JamWeaverConsoleTests
             transport, internalClock, player, session,
             new CandidateGenerator(new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(), new EuclideanPhraseGenerator(), phraseGenerator,
                 grooveGenerator, new MotifGenerator()),
-            new GenerationControls(), new PatternMutator(), new PhrasePatternMutator(), new CandidateHistory(),
+            new GenerationControls(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),
             new ExternalMidiClockInput());
 

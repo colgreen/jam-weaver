@@ -16,8 +16,6 @@ public sealed class JamWeaverConsole
     private readonly CandidateSession session;
     private readonly CandidateGenerator candidateGenerator;
     private readonly GenerationControls generationControls;
-    private readonly PatternMutator mutator;
-    private readonly PhrasePatternMutator phraseMutator;
     private readonly CandidateHistory history;
     private readonly PatternLibrary patternLibrary;
     private readonly StructuredPhraseGenerator phraseGenerator;
@@ -32,7 +30,7 @@ public sealed class JamWeaverConsole
     public JamWeaverConsole(TextReader reader, ConsoleDisplay display, SafeMidiOutput output,
         TransportEngine transport, InternalMidiClock internalClock, PatternPlayer player,
         CandidateSession session, CandidateGenerator candidateGenerator, GenerationControls generationControls,
-        PatternMutator mutator, PhrasePatternMutator phraseMutator, CandidateHistory history,
+        CandidateHistory history,
         PatternLibrary patternLibrary, StructuredPhraseGenerator phraseGenerator,
         GrooveVocabularyGenerator grooveGenerator, IRandomSource seedSource, ExternalMidiClockInput externalClock)
     {
@@ -45,8 +43,6 @@ public sealed class JamWeaverConsole
         this.session = session ?? throw new ArgumentNullException(nameof(session));
         this.candidateGenerator = candidateGenerator ?? throw new ArgumentNullException(nameof(candidateGenerator));
         this.generationControls = generationControls ?? throw new ArgumentNullException(nameof(generationControls));
-        this.mutator = mutator ?? throw new ArgumentNullException(nameof(mutator));
-        this.phraseMutator = phraseMutator ?? throw new ArgumentNullException(nameof(phraseMutator));
         this.history = history ?? throw new ArgumentNullException(nameof(history));
         this.patternLibrary = patternLibrary ?? throw new ArgumentNullException(nameof(patternLibrary));
         this.phraseGenerator = phraseGenerator ?? throw new ArgumentNullException(nameof(phraseGenerator));
@@ -161,16 +157,15 @@ public sealed class JamWeaverConsole
                             var hasTarget = parts.Length > variationArgument && TryMutationTarget(parts[variationArgument], out mutationTarget);
                             if (hasTarget) variationArgument++;
                             var (variationStrength, variationSeed) = VariationArguments(parts, variationArgument, seedSource);
+                            SelectCandidate(session, history, candidateGenerator.Vary(parent,
+                                new GeneratorVariationSettings(hasTarget ? mutationTarget : null,
+                                    new NormalizedAmount(variationStrength), variationSeed)));
                             if (hasTarget)
                             {
-                                SelectCandidate(session, history, phraseMutator.Mutate(parent,
-                                    new PhraseMutationSettings(mutationTarget, new NormalizedAmount(variationStrength), variationSeed)));
                                 display.WriteLine($"Varied {mutationTarget.ToString().ToLowerInvariant()} with seed {variationSeed} at strength {variationStrength:0.##}.");
                             }
                             else
                             {
-                                SelectCandidate(session, history, mutator.Mutate(parent,
-                                    new MutationSettings(new NormalizedAmount(variationStrength), variationSeed)));
                                 display.WriteLine($"Varied candidate with seed {variationSeed} at strength {variationStrength:0.##}.");
                             }
                             break;
