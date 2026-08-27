@@ -21,7 +21,7 @@ public sealed class CandidateGeneratorTests
 
     [Theory]
     [InlineData(GeneratorMode.Euclidean, EuclideanMotifGenerator.GeneratorId, 16)]
-    [InlineData(GeneratorMode.Research, ResearchEuclideanGenerator.GeneratorId, 64)]
+    [InlineData(GeneratorMode.Turnaround, TurnaroundLoopGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.EuclideanPhrase, EuclideanPhraseGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.Phrase, StructuredPhraseGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.Groove, GrooveVocabularyGenerator.GeneratorId, 64)]
@@ -113,7 +113,7 @@ public sealed class CandidateGeneratorTests
     public void Variation_routes_from_recipe_lineage_and_retains_it()
     {
         var generator = CreateGenerator();
-        var controls = new GenerationControls { Mode = GeneratorMode.Research };
+        var controls = new GenerationControls { Mode = GeneratorMode.Turnaround };
         var parent = generator.Generate(123, null, controls);
         controls.Mode = GeneratorMode.Euclidean;
 
@@ -122,14 +122,14 @@ public sealed class CandidateGeneratorTests
         var second = generator.Vary(first,
             new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.3), 789));
 
-        var expected = new GeneratorLineage(ResearchEuclideanGenerator.GeneratorId,
-            ResearchEuclideanGenerator.GeneratorVersion);
+        var expected = new GeneratorLineage(TurnaroundLoopGenerator.GeneratorId,
+            TurnaroundLoopGenerator.GeneratorVersion);
         Assert.Equal(expected, first.Recipe!.Lineage);
         Assert.Equal(expected, second.Recipe!.Lineage);
     }
 
     private static CandidateGenerator CreateGenerator() => new(
-        new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(), new EuclideanPhraseGenerator(), new StructuredPhraseGenerator(),
+        new EuclideanMotifGenerator(), new TurnaroundLoopGenerator(), new EuclideanPhraseGenerator(), new StructuredPhraseGenerator(),
         new GrooveVocabularyGenerator(), new MotifGenerator());
 
     private static string Signature(Pattern pattern) => string.Join("|", pattern.Steps.Select(step =>

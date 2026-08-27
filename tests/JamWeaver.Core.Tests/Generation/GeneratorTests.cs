@@ -13,7 +13,7 @@ public sealed class GeneratorTests
     public void Generators_implement_their_typed_contracts()
     {
         Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new EuclideanMotifGenerator());
-        Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new ResearchEuclideanGenerator());
+        Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new TurnaroundLoopGenerator());
         Assert.IsAssignableFrom<IPatternGenerator<EuclideanGeneratorSettings>>(new EuclideanPhraseGenerator());
         Assert.IsAssignableFrom<IPatternGenerator<EuclideanDrumGeneratorSettings>>(new EuclideanDrumGenerator());
         Assert.IsAssignableFrom<IPatternGenerator<PhraseGeneratorSettings>>(new StructuredPhraseGenerator());
@@ -24,7 +24,7 @@ public sealed class GeneratorTests
     [Fact]
     public void Generator_owns_variation_and_preserves_its_lineage_across_repeated_variation()
     {
-        var generator = new ResearchEuclideanGenerator();
+        var generator = new TurnaroundLoopGenerator();
         var generated = generator.Generate(EuclideanSettings(123));
         var first = generator.Vary(generated,
             new GeneratorVariationSettings(null, new NormalizedAmount(.3), 456));
@@ -72,14 +72,14 @@ public sealed class GeneratorTests
             Signature(new EuclideanMotifGenerator().Generate(EuclideanSettings(2))));
 
     [Fact]
-    public void Research_generator_repeats_three_bars_and_changes_only_two_late_pitches_in_bar_four()
+    public void Turnaround_loop_repeats_three_bars_and_changes_only_two_late_pitches_in_bar_four()
     {
-        var generator = new ResearchEuclideanGenerator();
+        var generator = new TurnaroundLoopGenerator();
         var first = generator.Generate(EuclideanSettings(123));
         var second = generator.Generate(EuclideanSettings(123));
 
         Assert.Equal(Signature(first), Signature(second));
-        Assert.Equal(ResearchEuclideanGenerator.GeneratorId, first.Recipe!.GeneratorId);
+        Assert.Equal(TurnaroundLoopGenerator.GeneratorId, first.Recipe!.GeneratorId);
         Assert.Equal("a-a-a-a-turnaround", first.Recipe.Parameters["form"].Text);
         Assert.Equal(64, first.Steps.Length);
 

@@ -21,8 +21,9 @@ device-specific patch data.
 The default Euclidean generator creates concise one-bar melodic patterns in the
 selected bass, middle, or high register. A separate Euclidean phrase generator tests
 bounded A, A-prime, B, return development without changing that baseline.
-The provisional research generator repeats the baseline bar four times and
-changes only the final two pitches to create a restrained turnaround.
+The Turnaround Loop generator repeats a concise Euclidean source bar in the
+form A, A, A, and A-turnaround. Its generator-specific variation preserves that
+identity through mirrored loop edits and isolated final gestures.
 Four-bar motif, structured-phrase, groove-vocabulary, and drum generators also
 remain available for experimentation.
 Generated material and recipes are deterministic and versioned; saved

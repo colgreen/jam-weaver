@@ -19,6 +19,7 @@
   - [Pattern generation](generation/pattern-generation.md) - shared deterministic generation contracts
   - [Pleasing sequence research](generation/pleasing-sequence-research.md) - research basis and testable strategies for rhythm, melody, repetition, and development
   - [Euclidean phrase generation](generation/euclidean-phrase-generation.md) - isolated four-bar Euclidean experiment
+  - [Turnaround Loop generation](generation/turnaround-loop-generation.md) - retained A/A/A/A-turnaround generator and variation contract
   - [Phrase generation](generation/phrase-generation.md) - structured phrase behavior
   - [Groove generation](generation/groove-generation.md) - rhythm vocabulary and variation
   - [Motif generation](generation/motif-generation.md) - experimental four-bar melodic grammar

@@ -18,7 +18,7 @@ public sealed class JamWeaverConsoleTests
         var session = new CandidateSession(player);
         var phraseGenerator = new StructuredPhraseGenerator();
         var grooveGenerator = new GrooveVocabularyGenerator();
-        var candidateGenerator = new CandidateGenerator(new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(),
+        var candidateGenerator = new CandidateGenerator(new EuclideanMotifGenerator(), new TurnaroundLoopGenerator(),
             new EuclideanPhraseGenerator(), phraseGenerator, grooveGenerator, new MotifGenerator());
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
@@ -46,9 +46,9 @@ public sealed class JamWeaverConsoleTests
         var grooveGenerator = new GrooveVocabularyGenerator();
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
-        var application = new JamWeaverConsole(new StringReader("generator euclidean-phrase\ngenerator euclidean2\nbpm\nquit\n"), new ConsoleDisplay(writer), output,
+        var application = new JamWeaverConsole(new StringReader("generator turnaround\ngenerator euclidean-phrase\ngenerator euclidean2\nbpm\nquit\n"), new ConsoleDisplay(writer), output,
             transport, internalClock, player, session,
-            new CandidateGenerator(new EuclideanMotifGenerator(), new ResearchEuclideanGenerator(), new EuclideanPhraseGenerator(), phraseGenerator,
+            new CandidateGenerator(new EuclideanMotifGenerator(), new TurnaroundLoopGenerator(), new EuclideanPhraseGenerator(), phraseGenerator,
                 grooveGenerator, new MotifGenerator()),
             new GenerationControls(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),
@@ -57,6 +57,7 @@ public sealed class JamWeaverConsoleTests
         await application.RunAsync();
 
         Assert.Contains("Tempo: 120 BPM", writer.ToString());
+        Assert.Contains("Generator: turnaround", writer.ToString());
         Assert.Contains("Generator: euclidean-phrase", writer.ToString());
         Assert.DoesNotContain("Error:", writer.ToString());
     }

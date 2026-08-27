@@ -30,12 +30,14 @@ version's output contract.
   default and is selected as `euclidean` in the console. It creates a concise one-bar onset pattern and
   short melodic motif. Its implementation and recipe are the frozen comparison
   baseline for Euclidean experiments.
-- `experimental-euclidean-turnaround` version 1 is implemented by
-  `ResearchEuclideanGenerator` and selected as `research`. It repeats a
+- `melodic-euclidean-turnaround` version 1 is implemented by
+  `TurnaroundLoopGenerator` and selected as `turnaround`. It repeats a
   version-3 Euclidean source bar in the form `A | A | A | A-turnaround`, changing
   only the final two pitches into an approach and stable resolution. Rhythm,
   velocity, and gate remain exact repetitions. It is a provisional listening
-  experiment and its recipes are not reconstructable.
+  generator and its recipes are not reconstructable. Its generator-owned
+  variation mirrors rhythm, note, and expression edits across A repetitions and
+  reserves turnaround variation for the final two pitches.
 - `melodic-euclidean-2` version 1 is implemented by `EuclideanPhraseGenerator`
   with `EuclideanGeneratorSettings`. It is selected as `euclidean-phrase`
   (`euclidean2` remains a legacy alias). It keeps the
@@ -97,11 +99,11 @@ parent content, preserves the parent, and records both immediate ancestry and
 the original generator lineage in the new recipe. Repeated variation therefore
 returns to the same generator.
 
-The current generator implementations share the existing bounded mutation
-algorithms. Bare variation uses the conservative structure-blind algorithm;
-targeted rhythm, note, expression, and turnaround variation uses the existing
-structured-phrase algorithm. Generator ownership is now explicit, but the
-musical rules are not yet specialized for each generator's structure.
+The Turnaround Loop generator has family-specific variation that preserves
+its repeated-loop form. Other current generators still share the existing
+bounded mutation algorithms: bare variation uses the conservative
+structure-blind algorithm, while targeted rhythm, note, expression, and
+turnaround variation uses the existing structured-phrase algorithm.
 
 Recipe reconstruction validates the exact generator ID and version, required
 parameter names and types, musical ranges, and relationships between settings.

@@ -13,20 +13,21 @@ candidate.
 
 ## Current problem
 
-Bare `vary` currently delegates to `PatternMutator`, whose bounded but
+For generators other than Turnaround Loop, bare `vary`
+currently delegates to `PatternMutator`, whose bounded but
 structure-blind edits can
 change rests, pitches, velocity, and gate anywhere in a pattern. On a repeated
 four-bar loop it can independently edit several copies of the same bar and
 destroy their audible relationship.
 
-Targeted forms such as `vary rhythm` currently delegate to
+For those same generators, targeted forms such as `vary rhythm` delegate to
 `PhrasePatternMutator` for every
 melodic pattern, regardless of which generator created it. That mutator
 protects a structural mask but does not understand Euclidean loop identity,
 motif archetypes, groove vocabulary, or a repeated A bar with a turnaround.
 
 Mutation recipes use a generic mutation operation ID but separately retain the
-dispatchable source-generator lineage. The remaining problem is that the
+dispatchable source-generator lineage. The remaining problem is that most
 generator-owned methods still share algorithms that do not understand their
 individual structures.
 
@@ -38,11 +39,9 @@ and console composition resolves `vary` from the candidate lineage rather than
 the mode selected for `new`. Saved format version 2 requires lineage; migration
 from the earlier format is intentionally out of scope.
 
-All current generators initially delegate to the pre-existing mutation
-algorithms. This establishes ownership and repeated dispatch without claiming
-that those algorithms preserve each generator's musical identity. The next
-work is to replace that shared behavior one generator at a time, beginning with
-the repeated-loop/turnaround experiment.
+Turnaround Loop now has family-specific variation. The other
+generators still delegate to the pre-existing mutation algorithms. The next
+work is to replace that shared behavior one retained generator at a time.
 
 ## Intended contracts
 
@@ -81,13 +80,13 @@ the repeated-loop/turnaround experiment.
 - Rhythm, note, and expression edits to A are mirrored across its repetitions.
 - The final-bar turnaround is preserved or recalculated after an A edit.
 - Turnaround variation changes only the final approach-and-resolution gesture.
-- Low-strength bare variation favors the turnaround. Higher strength may add
-  one mirrored A edit without obscuring the loop identity.
+- Low-strength bare variation favors the turnaround while occasionally making
+  one mirrored A-note edit. High-strength bare
+  variation deterministically selects one supported dimension from the seed.
 
-The experimental turnaround generator must remain throwaway until listening
-establishes that it belongs in the retained generator set. Its mutator is the
-first concrete design exercise, not an implicit commitment to permanent API or
-persistence support.
+Turnaround Loop is retained as a performer-facing generator. Its musical form
+and variation contract are documented in [Turnaround Loop
+generation](../generation/turnaround-loop-generation.md).
 
 ### Other existing families
 
@@ -116,7 +115,9 @@ persistence support.
    its explicitly composed generators, then calls that generator's `Vary`.
 4. Implement the repeated-loop/turnaround mutator first. Verify mirrored A
    edits, isolated turnaround edits, deterministic output, and repeated
-   variation dispatch.
+   variation dispatch. **Established:** variation version 1 mirrors bounded A
+   edits, recalculates the turnaround after rhythm or note edits, and isolates
+   direct turnaround edits to the final two pitches.
 5. Implement the one-bar Euclidean mutator and compare targeted rhythm, note,
    and expression changes by ear.
 6. Adapt the existing structured phrase mutator so its family and supported
@@ -151,16 +152,17 @@ persistence support.
 - Audition family-specific variations on the intended MIDI hardware; automated
   invariants do not establish musical usefulness.
 
-## Decisions before implementation
+## Established decisions
 
-- Choose the exact lineage representation: a recipe parameter on every
-  mutation, a dedicated recipe field, or family-specific mutation IDs with an
-  explicit mapping. Prefer the smallest option that supports repeated mutation
-  and saved-recipe validation.
-- Decide whether bare `vary` chooses a target deterministically from the seed or
-  whether every family defines one default target.
-- Decide whether old `controlled-mutation` candidates remain variably
-  compatible or become playable but unsupported parents.
+- Lineage is a dedicated recipe value containing the original generator ID and
+  version.
+- Each generator defines bare-target semantics. Turnaround Loop variation favors
+  turnaround below high strength and uses a seed-selected single dimension at
+  high strength.
+- Format version 1 recipes are not migrated.
+
+## Remaining decisions
+
 - Decide which current experimental generators merit a mutator before building
   one for each exposed mode.
 
