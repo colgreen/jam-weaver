@@ -1,8 +1,10 @@
 # Developer primer
 
 JamWeaver separates reusable, device-independent MIDI behavior from terminal and
-MIDI-library integration. Start here when changing the system, then follow the
-links to the focused contract for the subsystem involved.
+MIDI-library integration. Read the [theory of
+operation](../architecture/theory-of-operation.md) for runtime ownership,
+execution contexts, and the complete path from a command to MIDI notes. This
+primer identifies the main types and extension contracts.
 
 ## Solution boundaries
 
@@ -56,10 +58,10 @@ flowchart LR
     Player --> SafeMidi[Safe MIDI output]
 ```
 
-`IPatternGenerator<TSettings>` is the shared generation boundary. Its only
-operation produces a `Pattern` from generator-specific, validated settings.
-Settings remain strongly typed because phrase, groove, motif, melodic, and drum
-controls are not interchangeable.
+`IPatternGenerator<TSettings>` adds typed `Generate` to `IPatternGenerator`,
+whose `Lineage` identifies the generator family/version and whose `Vary`
+operation owns variation. Settings remain strongly typed because phrase,
+groove, motif, melodic, and drum controls are not interchangeable.
 
 The console's `CandidateGenerator` contains an explicit generator-mode switch
 that constructs the appropriate settings and calls the composed implementation.
@@ -69,13 +71,16 @@ enough that explicit composition is clearer and preserves type safety.
 `CandidateSession` separates private audition from the accepted pattern.
 Changing a candidate during playback schedules it at the next bar rather than
 altering the audible bar in place. `CandidateHistory` supports local browsing.
-Mutation is separate from generation because a mutator consumes a materialized
-parent and records ancestry.
+Variation consumes a materialized parent and records ancestry. The console
+resolves its generator from recipe lineage, independently of the mode selected
+for new patterns. Turnaround Loop has family-specific variation; other current
+generators delegate to shared mutators.
 
 `PatternPlayer` schedules note events from the current pattern. Transport
 determines musical position from internal or external clock. MIDI output safety
-tracks active notes and performs deterministic cleanup on stop, disconnect, and
-disposal.
+tracks active notes and attempts cleanup on stop and disposal. Notification
+ordering and device-failure cleanup still have limits described in the theory
+of operation; automated tests do not establish reliable disconnect recovery.
 
 See [candidate workflow](../performance/candidate-workflow.md), [clock and
 transport](../midi/clock-transport.md), and [note lifecycle](../midi/note-lifecycle.md).

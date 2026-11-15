@@ -3,6 +3,9 @@
 The solution separates device-independent behavior from MIDI-library and
 terminal concerns:
 
+See [theory of operation](theory-of-operation.md) for how these components work
+together, their resource ownership, and current lifecycle limitations.
+
 ```text
 src/
   JamWeaver.Core/       MIDI safety and transport abstractions
@@ -27,7 +30,9 @@ interactive session. `CandidateGenerator` maps `GenerationControls`, a seed, and
 the current candidate context to strongly typed core settings.
 `ConsoleDisplay` renders setup, prompts, status, patterns, library entries, help,
 and console-specific labels through an injected `TextWriter`; rendering does not
-change application state. Incoming external clock/transport drives the local
+change musical state. Its device-listing methods also enumerate native ports,
+so command-loop tests currently access the installed MIDI subsystem.
+Incoming external clock/transport drives the local
 engine but is never implicitly relayed to an output.
 
 The core MIDI interface uses explicit operations such as `SendNoteOn` and

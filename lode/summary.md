@@ -36,7 +36,8 @@ workflow, and save/restart/load have been exercised on physical devices.
 Generator musical quality, quantitative timing, long-running behavior, drum
 workflow, and device-specific controls still require further hardware work.
 
-See [project structure](architecture/project-structure.md), [pattern
+See [theory of operation](architecture/theory-of-operation.md),
+[project structure](architecture/project-structure.md), [pattern
 generation](generation/pattern-generation.md), [candidate
 workflow](performance/candidate-workflow.md), and [pattern
 library](persistence/pattern-library.md).

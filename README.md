@@ -1,6 +1,8 @@
 # JamWeaver
 
-A small .NET 8 console application that sends MIDI messages and can either generate MIDI clock or follow and relay an external clock.
+A .NET 8 console application for generating, auditioning, and playing MIDI patterns with internal or external MIDI Clock.
+
+For architecture and runtime behavior, start with the [theory of operation](lode/architecture/theory-of-operation.md), then the [developer primer](lode/development/developer-primer.md). The [Lode map](lode/lode-map.md) indexes the subsystem contracts.
 
 ## Run
 
@@ -14,7 +16,7 @@ dotnet run --project src/JamWeaver.Console
 At the prompt, list and select ports:
 
 ```text
-devices
+setup
 out 0
 in 0
 ```
@@ -30,7 +32,7 @@ cc 1 74 96
 stop
 ```
 
-Follow a clock received at the selected input and relay clock/transport to the selected output:
+Follow a clock received at the selected input:
 
 ```text
 source external
@@ -43,6 +45,7 @@ Run the xUnit v3 test suite with its native runner:
 
 ```powershell
 dotnet run --project tests/JamWeaver.Core.Tests
+dotnet run --project tests/JamWeaver.Console.Tests
 ```
 
 ## Novation Circuit Tracks

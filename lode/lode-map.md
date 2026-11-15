@@ -7,6 +7,7 @@
   - [Developer primer](development/developer-primer.md) - core concepts, types, and runtime relationships
   - [Adding a generator](development/adding-a-generator.md) - typed contract, recipes, wiring, and verification
 - Architecture
+  - [Theory of operation](architecture/theory-of-operation.md) - runtime ownership, candidate-to-note flow, execution contexts, and current limits
   - [Project structure](architecture/project-structure.md) - core, console, and test boundaries
 - MIDI
   - [Clock and transport](midi/clock-transport.md) - synchronization and transport contracts

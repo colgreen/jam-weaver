@@ -45,7 +45,30 @@ commands are rejected unless Internal is selected.
 External clock loss defaults to 500 ms and never falls back automatically.
 `SequencerTimeline` derives step, beat, and bar boundaries from accepted pulses.
 `BarQuantizedSwap<T>` activates the latest queued value at the next strictly
-future bar, or immediately while stopped.
+future bar, or immediately while stopped. It is a standalone utility;
+`PatternPlayer` currently implements its own pending-swap logic.
+
+## Current implementation limits
+
+`TransportEngine.Position` reports the next pulse; `PulseAccepted` carries the
+pulse being processed. The player's `Position.Bar + 1` deadline therefore skips
+the upcoming boundary if queued between pulses 95 and 96. Start resets pulse
+position but does not rebase a pending deadline from the previous run.
+
+Transport invokes subscribers outside its state lock. Concurrent callers can
+publish an earlier accepted pulse after a Stop notification, allowing the
+player to start a note after stop cleanup. Per-object locking does not order
+those notifications across threads.
+
+Internal clock restart cancels the prior scheduler without awaiting completion
+before replacing its task and cancellation source. A late failure from the old
+run can cancel the new run. Scheduler faults have no dedicated live error
+reporting path. Disposal cancels and awaits only the latest task, without
+sending MIDI Stop to the selected output.
+
+These lifecycle and quantization limits require focused changes before stronger
+timing or shutdown guarantees can be made. See the [theory of
+operation](../architecture/theory-of-operation.md) for execution contexts.
 
 Related: [candidate workflow](../performance/candidate-workflow.md) and
 [note lifecycle](note-lifecycle.md).
