@@ -159,7 +159,12 @@ output and are retained in `PatternPlayer.Error` for `status`.
 Internal clock uses `IClockPulseScheduler` with timed waits and a short spin.
 It emits MIDI Start/Continue/Stop and Clock as well as driving local transport.
 Its asynchronous lifecycle methods serialize commands and cancel/join the
-previous run before replacement. A run's scheduler and pulse failures stop
+previous run before replacement. Each run is queued on the thread pool so an
+inline scheduler cannot hold startup inside the lifecycle gate. The default
+scheduler retains absolute deadlines without skipping pulses and yields after
+each overdue pulse; sustained overload can accumulate lateness. Startup does
+not wait for the first pulse or for a scheduler failure to become visible.
+A run's scheduler and pulse failures stop
 local transport and remain in `InternalMidiClock.Error`; `status` reports them
 as `ClockError` independently of player errors. Expected cancellation is quiet.
 The console awaits clock commands; retrying Start or Continue clears the prior
@@ -208,12 +213,10 @@ thread scheduling, and garbage collection can affect pulse delivery. Automated
 tests and fake ports establish logic and expose failure cases; they do not
 measure physical timing, audio quality, or device disconnect recovery.
 
-Two failure paths remain open: sustained internal-clock overrun can keep Start
-from yielding and block Stop behind its lifecycle gate; after a clock fault,
-switching to External and replacing output can send an owed Stop to the new
-port during shutdown. See the [follow-up review](../plans/follow-up-review.md)
-for reproductions and required fixes. These limits require focused lifecycle
-changes rather than a different overall architecture.
+One clock ownership failure remains open: after a clock fault, switching to
+External and replacing output can send an owed Stop to the new port during
+shutdown. See the [follow-up review](../plans/follow-up-review.md) for the
+reproduction and required fix. This requires a focused lifecycle change.
 
 ## Persistence and extension boundaries
 

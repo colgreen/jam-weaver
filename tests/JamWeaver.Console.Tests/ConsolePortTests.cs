@@ -191,16 +191,17 @@ public sealed class ConsolePortTests
         public string Transcript => writer.ToString();
         private readonly StringWriter writer;
         private readonly PatternPlayer player;
+        private readonly SinglePulseScheduler scheduler = new();
         private readonly PatternLibrary library = new(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
 
         public Session(StringWriter? writer = null)
         {
             this.writer = writer ?? new StringWriter();
             player = new PatternPlayer(Output, Transport);
-            Clock = new InternalMidiClock(Output, Transport, new SinglePulseScheduler());
+            Clock = new InternalMidiClock(Output, Transport, scheduler);
         }
 
-        public Task RunAsync(string commands) => RunAsync(new StringReader(commands));
+        public Task RunAsync(string commands) => RunAsync(new PulseAwaitingReader(commands, scheduler.Pulsed.Task));
 
         public Task RunAsync(TextReader reader)
         {
@@ -232,9 +233,11 @@ public sealed class ConsolePortTests
 
     private sealed class SinglePulseScheduler : IClockPulseScheduler
     {
+        public TaskCompletionSource Pulsed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Task RunAsync(Func<double> bpm, Action pulse, CancellationToken cancellationToken)
         {
             pulse();
+            Pulsed.TrySetResult();
             return Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
         }
     }

@@ -21,6 +21,7 @@ public sealed class InternalClockShutdownTests
             {
                 if (operation == "start") await clock.StartAsync(TestContext.Current.CancellationToken);
                 else await clock.ContinueAsync(TestContext.Current.CancellationToken);
+                await scheduler.Pulsed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
             }
 
             Assert.False(port.IsDisposed);
@@ -79,6 +80,7 @@ public sealed class InternalClockShutdownTests
         output.ReplacePort(port);
         await using var clock = new InternalMidiClock(output, new TransportEngine(ClockSource.Internal), new CancellationScheduler());
         await clock.StartAsync(TestContext.Current.CancellationToken);
+        await ClockTestWaits.ForRunCompletionAsync(clock);
         var originalError = clock.Error;
         Assert.NotNull(originalError);
         Assert.False(clock.IsRunning);
@@ -179,11 +181,13 @@ public sealed class InternalClockShutdownTests
 
     private sealed class CancellationScheduler : IClockPulseScheduler
     {
+        public TaskCompletionSource Pulsed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Action? Pulse { get; private set; }
         public Task RunAsync(Func<double> bpm, Action pulse, CancellationToken cancellationToken)
         {
             Pulse = pulse;
             pulse();
+            Pulsed.TrySetResult();
             return Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
         }
     }

@@ -86,8 +86,14 @@ public sealed class ConsoleDisplayTests
         await using var clock = new InternalMidiClock(output, transport, new FailingScheduler());
         using var player = new PatternPlayer(output, transport);
         var writer = new StringWriter();
+        var stopped = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        transport.StateChanged += state =>
+        {
+            if (state == TransportState.Stopped) stopped.TrySetResult();
+        };
 
         await clock.StartAsync(TestContext.Current.CancellationToken);
+        await stopped.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         new ConsoleDisplay(writer).WriteStatus(output, null, transport, clock, player);
 
         Assert.Contains("ClockError=", writer.ToString());

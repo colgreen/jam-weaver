@@ -62,7 +62,7 @@ public sealed class ConsoleShutdownTests
         var phrase = new StructuredPhraseGenerator();
         var groove = new GrooveVocabularyGenerator();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
-        var application = new JamWeaverConsole(new StringReader(commands), new ConsoleDisplay(transcript ?? new StringWriter()),
+        var application = new JamWeaverConsole(new PulseAwaitingReader(commands, scheduler.Pulsed.Task), new ConsoleDisplay(transcript ?? new StringWriter()),
             output, transport, clock, player, new CandidateSession(player),
             new CandidateGenerator(new EuclideanMotifGenerator(), new TurnaroundLoopGenerator(),
                 new EuclideanPhraseGenerator(), phrase, groove, new MotifGenerator()),
@@ -74,11 +74,13 @@ public sealed class ConsoleShutdownTests
 
     private sealed class CancellationScheduler : IClockPulseScheduler
     {
+        public TaskCompletionSource Pulsed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Action? Pulse { get; private set; }
         public Task RunAsync(Func<double> bpm, Action pulse, CancellationToken cancellationToken)
         {
             Pulse = pulse;
             pulse();
+            Pulsed.TrySetResult();
             return Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
         }
     }

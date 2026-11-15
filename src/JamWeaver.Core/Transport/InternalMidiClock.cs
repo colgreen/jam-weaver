@@ -83,7 +83,10 @@ public sealed class InternalMidiClock : IAsyncDisposable
                 throw;
             }
             _cancellation = new CancellationTokenSource();
-            Volatile.Write(ref _runTask, RunAsync(_cancellation.Token));
+            var runToken = _cancellation.Token;
+            // An injected scheduler may run synchronously until cancelled. Never invoke it on the lifecycle caller.
+            // The task must run even if already cancelled so its cleanup remains part of the join.
+            Volatile.Write(ref _runTask, Task.Run(() => RunAsync(runToken)));
         }
         finally { _lifecycle.Release(); }
     }

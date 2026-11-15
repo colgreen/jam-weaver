@@ -184,6 +184,7 @@ public sealed class InternalMidiClockTests
         await using var clock = new InternalMidiClock(output, engine, new FailingScheduler(behavior));
 
         await clock.StartAsync(TestContext.Current.CancellationToken);
+        await ClockTestWaits.ForRunCompletionAsync(clock);
 
         Assert.False(clock.IsRunning);
         Assert.Equal(TransportState.Stopped, engine.State);
@@ -227,6 +228,7 @@ public sealed class InternalMidiClockTests
         await using var clock = new InternalMidiClock(output, engine, new OnePulseScheduler());
 
         await clock.StartAsync(TestContext.Current.CancellationToken);
+        await ClockTestWaits.ForRunCompletionAsync(clock);
 
         Assert.False(clock.IsRunning);
         Assert.Equal(TransportState.Stopped, engine.State);

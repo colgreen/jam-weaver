@@ -7,6 +7,7 @@ internal sealed class FakeMidiOutputPort(string name = "fake") : IMidiOutputPort
     public List<string> Messages { get; } = [];
     public bool IsDisposed { get; private set; }
     public Exception? ClockFailure { get; set; }
+    public Action? ClockAction { get; init; }
     public Exception? StopFailure { get; set; }
     public Exception? StartFailure { get; set; }
     public int StopAttempts { get; private set; }
@@ -16,6 +17,7 @@ internal sealed class FakeMidiOutputPort(string name = "fake") : IMidiOutputPort
     public void SendProgramChange(MidiChannel c, MidiValue p) => Messages.Add($"PC:{c.Number}:{p.Value}");
     public void SendClock()
     {
+        ClockAction?.Invoke();
         if (ClockFailure is { } error) throw error;
         Messages.Add("Clock");
     }

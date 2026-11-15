@@ -9,26 +9,8 @@ the runtime entry point; retain it and keep its failure limits explicit.
 The following defects have local reproductions using fake ports and the real
 application classes, without native MIDI access. Address them in this order,
 adding regression coverage with each fix. P1 identifies a control/liveness
-failure under the stated condition; P2 identifies a narrower correctness issue.
-
-## P1: internal clock startup can monopolize command processing
-
-`InternalMidiClock.BeginAsync` calls its run synchronously while holding the
-lifecycle gate. `StopwatchClockPulseScheduler` yields only when it is ahead of
-its deadline. If each pulse takes longer than its interval, the loop stays
-behind and never reaches an incomplete await. Start therefore cannot return,
-and Stop/disposal cannot acquire the lifecycle gate to cancel it. The console
-also cannot read another command while awaiting Start.
-
-Reproduction: use the default scheduler at 300 BPM with a fake output whose
-Clock send takes 15 ms. After four pulses, Start is still incomplete and Stop
-waits behind it. Making the fake sends fast again allows both calls to finish.
-This establishes the liveness gap, not a physical device latency measurement.
-
-Keep startup and cancellation responsive under sustained overrun. Preserve
-join-before-replacement and no-pulses-after-Stop contracts, and define how an
-overdue scheduler catches up without monopolizing the caller. Test the default
-scheduler as well as injected schedulers.
+failure under the stated condition; the remaining P2 findings identify narrower
+correctness issues.
 
 ## P2: an owed MIDI Stop can reach a replacement output
 
@@ -85,8 +67,14 @@ existing supported sixteenth-note settings.
 ## Verification and remaining limits
 
 The solution builds without warnings and both native xUnit runners pass
-(301 core and 51 console tests). The four reproductions expose cases absent
-from that suite; passing existing tests does not close these findings.
+(306 core and 51 console tests). Clock-liveness regression coverage checks
+Start and Continue at 300 BPM with 15 ms fake Clock sends, direct default-scheduler
+yielding during overrun, and startup/disposal with an inline injected scheduler.
+The [clock contract](../midi/clock-transport.md#internal-source) retains every
+pulse and joins callbacks before Stop or replacement. This establishes
+responsiveness under the tested overload, not physical timing performance.
+The remaining reproductions expose cases absent from the suite; passing
+existing tests does not close these findings.
 The review covers runtime coordination, MIDI ownership, command handling,
 pattern/validation boundaries, persistence, generator interfaces, and the
 architecture documentation. It does not establish musical quality or timing.

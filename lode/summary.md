@@ -8,9 +8,12 @@ controls. Its command loop uses an injectable port catalog, while rendering
 receives device-name lists. Discovery errors leave commands available; automated
 console tests use fake ports and discovery without accessing native MIDI.
 
-The [follow-up review](plans/follow-up-review.md) tracks remaining internal-clock
-liveness and owed-Stop gaps, indented command parsing, and Turnaround timing
+The [follow-up review](plans/follow-up-review.md) tracks the remaining internal-clock
+owed-Stop gap, indented command parsing, and Turnaround timing
 validation. The architecture is suitable; these require focused fixes.
+Internal-clock startup queues its owned run independently of the lifecycle
+caller, and the default scheduler yields between overdue pulses without
+discarding them. Stop and replacement still join the previous run.
 
 Jam-session preferences are ergonomic defaults, not product boundaries. The
 application should start in a context that is immediately useful for its regular

@@ -45,7 +45,21 @@ stops internal transport on the previous output before opening the new port.
 
 Each run owns its cancellation token and remains joined before its source is
 disposed or replaced. The pulse callback checks that run's token before
-sending. `IClockPulseScheduler` implementations must not complete their task
+sending. The run is queued on the thread pool, independently of the lifecycle
+caller, so even an injected scheduler that blocks before returning its task
+cannot hold startup inside the lifecycle gate. Start/Continue complete after
+queuing the run; scheduler failures may become visible in `Error` afterward.
+Direct MIDI Start/Continue sends and local transport notifications still finish
+before the run is queued.
+
+The default scheduler retains absolute deadlines and emits every pulse. It
+yields after each overdue pulse instead of monopolizing its caller while
+catching up. It does not discard pulses or reset the deadline to hide overruns;
+sustained overload can accumulate lateness. This is a liveness policy, not a
+timing guarantee. Cancellation is checked before the next pulse, and Stop joins
+any in-flight callback before sending MIDI Stop.
+
+`IClockPulseScheduler` implementations must not complete their task
 until all their callbacks have finished. Caller cancellation can cancel waiting
 for the lifecycle gate; once admitted, an operation finishes joining its run
 even if the caller's token is subsequently cancelled.
