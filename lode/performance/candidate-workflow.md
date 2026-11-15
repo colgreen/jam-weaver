@@ -75,11 +75,12 @@ failures report cleanup errors without leaving a rejected port unowned. See
 
 Musical creation controls are part of default help rather than diagnostics.
 Bare `generator` reports the current generator and the `euclidean`, `turnaround`,
-`euclidean-phrase`, `motif`, `phrase`, and `groove` choices. Euclidean is the
+`motif`, `phrase`, and `groove` choices. Euclidean is the
 startup default. Turnaround is a retained repeated four-bar Euclidean loop with
-a pitch-only final gesture and generator-specific variation; Euclidean phrase
-is a separate four-bar development experiment and the other non-default choices
-remain experimental options. Bare
+a pitch-only final gesture and generator-specific variation; the other
+non-default choices remain experimental options. Euclidean phrase and its
+`euclidean2` alias are retired from selection. Existing saved candidates retain
+playback and variation support. Bare
 `shape` reports the current motif shape and all shape
 choices. Both show their selection syntax, and setting either confirms the new
 value. `generator` also lists the controls relevant to its selected mode.

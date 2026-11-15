@@ -1,7 +1,7 @@
 
 namespace JamWeaver.ConsoleApp;
 
-public enum GeneratorMode { Euclidean, Turnaround, EuclideanPhrase, Phrase, Groove, Motif }
+public enum GeneratorMode { Euclidean, Turnaround, Phrase, Groove, Motif }
 
 /// <summary>Holds the performer-selectable controls used to create candidates.</summary>
 public sealed class GenerationControls

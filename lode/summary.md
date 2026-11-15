@@ -35,15 +35,21 @@ mutate, audition, accept, reject, save, and load patterns without sending
 device-specific patch data.
 
 The default Euclidean generator creates concise one-bar melodic patterns in the
-selected bass, middle, or high register. A separate Euclidean phrase generator tests
-bounded A, A-prime, B, return development without changing that baseline.
+selected bass, middle, or high register. Console generation offers `euclidean`,
+`turnaround`, `motif`, `phrase`, and `groove`. The Euclidean phrase experiment is
+retired from console selection, including its `euclidean2` alias; its core
+algorithm, recipe reconstruction, saved-pattern playback, and variation remain
+supported.
 The Turnaround Loop generator repeats a concise Euclidean source bar in the
 form A, A, A, and A-turnaround. Its generator-specific variation preserves that
 identity through mirrored loop edits and isolated final gestures. Generation
 requires a 16-step sixteenth-note source bar, matching variation's four-bar
 timing contract.
-Four-bar motif, structured-phrase, groove-vocabulary, and drum generators also
-remain available for experimentation.
+Motif, structured-phrase, groove-vocabulary, and core-only drum generators also
+remain available for experimentation. Structured phrase supports one, two, or
+four bars; a [focused plan](plans/revisit-phrase-generator.md) covers stronger
+identity preservation, clearer controls, and consistent endings without
+changing the current version-1 algorithm.
 Generated material and recipes are deterministic and versioned; saved
 materialized steps remain authoritative for playback. Each generator owns both
 generation and variation, and mutation recipes retain the original generator

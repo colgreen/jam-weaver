@@ -133,6 +133,100 @@ public sealed class ConsoleCommandTests
         Assert.Equal(3, fixture.History.Count);
     }
 
+    [Theory]
+    [InlineData("generator help")]
+    [InlineData("generator ?")]
+    [InlineData("help generator")]
+    public async Task Generator_help_explains_choices_without_changing_the_session(string command)
+    {
+        await using var fixture = new Session();
+        var candidate = fixture.Candidates.Candidate;
+        var controls = fixture.ControlSnapshot();
+
+        await fixture.RunAsync($"{command}\nquit\n");
+
+        Assert.DoesNotContain("Error:", fixture.Transcript);
+        Assert.Contains("1-bar loop", fixture.Transcript);
+        Assert.Contains("bass only", fixture.Transcript);
+        Assert.Contains("inactive", fixture.Transcript);
+        Assert.DoesNotContain("euclidean-phrase", fixture.Transcript);
+        Assert.DoesNotContain("euclidean2", fixture.Transcript);
+        Assert.Equal(controls, fixture.ControlSnapshot());
+        Assert.Same(candidate, fixture.Candidates.Candidate);
+        Assert.Equal(1, fixture.History.Count);
+        Assert.Equal(0, fixture.PortOpenAttempts);
+        Assert.Empty(fixture.Port.Messages);
+        Assert.Equal(RandomDefaults.CreateRandomSource(123).NextULong(), fixture.Seeds.NextULong());
+    }
+
+    [Theory]
+    [InlineData("euclidean-phrase")]
+    [InlineData("EuClIdEaN2")]
+    public async Task Retired_generator_names_are_rejected_without_changing_the_session(string choice)
+    {
+        await using var fixture = new Session();
+        fixture.Controls.Mode = GeneratorMode.Motif;
+        var candidate = fixture.Candidates.Candidate;
+        var controls = fixture.ControlSnapshot();
+
+        await fixture.RunAsync($"generator {choice}\nquit\n");
+
+        Assert.Contains("Euclidean phrase is no longer selectable", fixture.Transcript);
+        Assert.Contains("generator phrase", fixture.Transcript);
+        Assert.Equal(controls, fixture.ControlSnapshot());
+        Assert.Same(candidate, fixture.Candidates.Candidate);
+        Assert.Same(candidate, fixture.Player.CurrentPattern);
+        Assert.Equal(1, fixture.History.Count);
+        Assert.Equal(0, fixture.PortOpenAttempts);
+        Assert.Empty(fixture.Port.Messages);
+        Assert.Equal(RandomDefaults.CreateRandomSource(123).NextULong(), fixture.Seeds.NextULong());
+    }
+
+    [Fact]
+    public async Task Saved_euclidean_phrase_patterns_still_load_and_support_repeated_variation()
+    {
+        await using var fixture = new Session();
+        var legacy = new EuclideanPhraseGenerator().Generate(new EuclideanGeneratorSettings(
+            new PatternName("Legacy phrase"), 64, PatternTiming.SixteenthNotes,
+            CandidateGenerator.DefaultTonalContext(), MusicalRole.Bass,
+            new NormalizedAmount(.4), new NormalizedAmount(.35), new NormalizedAmount(.65),
+            new NormalizedAmount(.8), new NormalizedAmount(.15), 123));
+        await fixture.Library.SaveAsync(legacy, TestContext.Current.CancellationToken);
+
+        await fixture.RunAsync("load #1\nkeep\nvary seed 456\nvary notes .3 seed 789\nquit\n");
+
+        Assert.DoesNotContain("Error:", fixture.Transcript);
+        var accepted = fixture.Candidates.Accepted!;
+        Assert.Equal(legacy.Id, accepted.Id);
+        Assert.Equal(legacy.Timing, accepted.Timing);
+        Assert.Equal(legacy.Steps.Length, accepted.Steps.Length);
+        for (var index = 0; index < legacy.Steps.Length; index++)
+        {
+            Assert.Equal(legacy.Steps[index].Notes, accepted.Steps[index].Notes);
+            Assert.Equal(legacy.Steps[index].Probability, accepted.Steps[index].Probability);
+        }
+        Assert.Equal(4, fixture.History.Count);
+        var varied = fixture.Candidates.Candidate!;
+        Assert.NotEqual(legacy.Id, varied.Id);
+        Assert.Equal(legacy.Recipe!.Lineage, varied.Recipe!.Lineage);
+        Assert.Equal(789UL, varied.Recipe.Seed);
+        Assert.Same(varied, fixture.Player.CurrentPattern);
+        Assert.Empty(fixture.Port.Messages);
+    }
+
+    [Fact]
+    public async Task Generator_listing_and_advanced_help_offer_only_current_choices()
+    {
+        await using var fixture = new Session();
+
+        await fixture.RunAsync("generator\nhelp advanced\nquit\n");
+
+        Assert.DoesNotContain("Error:", fixture.Transcript);
+        Assert.Contains("Choices: euclidean, turnaround, motif, phrase, groove", fixture.Transcript);
+        Assert.DoesNotContain("euclidean-phrase", fixture.Transcript);
+        Assert.DoesNotContain("euclidean2", fixture.Transcript);
+    }
+
     private sealed class Session : IAsyncDisposable
     {
         public SafeMidiOutput Output { get; } = new();

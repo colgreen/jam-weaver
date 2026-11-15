@@ -7,6 +7,16 @@ Whitespace, including tabs, separates positional tokens. Leading and trailing
 whitespace is ignored; internal whitespace in free-text names is preserved.
 There is no quoting or escape syntax.
 
+`help generator`, `generator help`, and `generator ?` show the same comparison
+of generator purpose, bar count, active controls, and limitations without
+changing the selected mode or candidate. Bare `generator` and generator
+selection also describe the selected mode. Generation controls apply to the
+next `new`; `vary` follows the current candidate's recipe lineage instead.
+Selectable generators are `euclidean`, `turnaround`, `motif`, `phrase`, and
+`groove`. Both `euclidean-phrase` and its former `euclidean2` alias report a
+retirement error without changing selection or candidate. Their saved patterns
+remain loadable and playable, and lineage dispatch still supports variation.
+
 `JamWeaverConsole` retains an explicit command switch. Named operations handle
 source selection, output selection, save, load, and variation; MIDI ownership,
 pattern validation, and persistence remain in their existing owners.

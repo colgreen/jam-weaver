@@ -41,8 +41,9 @@ version's output contract.
   variation mirrors rhythm, note, and expression edits across A repetitions and
   reserves turnaround variation for the final two pitches.
 - `melodic-euclidean-2` version 1 is implemented by `EuclideanPhraseGenerator`
-  with `EuclideanGeneratorSettings`. It is selected as `euclidean-phrase`
-  (`euclidean2` remains a legacy alias). It keeps the
+  with `EuclideanGeneratorSettings`. It is retired from console selection;
+  `euclidean-phrase` and `euclidean2` are rejected. The core algorithm,
+  reconstruction, and variation of saved patterns remain supported. It keeps the
   Euclidean ingredients but develops them through a fixed four-bar A, A-prime,
   B, return form. See [Euclidean phrase generation](euclidean-phrase-generation.md).
 - `drum-euclidean-voices` is implemented by `EuclideanDrumGenerator` with
@@ -51,6 +52,23 @@ version's output contract.
   option. It does not assign device-specific drum names.
 
 ## Shared controls and constraints
+
+The console's `help generator` guide distinguishes the concise Euclidean loop,
+its repeated-bar Turnaround Loop extension, shape-led motifs,
+configurable constructed phrases, and vocabulary-led bass
+grooves. These are overlapping concrete engines, not mutually exclusive musical
+categories. Only the Euclidean baseline has established musical usefulness in
+the current evaluation; the other engines remain listening experiments. See
+[generator strategy](../plans/generator-strategy.md).
+
+Console controls are not universal: `activity`, `movement`, and `variation`
+apply to motif, phrase, and groove; `length` and `rhythm` apply only to phrase;
+`shape` applies only to motif; `groove` and `similarity` apply only to groove;
+and `turnaround` applies to phrase and groove. The two exposed Euclidean-based modes
+use fixed console settings beyond inherited tonal context and role. In
+particular, the `turnaround` control does not configure the Turnaround Loop
+generator. Changing any of these controls affects subsequent generation, not
+the current candidate. `vary` is a separate edit operation.
 
 Performer-facing controls describe musical effects such as activity, movement,
 variation, turnaround strength, role, and gate length. Recipes store the exact

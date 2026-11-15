@@ -22,7 +22,6 @@ public sealed class CandidateGeneratorTests
     [Theory]
     [InlineData(GeneratorMode.Euclidean, EuclideanMotifGenerator.GeneratorId, 16)]
     [InlineData(GeneratorMode.Turnaround, TurnaroundLoopGenerator.GeneratorId, 64)]
-    [InlineData(GeneratorMode.EuclideanPhrase, EuclideanPhraseGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.Phrase, StructuredPhraseGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.Groove, GrooveVocabularyGenerator.GeneratorId, 64)]
     [InlineData(GeneratorMode.Motif, MotifGenerator.GeneratorId, 64)]
@@ -96,7 +95,7 @@ public sealed class CandidateGeneratorTests
     public void Same_controls_context_and_seed_produce_equivalent_material()
     {
         var generator = CreateGenerator();
-        var controls = new GenerationControls { Mode = GeneratorMode.EuclideanPhrase };
+        var controls = new GenerationControls { Mode = GeneratorMode.Phrase };
 
         var first = generator.Generate(123, null, controls);
         var second = generator.Generate(123, null, controls);

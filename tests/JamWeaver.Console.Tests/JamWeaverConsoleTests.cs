@@ -48,7 +48,7 @@ public sealed class JamWeaverConsoleTests
         var grooveGenerator = new GrooveVocabularyGenerator();
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
-        var application = new JamWeaverConsole(new StringReader("generator turnaround\ngenerator euclidean-phrase\ngenerator euclidean2\nbpm\nquit\n"), new ConsoleDisplay(writer), output,
+        var application = new JamWeaverConsole(new StringReader("generator turnaround\ngenerator motif\ngenerator phrase\nbpm\nquit\n"), new ConsoleDisplay(writer), output,
             transport, internalClock, player, session,
             new CandidateGenerator(new EuclideanMotifGenerator(), new TurnaroundLoopGenerator(), new EuclideanPhraseGenerator(), phraseGenerator,
                 grooveGenerator, new MotifGenerator()),
@@ -60,7 +60,8 @@ public sealed class JamWeaverConsoleTests
 
         Assert.Contains("Tempo: 120 BPM", writer.ToString());
         Assert.Contains("Generator: turnaround", writer.ToString());
-        Assert.Contains("Generator: euclidean-phrase", writer.ToString());
+        Assert.Contains("Generator: motif", writer.ToString());
+        Assert.Contains("Generator: phrase", writer.ToString());
         Assert.DoesNotContain("Error:", writer.ToString());
     }
 }

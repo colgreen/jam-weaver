@@ -12,6 +12,20 @@ This plan does not assume that every existing generator deserves a permanent
 place in the product. Saved materialized patterns must remain playable even if
 their generator is no longer offered for new generation.
 
+## Current selection and direction
+
+The console offers `euclidean`, `turnaround`, `motif`, `phrase`, and `groove`.
+Euclidean phrase and its `euclidean2` alias are retired from selection because
+of overlap and weaker listening evidence. Its frozen core algorithm, recipe
+reconstruction, and saved-pattern playback and variation remain supported.
+
+Keep structured phrase available as a development candidate: explicit lengths
+and rhythm character are useful distinctions. The [phrase revisit
+plan](revisit-phrase-generator.md) stages listening, improvement of A,
+identity-preserving development, clearer controls, and consistent endings.
+The current version-1 phrase algorithm remains unchanged while that plan is
+pending. No other generator is selected for removal.
+
 ## Current evidence
 
 - `EuclideanMotifGenerator` has produced useful results in practice. Its concise
@@ -23,10 +37,30 @@ their generator is no longer offered for new generation.
 - Motif, structured-phrase, groove-vocabulary, and drum generation remain
   experiments. Automated invariants establish safety and determinism, not
   musical value.
+- Turnaround Loop directly extends the useful one-bar Euclidean source with
+  three exact repetitions and a final pitch-only gesture. It offers a clear
+  intermediate option between a short loop and development that changes both
+  rhythm and pitch. Its variation preserves this form; other melodic engines
+  still share mutators that do not preserve their particular generation grammar.
 - The current names do not form one clean taxonomy. `motif` and `phrase`
   describe musical structure, `euclidean` describes a rhythm algorithm,
   `groove vocabulary` describes a source and variation strategy, and `drum`
   describes output material.
+
+The retired Euclidean phrase experiment overlaps with motif and structured
+phrase: all develop a short idea across related bars. Motif distinguishes itself with
+named contour/rhythm shapes and deliberate triggers. Structured phrase offers
+one-, two-, and four-bar lengths and explicit rhythm-character controls.
+Groove has a separate bass-only authored rhythm source, although it uses a
+similar four-bar form. These differences justify comparison options, but do not
+establish that all engines deserve permanent performer-facing choices.
+
+Control names also overstate uniformity. The Euclidean console modes ignore
+activity, movement, and variation settings; groove variation only distinguishes
+high from the identical low/medium behavior through ghost eligibility. Ending
+controls in phrase and groove affect rhythm without disabling all melodic
+ending rules. Console help documents these limits; algorithm changes remain a
+separate product decision.
 
 ## Working classification
 

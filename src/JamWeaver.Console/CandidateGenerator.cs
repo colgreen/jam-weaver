@@ -6,6 +6,7 @@ public sealed class CandidateGenerator
 {
     private readonly IPatternGenerator<EuclideanGeneratorSettings> euclidean;
     private readonly IPatternGenerator<EuclideanGeneratorSettings> turnaround;
+    // Retained only for variation of saved Euclidean phrase candidates.
     private readonly IPatternGenerator<EuclideanGeneratorSettings> euclideanPhrase;
     private readonly IPatternGenerator<PhraseGeneratorSettings> phrase;
     private readonly IPatternGenerator<GrooveGeneratorSettings> groove;
@@ -45,7 +46,6 @@ public sealed class CandidateGenerator
                 controls.MotifShape, controls.Activity, controls.Movement, controls.Variation, seed)),
             GeneratorMode.Euclidean => euclidean.Generate(EuclideanSettings(name, 16, context, role, seed)),
             GeneratorMode.Turnaround => turnaround.Generate(EuclideanSettings(name, 16, context, role, seed)),
-            GeneratorMode.EuclideanPhrase => euclideanPhrase.Generate(EuclideanSettings(name, 64, context, role, seed)),
             _ => throw new ArgumentOutOfRangeException(nameof(controls), controls.Mode, "Unknown generator mode.")
         };
     }

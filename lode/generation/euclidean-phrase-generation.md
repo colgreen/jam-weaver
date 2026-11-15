@@ -1,9 +1,16 @@
 # Euclidean phrase generation
 
 `melodic-euclidean-2` version 1 is implemented by `EuclideanPhraseGenerator`
-with `EuclideanGeneratorSettings`. It is an experimental four-bar development
-of the established Euclidean generator and is selected with `generator euclidean-phrase`;
-`generator euclidean2` remains a legacy alias.
+with `EuclideanGeneratorSettings`. It is a retired four-bar development
+experiment. Console selection rejects both `generator euclidean-phrase` and
+its former `generator euclidean2` alias. It overlaps with other phrase options
+and has not demonstrated the one-bar baseline's musical usefulness.
+
+The unchanged core algorithm and recipe reconstruction remain available for
+compatibility. Saved patterns still load and play their authoritative
+materialized steps, and console `vary` still resolves this generator's lineage
+for saved candidates, including repeated variations. There is no console mode
+for creating new Euclidean phrase material.
 The existing `euclidean` generator remains a separate, frozen one-bar baseline;
 Euclidean phrase experiments must not change its implementation or recipe contract.
 
@@ -27,9 +34,9 @@ from the original controls and seed. Fixed-seed and invariant tests protect
 determinism, role range safety, pitch movement, bounded rhythmic development,
 and the A return.
 
-Whether this experiment improves live musical usefulness remains a hardware
-audition question. Successful ideas can be adopted in a later Euclidean phrase
-version without altering the Euclidean baseline.
+New phrase development work follows the [structured phrase
+plan](../plans/revisit-phrase-generator.md). Retaining this compatibility path
+does not imply further tuning of the retired experiment.
 
 Related: [pattern generation](pattern-generation.md) and [candidate
 workflow](../performance/candidate-workflow.md).

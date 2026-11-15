@@ -22,7 +22,7 @@
 - Generation
   - [Pattern generation](generation/pattern-generation.md) - shared deterministic generation contracts
   - [Pleasing sequence research](generation/pleasing-sequence-research.md) - research basis and testable strategies for rhythm, melody, repetition, and development
-  - [Euclidean phrase generation](generation/euclidean-phrase-generation.md) - isolated four-bar Euclidean experiment
+  - [Euclidean phrase generation](generation/euclidean-phrase-generation.md) - retired console experiment and compatibility support
   - [Turnaround Loop generation](generation/turnaround-loop-generation.md) - retained A/A/A/A-turnaround generator and variation contract
   - [Phrase generation](generation/phrase-generation.md) - structured phrase behavior
   - [Groove generation](generation/groove-generation.md) - rhythm vocabulary and variation
@@ -34,6 +34,7 @@
   - [Codebase findings](plans/codebase-findings.md) - ordered lifecycle, validation, and console-boundary work from the structural review
   - [Simplify candidate workflow](plans/simplify-candidate-workflow.md) - unify short-term browsing around one accepted safe point
   - [Generator strategy](plans/generator-strategy.md) - evaluate, cull, and experiment with generators around a proven concise-loop baseline
+  - [Revisit the phrase generator](plans/revisit-phrase-generator.md) - staged listening and development plan for controllable related phrases
   - [Generator-specific variation](plans/generator-specific-variation.md) - refactor `vary` around recipe lineage and family-preserving mutation
 - Hardware
   - [External-clock smoke coverage](hardware/external-clock-validation.md) - physical discovery, playback, clock loss/recovery, candidate change, and shutdown checks

@@ -167,10 +167,16 @@ Type 'help <command>' for details or 'help advanced' for every control.
         _ => value.ToString().ToLowerInvariant()
     };
 
-    public static string GeneratorText(GeneratorMode value) => value switch
+    public static string GeneratorText(GeneratorMode value) => value.ToString().ToLowerInvariant();
+
+    public static string GeneratorDescription(GeneratorMode mode) => mode switch
     {
-        GeneratorMode.EuclideanPhrase => "euclidean-phrase",
-        _ => value.ToString().ToLowerInvariant()
+        GeneratorMode.Euclidean => "1-bar loop: evenly distributed hits and a short repeating melody. Start here for a compact jam part.",
+        GeneratorMode.Turnaround => "4-bar loop: repeat the same Euclidean bar three times, then change only the final two pitches to lead back into the loop.",
+        GeneratorMode.Motif => "4-bar phrase: develop a named melodic shape and its rhythm, such as walking, arch, or riff. Use for a recognizable melodic idea without ghost notes.",
+        GeneratorMode.Phrase => "1-, 2-, or 4-bar phrase: build a rhythm with steady, syncopated, or broken character, then develop a short melody. Use for more control over length and character; may include ghost notes.",
+        GeneratorMode.Groove => "4-bar bass phrase: start from an authored rhythm template, then make related bars and an ending. Use for a chosen bass-rhythm family; may include ghost notes.",
+        _ => throw new ArgumentOutOfRangeException(nameof(mode))
     };
 
     public static string GeneratorControls(GeneratorMode mode) => mode switch
@@ -179,8 +185,7 @@ Type 'help <command>' for details or 'help advanced' for every control.
         GeneratorMode.Phrase => "length, activity, rhythm, movement, variation, turnaround",
         GeneratorMode.Groove => "groove, similarity, activity, movement, variation, turnaround (bass only)",
         GeneratorMode.Euclidean => "key, palette, and role; other settings are fixed",
-        GeneratorMode.Turnaround => "key, palette, and role; four-bar loop form is fixed",
-        GeneratorMode.EuclideanPhrase => "key, palette, and role; experimental four-bar development is fixed",
+        GeneratorMode.Turnaround => "key, palette, and role; other settings are fixed, including the ending",
         _ => throw new ArgumentOutOfRangeException(nameof(mode))
     };
 
@@ -190,7 +195,7 @@ Type 'help <command>' for details or 'help advanced' for every control.
         "advanced" => """
 Device/clock: setup | out <index> | in <index> | source internal|external | bpm <20..300>
 Transport: start | continue | stop | play | mute | channel <1..16>
-Generation: generator euclidean|turnaround|euclidean-phrase|motif|phrase|groove | new [seed] | compare [seed]
+Generation: generator euclidean|turnaround|motif|phrase|groove | new [seed] | compare [seed]
 Shape: shape <shape> | groove <family> | similarity close|related|contrast | length 1|2|4
 Character: activity sparse|medium|busy | rhythm steady|syncopated|broken
            movement low|medium|high | variation low|medium|high
@@ -205,8 +210,15 @@ Type 'help <command>' for detailed syntax.
 """,
         "setup" => "setup\nShows current MIDI and clock configuration, lists available ports, and prints the short commands used to select them.",
         "go" => "go\nEnables pattern output and starts internal transport if needed. With external clock selected, waits for MIDI Start or Continue.",
-        "new" => "new [seed]\nCreates and auditions a fresh pattern using current settings. Omit seed for fresh material; supply it to reproduce a pattern.",
-        "vary" => "vary [target] [strength-0..1] [seed <number>]\nCreates a related candidate with a fresh seed by default. Targets: rhythm, notes, expression, turnaround, or all. Default strength: 0.3. Examples: vary; vary 0.7; vary rhythm 0.5; vary 0.7 seed 123.",
+        "new" => "new [seed]\nCreates and auditions a fresh pattern using the selected generator's active controls and the candidate's key, palette, and role. Omit seed for fresh material; the same seed, controls, and musical context reproduce the same notes. See 'help generator' to choose an approach.",
+        "vary" => """
+vary [target] [strength-0..1] [seed <number>]
+Edits the current candidate using its original generator, regardless of the generator selected for 'new'.
+Targets: rhythm, notes, expression, turnaround, or all. Default strength: 0.3; fresh seed by default.
+Turnaround Loop preserves its repeated-bar form; other generators use shared edits that may change their original form.
+For Turnaround Loop, all chooses one target; elsewhere it cycles through targets as edits are made.
+Examples: vary; vary 0.7; vary rhythm 0.5; vary 0.7 seed 123.
+""",
         "back" => "back\nSelects the previous pattern in the eight-item recent-pattern list. Does not change the safe point.",
         "forward" => "forward\nSelects the next pattern in recent history. Does not change the safe point.",
         "keep" => "keep\nMakes the audible candidate the safe point. Only the safe point can be saved.",
@@ -219,16 +231,24 @@ Type 'help <command>' for detailed syntax.
         "start" => "start\nStarts internal clock and transport from the beginning; a pending candidate plays on the first clock pulse. With external source selected, waits for MIDI Start from the input device.",
         "continue" => "continue\nContinues internal transport without resetting position or a pending candidate's next-bar change. External mode waits for MIDI Continue.",
         "stop" => "stop\nStops transport and releases active pattern notes. External clock disappearing also stops playback.",
-        "generator" => "generator euclidean|turnaround|euclidean-phrase|motif|phrase|groove\nSelects how 'new' creates candidates. Default: euclidean. Turnaround creates an A | A | A | A-turnaround loop with generator-specific variation. The legacy name euclidean2 remains accepted. Groove requires role bass.",
+        "generator" => GeneratorHelpText(),
         "shape" => ShapeHelpText(),
-        "length" => "length 1|2|4\nSets phrase-generator length in bars. Default: 4. Motif and groove always produce four bars.",
-        "activity" => "activity sparse|medium|busy\nControls rhythmic note density. Default: medium. Takes effect on the next 'new'.",
+        "length" => "length 1|2|4\nSets length for generator phrase only: one bar of A, A plus an ending, or A / varied A / B / ending. Default: 4. Euclidean always makes one bar; all other generators make four. Takes effect on the next 'new'.",
+        "activity" => "activity sparse|medium|busy\nControls rhythmic note density for motif, phrase, and groove. Default: medium. Euclidean and turnaround use fixed density settings instead. Takes effect on the next 'new'.",
         "rhythm" => "rhythm steady|syncopated|broken\nSelects the phrase generator's rhythmic character. Default: syncopated.",
         "groove" => "groove auto|foundation|offbeat|anticipation|long-short|sparse-answer|broken\nSelects a groove-template family. Default: auto. Used only by generator groove.",
         "similarity" => "similarity close|related|contrast\nControls how different later groove bars are from A. Default: related. Used only by generator groove.",
-        "movement" => "movement low|medium|high\nControls melodic contour width. Default: medium. Low favors repeats and small moves.",
-        "variation" => "variation low|medium|high\nControls phrase development. Default: medium. In motif mode, low repeats A exactly as A-prime.",
-        "turnaround" => "turnaround none|subtle|strong\nControls the final phrase bar. Default: subtle. Used by phrase and groove generators.",
+        "movement" => "movement low|medium|high\nControls melodic contour width for motif, phrase, and groove. Default: medium. Low favors repeats and small moves. The Euclidean-based modes use fixed movement settings. Takes effect on the next 'new'.",
+        "variation" => """
+variation low|medium|high
+Sets development for the next 'new'; use 'vary' to edit the current candidate. Default: medium.
+  motif   Low repeats the opening bar exactly in bar two; higher levels develop rhythm and contour.
+  phrase  Changes motif length, rhythmic edits, and ghost-note use.
+  groove  Only high adds extra ghost-note eligibility; low and medium produce the same notes.
+          Use similarity for groove-bar contrast.
+Inactive for euclidean and turnaround.
+""",
+        "turnaround" => "turnaround none|subtle|strong\nControls ending rhythm changes for phrase and groove on the next 'new'. Default: subtle. None disables those rhythm changes; melodic ending behavior remains. This control does not affect generator turnaround, whose ending is fixed; use 'vary turnaround' to edit that candidate's final pitches.",
         "settings" => "settings\nPrints all current generator controls. Some controls apply only to particular generator modes.",
         "compare" => "compare [seed]\nPrepares matched phrase/groove bass candidates, or toggles an existing comparison. Changes remain next-bar quantized.",
         "palette" => "palette\nToggles the candidate between major and minor pentatonic. Creates a new audition candidate.",
@@ -251,6 +271,38 @@ Type 'help <command>' for detailed syntax.
         "quit" or "exit" => "quit | exit\nStops the application and disposes MIDI ports, clocks, and active notes safely.",
         _ => $"No help is available for '{command}'. Type 'help' to list commands."
     };
+
+    private static string GeneratorHelpText() => $"""
+generator <choice>
+Selects how the next 'new' creates a candidate; selecting a generator leaves the current candidate as it is.
+
+  euclidean (default)
+    {GeneratorDescription(GeneratorMode.Euclidean)}
+    Controls: {GeneratorControls(GeneratorMode.Euclidean)}.
+  turnaround
+    {GeneratorDescription(GeneratorMode.Turnaround)}
+    Controls: {GeneratorControls(GeneratorMode.Turnaround)}.
+  motif
+    {GeneratorDescription(GeneratorMode.Motif)}
+    Controls: {GeneratorControls(GeneratorMode.Motif)}. See 'help shape'.
+  phrase
+    {GeneratorDescription(GeneratorMode.Phrase)}
+    Controls: {GeneratorControls(GeneratorMode.Phrase)}.
+  groove (bass only)
+    {GeneratorDescription(GeneratorMode.Groove)}
+    Controls: {GeneratorControls(GeneratorMode.Groove)}.
+
+A is the opening bar; varied A keeps some of its identity; B supplies contrast.
+Euclidean spreads hits as evenly as possible across the bar; it does not mean equal note lengths.
+Ghost notes are quiet ornaments that may skip on some repetitions.
+Euclidean is the established baseline; the other choices remain experiments for listening comparison.
+All choices make melodic parts in 4/4 using major or minor pentatonic notes.
+New patterns inherit the candidate's key, palette, and role (initially A minor pentatonic, bass).
+Controls listed for motif, phrase, and groove are additional to key, palette, and role.
+Settings for other modes are retained but inactive. Use 'new [seed]' to hear a selection.
+Use 'vary' to edit the current candidate; it follows that candidate's original generator.
+'generator help' also shows this guide.
+""";
 
     private static string ShapeHelpText() => """
 shape <choice>

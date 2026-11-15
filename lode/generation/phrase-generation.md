@@ -6,7 +6,7 @@
 phrases use A, A-prime, B, and turnaround roles:
 
 - A establishes the rhythmic and melodic identity.
-- A-prime keeps at least half of A's rhythmic identity while varying it.
+- A-prime moves selected non-downbeat onsets while retaining A's downbeat.
 - B provides seeded contrast while retaining an identity anchor.
 - The turnaround changes the ending and leads back to A or creates space.
 
@@ -15,9 +15,17 @@ role, and tonal context are explicit settings. Rhythm character can be steady,
 syncopated, or broken. Role profiles limit density and pitch movement.
 
 The generator builds rhythm first, marks structural anchors, then develops a
-short pentatonic motif across the phrase. Every bar contains a note, and density,
-silent gaps, clusters, pitch range, repeated pitches, and large leaps remain
-bounded.
+short pentatonic motif across the phrase. Every bar contains a downbeat note.
+Role and activity bound the initial hit count; role bounds pitch range, and
+movement bounds motif pitch changes. Rhythm uses weighted step selection;
+there are no explicit maximum-gap or cluster constraints.
+
+`variation` changes motif length, the number of A-prime rhythm edits, and ghost
+eligibility. B is independently constructed with shared anchors even at low
+variation. `turnaround none` disables final-bar rhythm edits, not melodic
+development or ghost eligibility. Two-bar output uses A and an ending rhythm,
+but its pitch rule is the same as four-bar A-prime; the stable final-pitch rule
+applies only to bar four.
 
 Hits are classified as structural, ordinary, pickup, ghost, or phrase ending.
 Structural and ordinary hits always play. Ghosts are sparse, quieter, shorter,
@@ -35,6 +43,10 @@ phrase generation does not change its output contract.
 
 The implementation and structural invariants are automatically tested. Its
 musical quality still requires subjective hardware audition.
+The [revisit plan](../plans/revisit-phrase-generator.md) proposes stronger
+preservation of A, related B development, clearer control semantics, and
+consistent endings. The current version-1 behavior remains in use until that
+work is designed, implemented, and evaluated.
 
 Related: [pattern generation](pattern-generation.md) and [candidate
 workflow](../performance/candidate-workflow.md).

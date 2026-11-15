@@ -29,6 +29,13 @@ The friendly similarity choices are close, related, and contrast. If no
 candidate meets every target, secondary constraints relax in a fixed recorded
 order; anchors and safety bounds never relax.
 
+`similarity` controls B's rhythmic contrast; `turnaround` controls final-bar
+rhythm development. The current `variation` control only enables additional
+ghost-note eligibility at high strength. Low and medium produce identical
+musical content with the same other settings and seed. It does not control
+rhythmic contrast or melodic development. `turnaround none` repeats A-prime's
+rhythm in the final bar; final-bar pitch and articulation rules still apply.
+
 Four bars have distinct jobs: A establishes the template, A-prime stays close,
 B provides the requested contrast, and the turnaround concentrates change in
 the second half of the final bar.

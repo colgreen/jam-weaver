@@ -151,13 +151,31 @@ public sealed class JamWeaverConsole
                             if (parts.Length == 1)
                             {
                                 display.WriteLine($"Generator: {ConsoleDisplay.GeneratorText(generationControls.Mode)}");
-                                display.WriteLine("Choices: euclidean, turnaround, euclidean-phrase, motif, phrase, groove");
+                                display.WriteLine(ConsoleDisplay.GeneratorDescription(generationControls.Mode));
+                                display.WriteLine("Choices: euclidean, turnaround, motif, phrase, groove");
                                 display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
                                 display.WriteLine("Set with: generator <choice>");
+                                display.WriteLine("Explain choices with: generator help");
                                 break;
                             }
-                            generationControls.Mode = S(parts, 1).ToLowerInvariant() switch { "euclidean" => GeneratorMode.Euclidean, "turnaround" => GeneratorMode.Turnaround, "euclidean-phrase" or "euclidean2" => GeneratorMode.EuclideanPhrase, "motif" => GeneratorMode.Motif, "phrase" => GeneratorMode.Phrase, "groove" => GeneratorMode.Groove, _ => throw new ArgumentException("Generator must be euclidean, turnaround, euclidean-phrase, motif, phrase, or groove.") };
+                            if (S(parts, 1).ToLowerInvariant() is "help" or "?")
+                            {
+                                display.WriteHelp("generator");
+                                break;
+                            }
+                            generationControls.Mode = S(parts, 1).ToLowerInvariant() switch
+                            {
+                                "euclidean" => GeneratorMode.Euclidean,
+                                "turnaround" => GeneratorMode.Turnaround,
+                                "motif" => GeneratorMode.Motif,
+                                "phrase" => GeneratorMode.Phrase,
+                                "groove" => GeneratorMode.Groove,
+                                "euclidean-phrase" or "euclidean2" => throw new ArgumentException(
+                                    "Euclidean phrase is no longer selectable. Use 'generator phrase' for phrase generation or 'generator turnaround' for a repeated loop with an ending. Saved patterns remain playable."),
+                                _ => throw new ArgumentException("Generator must be euclidean, turnaround, motif, phrase, or groove.")
+                            };
                             display.WriteLine($"Generator: {ConsoleDisplay.GeneratorText(generationControls.Mode)}");
+                            display.WriteLine(ConsoleDisplay.GeneratorDescription(generationControls.Mode));
                             display.WriteLine($"Controls: {ConsoleDisplay.GeneratorControls(generationControls.Mode)}");
                             break;
                         case "groove": generationControls.Groove = ParseGrooveSelection(S(parts, 1)); break;

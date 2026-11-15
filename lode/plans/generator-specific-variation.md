@@ -90,13 +90,14 @@ generation](../generation/turnaround-loop-generation.md).
 
 ### Other existing families
 
-- Structured phrase variation preserves phrase roles and structural anchors.
+- Structured phrase variation preserves phrase roles and structural anchors;
+  align its rules with the [phrase revisit plan](revisit-phrase-generator.md).
 - Motif variation preserves its selected archetype and characteristic contour.
 - Groove variation preserves the selected vocabulary family and bass-only
   contract.
-- Euclidean phrase variation preserves whatever identity dimension is chosen
-  for that experimental form; this requires an explicit decision before
-  implementation.
+- Retired Euclidean phrase retains its current shared variation for saved
+  candidates. It is outside the scope of new family-specific mutators unless
+  explicitly reinstated for development.
 - Drum variation requires separate voice-aware rules and must not inherit
   melodic targets accidentally.
 
