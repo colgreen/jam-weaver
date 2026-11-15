@@ -153,10 +153,14 @@ Start or Continue. It never switches automatically to internal clock.
 External messages are processed synchronously on the MIDI input callback;
 internal pulses run on the scheduler's execution path; clock-loss detection
 runs on the watchdog task. Console commands can run concurrently with them.
-Transport changes state under a lock but invokes subscribers after releasing
-it. Player and safe output each lock their own state. Those locks do not make
-transport notifications globally ordered: a previously accepted pulse can
-reach the player after a concurrent Stop notification.
+Transport serializes each mutation and its synchronous notifications through a
+dispatch gate. Its separate state lock is released before callbacks, so state
+queries remain available while delivery is in progress. Player and safe output
+each lock their own state. An in-flight pulse finishes delivery before a
+concurrent Stop changes state and releases notes. Subscribers may query
+transport but must not initiate another mutation or wait for one; same-thread
+reentrant mutations are rejected. Callback failures propagate while releasing
+the gate. See the [notification contract](../midi/clock-transport.md#notification-ordering).
 
 Pending deadlines currently use `Position.Bar + 1`. Because Position is the
 next pulse, a queue between pulses 95 and 96 skips the upcoming boundary.

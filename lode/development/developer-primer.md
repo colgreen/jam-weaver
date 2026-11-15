@@ -78,9 +78,10 @@ generators delegate to shared mutators.
 
 `PatternPlayer` schedules note events from the current pattern. Transport
 determines musical position from internal or external clock. MIDI output safety
-tracks active notes and attempts cleanup on stop and disposal. Notification
-ordering and device-failure cleanup still have limits described in the theory
-of operation; automated tests do not establish reliable disconnect recovery.
+tracks active notes and attempts cleanup on stop and disposal. Transport
+serializes notifications so in-flight pulses finish before concurrent stop
+cleanup. Device-failure cleanup still has limits described in the theory of
+operation; automated tests do not establish reliable disconnect recovery.
 
 See [candidate workflow](../performance/candidate-workflow.md), [clock and
 transport](../midi/clock-transport.md), and [note lifecycle](../midi/note-lifecycle.md).

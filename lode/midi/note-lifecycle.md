@@ -23,9 +23,11 @@ position repeats or moves backward, rather than on the Start notification
 itself. Note Off is processed before Note On at a shared pulse so 100% gates
 retrigger cleanly.
 
-These are per-object cleanup paths, not a global ordering guarantee. A pulse
-accepted concurrently with Stop can reach the player after its cleanup and
-start another note. See [clock and transport](clock-transport.md) for current
-notification-ordering and scheduler-lifecycle limitations.
+Transport serializes mutations and notification delivery, so an in-flight pulse
+finishes before a concurrent Stop, source change, or clock-loss transition
+releases its notes. No earlier accepted pulse can arrive after that cleanup.
+Failed MIDI sends can still prevent successful release on the physical device.
+See [clock and transport](clock-transport.md) for notification contracts and
+remaining scheduler-lifecycle limitations.
 
 Related: [project practices](../practices.md).

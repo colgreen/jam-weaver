@@ -48,17 +48,33 @@ External clock loss defaults to 500 ms and never falls back automatically.
 future bar, or immediately while stopped. It is a standalone utility;
 `PatternPlayer` currently implements its own pending-swap logic.
 
+## Notification ordering
+
+Transport mutations and their synchronous notifications share one dispatch
+gate. A concurrent Stop, source change, Start, or clock-loss check waits for
+an in-flight pulse's subscribers to finish before changing transport state
+and notifying subscribers. A successful Stop therefore completes note cleanup
+after earlier accepted pulses have been delivered. Subsequent pulses are
+rejected until Start or Continue enables advancement again.
+
+The separate state lock protects source, state, timestamps, and position. It is
+released before calling subscribers; property reads do not acquire the
+dispatch gate. This separation lets player commands query transport while a
+notification is waiting for the player's lock, without a lock cycle.
+
+Subscribers run on the calling thread and must stay short. They may read
+transport state, but may not initiate another transport mutation or wait for
+another thread to do so. Same-thread reentrant mutations throw
+`InvalidOperationException`, preventing nested events from overtaking the
+remaining subscribers. Subscriber exceptions propagate to the caller; the
+dispatch gate is released even when a subscriber fails.
+
 ## Current implementation limits
 
 `TransportEngine.Position` reports the next pulse; `PulseAccepted` carries the
 pulse being processed. The player's `Position.Bar + 1` deadline therefore skips
 the upcoming boundary if queued between pulses 95 and 96. Start resets pulse
 position but does not rebase a pending deadline from the previous run.
-
-Transport invokes subscribers outside its state lock. Concurrent callers can
-publish an earlier accepted pulse after a Stop notification, allowing the
-player to start a note after stop cleanup. Per-object locking does not order
-those notifications across threads.
 
 Internal clock restart cancels the prior scheduler without awaiting completion
 before replacing its task and cancellation source. A late failure from the old

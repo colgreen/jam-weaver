@@ -13,8 +13,11 @@ public readonly record struct TransportPosition(ulong Pulse)
     public bool IsBeatBoundary => PulseInBeat == 0;
 }
 
+/// <summary>Orders clock pulses and transport changes together with their synchronous notifications.</summary>
+/// <remarks>Subscribers may read transport state but must not initiate another transport change.</remarks>
 public sealed class TransportEngine
 {
+    private readonly object _dispatchSync = new();
     private readonly object _sync = new();
     private readonly TimeProvider _timeProvider;
     private ClockSource _source;
@@ -36,6 +39,12 @@ public sealed class TransportEngine
 
     public void SelectSource(ClockSource source)
     {
+        ThrowIfReentrant();
+        lock (_dispatchSync) SelectSourceAndNotify(source);
+    }
+
+    private void SelectSourceAndNotify(ClockSource source)
+    {
         TransportState? changed = null;
         lock (_sync)
         {
@@ -48,6 +57,12 @@ public sealed class TransportEngine
     }
 
     public bool Process(ClockSource source, RealtimeMessage message)
+    {
+        ThrowIfReentrant();
+        lock (_dispatchSync) return ProcessAndNotify(source, message);
+    }
+
+    private bool ProcessAndNotify(ClockSource source, RealtimeMessage message)
     {
         Action<TransportPosition>? pulseHandler = null;
         Action<TransportState>? stateHandler = null;
@@ -99,6 +114,12 @@ public sealed class TransportEngine
 
     public bool CheckExternalClockLoss(TimeSpan timeout)
     {
+        ThrowIfReentrant();
+        lock (_dispatchSync) return CheckExternalClockLossAndNotify(timeout);
+    }
+
+    private bool CheckExternalClockLossAndNotify(TimeSpan timeout)
+    {
         if (timeout < TimeSpan.FromMilliseconds(100) || timeout > TimeSpan.FromSeconds(5))
             throw new ArgumentOutOfRangeException(nameof(timeout));
         Action<TransportState>? handler = null;
@@ -116,5 +137,11 @@ public sealed class TransportEngine
     private void RefreshExternalTimestamp(ClockSource source)
     {
         if (source == ClockSource.External) _lastExternalTimestamp = _timeProvider.GetTimestamp();
+    }
+
+    private void ThrowIfReentrant()
+    {
+        if (Monitor.IsEntered(_dispatchSync))
+            throw new InvalidOperationException("Transport changes cannot be initiated from a transport notification callback.");
     }
 }
