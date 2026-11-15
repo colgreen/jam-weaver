@@ -81,11 +81,12 @@ public sealed class TransportConcurrencyTests
         try
         {
             await pulseEntered.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
-            var snapshot = await Task.Run(() => (engine.Source, engine.State, engine.Position))
+            var snapshot = await Task.Run(() => engine.Snapshot)
                 .WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
             Assert.Equal(ClockSource.External, snapshot.Source);
             Assert.Equal(TransportState.Running, snapshot.State);
             Assert.Equal(1UL, snapshot.Position.Pulse);
+            Assert.Equal(1UL, snapshot.StartCount);
         }
         finally
         {

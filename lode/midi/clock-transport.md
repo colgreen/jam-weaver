@@ -92,9 +92,35 @@ commands are rejected unless Internal is selected.
 
 External clock loss defaults to 500 ms and never falls back automatically.
 `SequencerTimeline` derives step, beat, and bar boundaries from accepted pulses.
-`BarQuantizedSwap<T>` activates the latest queued value at the next strictly
-future bar, or immediately while stopped. It is a standalone utility;
-`PatternPlayer` currently implements its own pending-swap logic.
+`PatternPlayer` owns pending pattern activation; it is the single implementation
+of the live swap policy.
+
+`TransportEngine.Snapshot` captures source, state, position, and accepted Start
+count under one state lock. Position denotes the next pulse, while
+`PulseAccepted` carries the pulse being processed. Start increments the count
+and resets position; Stop, Continue, clock loss, and source selection preserve
+the count. Consumers can distinguish a reset from continuation without guessing
+from a backward pulse or combining separately read state and position.
+
+## Pending pattern activation
+
+While running, Queue retains only the latest pending pattern and records the
+snapshot's Start count and first bar boundary whose clock has not yet been
+accepted. If position is exactly at a boundary, that upcoming pulse qualifies:
+a queue between accepted pulse 95 and upcoming pulse 96 activates at 96.
+If pulse 96 was already accepted, the queue targets 192 even when delivery of
+the earlier callback is delayed. Before the first clock, pulse zero qualifies.
+
+A pending pattern from an earlier Start count activates on pulse zero after a
+new Start, beginning at its own first step. It does not wait through a bar of
+the old pattern. Acceptance remains separate bookkeeping through `keep`.
+Continue preserves the pending boundary and absolute musical phase, including
+after Stop, clock loss, or source selection. Ordinary swaps join absolute
+transport phase; a four-bar pattern need not enter at its own first bar.
+
+Stopping does not itself activate an existing pending pattern. Newly queueing
+while stopped or clock-lost applies immediately and clears any earlier pending
+selection. Activation bookkeeping still occurs while note output is muted.
 
 ## Notification ordering
 
@@ -116,16 +142,6 @@ another thread to do so. Same-thread reentrant mutations throw
 `InvalidOperationException`, preventing nested events from overtaking the
 remaining subscribers. Subscriber exceptions propagate to the caller; the
 dispatch gate is released even when a subscriber fails.
-
-## Current implementation limits
-
-`TransportEngine.Position` reports the next pulse; `PulseAccepted` carries the
-pulse being processed. The player's `Position.Bar + 1` deadline therefore skips
-the upcoming boundary if queued between pulses 95 and 96. Start resets pulse
-position but does not rebase a pending deadline from the previous run.
-
-These pending-swap limits concern musical activation timing. See the [theory
-of operation](../architecture/theory-of-operation.md) for execution contexts.
 
 Related: [candidate workflow](../performance/candidate-workflow.md) and
 [note lifecycle](note-lifecycle.md).

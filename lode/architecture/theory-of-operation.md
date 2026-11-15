@@ -104,9 +104,13 @@ it does not require note output to be enabled or prove that audio was heard.
 
 While stopped or clock-lost, a newly queued candidate immediately becomes
 Current. While running, only the latest queued candidate is retained, with a
-bar deadline. A four-bar pattern joins the transport's absolute phrase phase;
+bar deadline based on the next pulse that has not been accepted. A four-bar
+pattern joins the transport's absolute phrase phase;
 activation at a bar boundary does not restart the pattern at its own first bar.
 Stopping does not itself promote an existing Pending pattern.
+MIDI Start resets position and plays a waiting candidate from its first step at
+pulse zero. Continue preserves the pending deadline and existing phrase phase.
+Neither operation changes Accepted, and muted output still permits activation.
 
 Browsing changes the candidate through this same queue. Creating a new history
 entry after moving backward discards the forward branch. Accepted is independent
@@ -123,8 +127,10 @@ MIDI Clock is 24 pulses per quarter note: 96 pulses per 4/4 bar and six pulses
 per sixteenth note. Each accepted clock publishes the pulse being processed,
 then `Position` exposes the next pulse number. The first pulse after Start is
 zero. `SequencerTimeline` is a separate boundary-calculation utility; the live
-`PatternPlayer` calculates its own step indices and pending swaps rather than
-using that utility or `BarQuantizedSwap<T>`.
+`PatternPlayer` calculates its own step indices and owns live pending swaps.
+`TransportSnapshot` reads source, state, next pulse, and accepted Start count
+together. Start increments the count; other transitions preserve it, allowing
+pending swaps to distinguish a reset from a continuation.
 
 For each pulse, the player:
 
@@ -168,10 +174,10 @@ transport but must not initiate another mutation or wait for one; same-thread
 reentrant mutations are rejected. Callback failures propagate while releasing
 the gate. See the [notification contract](../midi/clock-transport.md#notification-ordering).
 
-Pending deadlines currently use `Position.Bar + 1`. Because Position is the
-next pulse, a queue between pulses 95 and 96 skips the upcoming boundary.
-Start also leaves an existing pending deadline tied to the previous pulse
-count. These are current timing limitations, not intended musical behavior.
+Queueing uses the first boundary whose pulse has not yet been accepted. Thus a
+queue between pulses 95 and 96 activates at 96, while one after acceptance of
+pulse 96 waits for 192 even if that callback is delayed. A newer Start count
+allows pending material to activate on the restarted pulse zero.
 
 Program disposes resources in reverse declaration order. Input closes when
 the command loop exits. Internal clock disposal joins its scheduler, stops local

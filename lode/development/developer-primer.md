@@ -70,7 +70,9 @@ enough that explicit composition is clearer and preserves type safety.
 
 `CandidateSession` separates private audition from the accepted pattern.
 Changing a candidate during playback schedules it at the next bar rather than
-altering the audible bar in place. `CandidateHistory` supports local browsing.
+altering the audible bar in place. Start plays pending material from the first
+pulse of the restarted transport; Continue preserves its pending boundary.
+`CandidateHistory` supports local browsing.
 Variation consumes a materialized parent and records ancestry. The console
 resolves its generator from recipe lineage, independently of the mode selected
 for new patterns. Turnaround Loop has family-specific variation; other current

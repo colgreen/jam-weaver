@@ -5,6 +5,27 @@ namespace JamWeaver.Core.Tests;
 public sealed class TransportTests
 {
     [Fact]
+    public void Snapshot_captures_next_position_and_counts_only_accepted_start_messages()
+    {
+        var engine = new TransportEngine();
+        Assert.Equal(new TransportSnapshot(ClockSource.External, TransportState.Stopped, new TransportPosition(0), 0), engine.Snapshot);
+        Assert.False(engine.Process(ClockSource.Internal, RealtimeMessage.Start));
+        Assert.Equal(0UL, engine.Snapshot.StartCount);
+
+        engine.Process(ClockSource.External, RealtimeMessage.Start);
+        engine.Process(ClockSource.External, RealtimeMessage.Clock);
+        Assert.Equal(new TransportSnapshot(ClockSource.External, TransportState.Running, new TransportPosition(1), 1), engine.Snapshot);
+
+        engine.Process(ClockSource.External, RealtimeMessage.Stop);
+        engine.SelectSource(ClockSource.Internal);
+        engine.Process(ClockSource.Internal, RealtimeMessage.Continue);
+        Assert.Equal(new TransportSnapshot(ClockSource.Internal, TransportState.Running, new TransportPosition(1), 1), engine.Snapshot);
+
+        engine.Process(ClockSource.Internal, RealtimeMessage.Start);
+        Assert.Equal(new TransportSnapshot(ClockSource.Internal, TransportState.Running, new TransportPosition(0), 2), engine.Snapshot);
+    }
+
+    [Fact]
     public void Start_resets_position_and_continue_preserves_it()
     {
         var engine = new TransportEngine();
@@ -96,29 +117,6 @@ public sealed class TransportTests
         for (var index = 0; index <= 72; index++) engine.Process(ClockSource.External, RealtimeMessage.Clock);
 
         Assert.Equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0], steps);
-    }
-
-    [Fact]
-    public void Running_swap_uses_next_strictly_future_bar_and_latest_value_wins()
-    {
-        var swap = new BarQuantizedSwap<string>("original");
-        swap.Queue("first", TransportState.Running, new TransportPosition(20));
-        swap.Queue("latest", TransportState.Running, new TransportPosition(90));
-
-        Assert.False(swap.TryActivate(new TransportPosition(95)));
-        Assert.True(swap.TryActivate(new TransportPosition(96)));
-        Assert.Equal("latest", swap.Current);
-        Assert.Null(swap.Pending);
-    }
-
-    [Fact]
-    public void Stopped_swap_is_immediate()
-    {
-        var swap = new BarQuantizedSwap<string>("original");
-        swap.Queue("replacement", TransportState.Stopped, new TransportPosition(50));
-
-        Assert.Equal("replacement", swap.Current);
-        Assert.Null(swap.Pending);
     }
 
     [Fact]

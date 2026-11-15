@@ -14,6 +14,7 @@ public sealed class PatternPlayer : IDisposable
     private ulong _currentTriggerKey;
     private ulong _pendingTriggerKey;
     private ulong _eligibleBar;
+    private ulong _pendingStartCount;
     private MidiChannel _channel = new(1);
     private bool _enabled;
     private Exception? _error;
@@ -54,7 +55,8 @@ public sealed class PatternPlayer : IDisposable
         lock (_sync)
         {
             ThrowIfDisposed();
-            if (_transport.State != TransportState.Running)
+            var snapshot = _transport.Snapshot;
+            if (snapshot.State != TransportState.Running)
             {
                 _current = pattern;
                 _currentTriggerKey = triggerKey;
@@ -63,7 +65,8 @@ public sealed class PatternPlayer : IDisposable
             }
             _pending = pattern;
             _pendingTriggerKey = triggerKey;
-            _eligibleBar = _transport.Position.Bar + 1;
+            _eligibleBar = snapshot.Position.IsBarBoundary ? snapshot.Position.Bar : snapshot.Position.Bar + 1;
+            _pendingStartCount = snapshot.StartCount;
         }
     }
 
@@ -134,7 +137,9 @@ public sealed class PatternPlayer : IDisposable
 
     private void ActivatePending(TransportPosition position)
     {
-        if (_pending is null || !position.IsBarBoundary || position.Bar < _eligibleBar) return;
+        if (_pending is null || !position.IsBarBoundary) return;
+        var restarted = _transport.Snapshot.StartCount != _pendingStartCount;
+        if (!restarted && position.Bar < _eligibleBar) return;
         _current = _pending;
         _currentTriggerKey = _pendingTriggerKey;
         _pending = null;

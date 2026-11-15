@@ -4,6 +4,8 @@ Address the code review findings one at a time, preserving the core/console
 split, immutable materialized patterns, and typed generator settings. Prefer
 focused changes to lifecycle ownership and testing boundaries over a broad
 architectural rewrite. Product behavior decisions belong to the human.
+Commit each completed task after verification; the full review follows the
+individual fixes.
 
 ## Transport notification contract
 
@@ -41,20 +43,21 @@ with continued note/port cleanup, background failure, retry after failed explici
 Stop, and duplicate/unused disposal. Hardware response still requires physical
 testing. See [clock shutdown](../midi/clock-transport.md#shutdown).
 
-## Next: pending candidate activation
+## Pending candidate activation
 
-`Position` reports the next pulse. The player's `Position.Bar + 1` deadline
-skips the imminent boundary when queued between pulses 95 and 96. Start also
-retains pending deadlines from the previous transport run.
+The player reads one `TransportSnapshot` containing source, state, next pulse,
+and accepted Start count. A running queue targets the first bar boundary whose
+clock has not been accepted, including an upcoming boundary at the exact next
+pulse. Start plays a waiting candidate on pulse zero; Continue preserves its
+deadline and phrase phase. Acceptance still requires `keep`. `PatternPlayer`
+owns the sole live activation policy.
 
-- Define activation from a consistent pulse snapshot.
-- Ask whether Start should activate pending material at pulse zero or at the
-  following bar; preserve the selected policy in documentation and tests.
-- Cover queueing around boundaries, before the first pulse, and across
-  Stop/Start with differing pattern lengths and resolutions.
-- Reconcile the standalone `BarQuantizedSwap<T>` only once policy is clear.
+Tests cover boundaries and delayed callbacks, repeated Start, Stop/Continue,
+clock loss and source selection, muted output, acceptance, and differing lengths
+and resolutions. See [pending pattern
+activation](../midi/clock-transport.md#pending-pattern-activation).
 
-## Output cleanup and port ownership
+## Next: output cleanup and port ownership
 
 `SafeMidiOutput` stops cleanup after its first failed send. A replacement
 opened by the console can be left undisposed if old-port cleanup fails.

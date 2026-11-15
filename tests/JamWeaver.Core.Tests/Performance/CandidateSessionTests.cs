@@ -48,6 +48,27 @@ public sealed class CandidateSessionTests
     }
 
     [Fact]
+    public void Start_auditions_pending_material_at_pulse_zero_without_automatically_accepting_it()
+    {
+        using var fixture = new SessionFixture();
+        var accepted = Melodic(0);
+        fixture.Session.SetCandidate(accepted);
+        fixture.Engine.Process(ClockSource.External, RealtimeMessage.Start);
+        for (var index = 0; index < 300; index++) fixture.Engine.Process(ClockSource.External, RealtimeMessage.Clock);
+        var candidate = Melodic(1);
+        fixture.Session.SetCandidate(candidate);
+
+        fixture.Engine.Process(ClockSource.External, RealtimeMessage.Start);
+        Assert.Throws<InvalidOperationException>(fixture.Session.Accept);
+        fixture.Engine.Process(ClockSource.External, RealtimeMessage.Clock);
+
+        Assert.Equal(candidate.Id, fixture.Player.CurrentPattern!.Id);
+        Assert.Equal(accepted.Id, fixture.Session.Accepted!.Id);
+        fixture.Session.Accept();
+        Assert.Equal(candidate.Id, fixture.Session.Accepted.Id);
+    }
+
+    [Fact]
     public void Reject_returns_to_the_single_accepted_pattern()
     {
         using var fixture = new SessionFixture();

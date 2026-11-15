@@ -63,7 +63,7 @@ public sealed class PatternPlayerTests
     }
 
     [Fact]
-    public void Latest_running_candidate_activates_at_next_strictly_future_bar()
+    public void Latest_running_candidate_activates_at_next_unaccepted_bar_boundary()
     {
         var original = PatternWith([Note(60, .1)], new PatternTiming(96));
         var fixture = new PlayerFixture(original);

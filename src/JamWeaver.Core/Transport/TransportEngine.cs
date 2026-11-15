@@ -23,6 +23,7 @@ public sealed class TransportEngine
     private ClockSource _source;
     private TransportState _state;
     private ulong _nextPulse;
+    private ulong _startCount;
     private long? _lastExternalTimestamp;
 
     public TransportEngine(ClockSource source = ClockSource.External, TimeProvider? timeProvider = null)
@@ -36,6 +37,10 @@ public sealed class TransportEngine
     public ClockSource Source { get { lock (_sync) return _source; } }
     public TransportState State { get { lock (_sync) return _state; } }
     public TransportPosition Position { get { lock (_sync) return new(_nextPulse); } }
+    public TransportSnapshot Snapshot
+    {
+        get { lock (_sync) return new(_source, _state, new TransportPosition(_nextPulse), _startCount); }
+    }
 
     public void SelectSource(ClockSource source)
     {
@@ -74,6 +79,7 @@ public sealed class TransportEngine
             switch (message)
             {
                 case RealtimeMessage.Start:
+                    _startCount = checked(_startCount + 1);
                     _nextPulse = 0;
                     _state = TransportState.Running;
                     RefreshExternalTimestamp(source);

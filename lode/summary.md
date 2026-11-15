@@ -14,7 +14,8 @@ current startup preference rather than JamWeaver's musical identity.
 
 The application currently plays one MIDI-routed track. Patterns may contain
 several notes per step and can follow internal or external MIDI Clock. Changes
-made during playback take effect at the next bar. A performer can generate,
+made during playback take effect at the next bar; a fresh MIDI Start plays any
+waiting candidate from the restarted first pulse. A performer can generate,
 mutate, audition, accept, reject, save, and load patterns without sending
 device-specific patch data.
 

@@ -90,6 +90,12 @@ candidate's recipe lineage; changing the generator selected for `new` does not
 change how the current candidate is varied.
 
 Playback-affecting changes made while running become active on the next bar.
+The upcoming boundary counts if its clock pulse has not yet been accepted;
+queueing just before it does not introduce another bar of waiting. MIDI Start
+resets position and plays the pending candidate from the first clock pulse of
+the restarted transport. Continue resumes position and preserves the pending
+next-bar change. Start does not automatically accept the candidate as the safe
+point. A normal bar swap joins the transport's existing phrase phase.
 When stopped, candidate editing can apply immediately because nothing is being
 sent. Pattern acceptance and saving are separate: acceptance moves the
 in-memory safe point; saving persists it for another session.
