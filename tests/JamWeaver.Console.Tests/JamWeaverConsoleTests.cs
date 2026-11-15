@@ -26,7 +26,7 @@ public sealed class JamWeaverConsoleTests
             new ConsoleDisplay(writer), output, transport, internalClock, player, session, candidateGenerator,
             new GenerationControls(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),
-            new ExternalMidiClockInput());
+            new ExternalMidiClockInput(), new FakeMidiPortCatalog());
 
         await application.RunAsync();
 
@@ -54,7 +54,7 @@ public sealed class JamWeaverConsoleTests
                 grooveGenerator, new MotifGenerator()),
             new GenerationControls(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),
-            new ExternalMidiClockInput());
+            new ExternalMidiClockInput(), new FakeMidiPortCatalog());
 
         await application.RunAsync();
 

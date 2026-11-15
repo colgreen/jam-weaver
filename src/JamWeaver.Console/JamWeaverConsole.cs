@@ -1,5 +1,4 @@
 using System.Globalization;
-using JamWeaver.ConsoleApp.DryWetMidi;
 using Redzen.Random;
 
 namespace JamWeaver.ConsoleApp;
@@ -22,6 +21,7 @@ public sealed class JamWeaverConsole
     private readonly GrooveVocabularyGenerator grooveGenerator;
     private readonly IRandomSource seedSource;
     private readonly ExternalMidiClockInput externalClock;
+    private readonly IMidiPortCatalog portCatalog;
     private Pattern? comparisonPhrase;
     private Pattern? comparisonGroove;
     private bool comparisonShowsGroove = true;
@@ -32,7 +32,8 @@ public sealed class JamWeaverConsole
         CandidateSession session, CandidateGenerator candidateGenerator, GenerationControls generationControls,
         CandidateHistory history,
         PatternLibrary patternLibrary, StructuredPhraseGenerator phraseGenerator,
-        GrooveVocabularyGenerator grooveGenerator, IRandomSource seedSource, ExternalMidiClockInput externalClock)
+        GrooveVocabularyGenerator grooveGenerator, IRandomSource seedSource, ExternalMidiClockInput externalClock,
+        IMidiPortCatalog portCatalog)
     {
         this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
         this.display = display ?? throw new ArgumentNullException(nameof(display));
@@ -49,15 +50,16 @@ public sealed class JamWeaverConsole
         this.grooveGenerator = grooveGenerator ?? throw new ArgumentNullException(nameof(grooveGenerator));
         this.seedSource = seedSource ?? throw new ArgumentNullException(nameof(seedSource));
         this.externalClock = externalClock ?? throw new ArgumentNullException(nameof(externalClock));
+        this.portCatalog = portCatalog ?? throw new ArgumentNullException(nameof(portCatalog));
         input = new MidiInput(this.externalClock);
     }
 
     public async Task RunAsync()
     {
         externalClock.MessageReceived += ProcessExternalMessage;
-        display.WriteSetup(output, input.Name, transport, internalClock, player);
         try
         {
+            WriteSetup();
             while (true)
             {
                 display.WritePrompt(session, player, transport, generationControls.Mode);
@@ -70,21 +72,14 @@ public sealed class JamWeaverConsole
                 {
                     switch (parts[0].ToLowerInvariant())
                     {
-                        case "setup": display.WriteSetup(output, input.Name, transport, internalClock, player); break;
+                        case "setup": WriteSetup(); break;
                         case "out":
-                            if (parts.Length == 1) { display.WriteOutputs(); break; }
-                            var outputIndex = I(parts, 1);
-                            player.Mute();
-                            if (transport.Source == ClockSource.Internal && output.PortName is not null)
-                                await internalClock.StopAsync();
-                            output.ReplacePort(DryWetMidiPortCatalog.OpenOutput(outputIndex));
-                            display.WriteLine($"Output: {output.PortName}");
-                            display.WriteLine("Next: new, then go.");
+                            if (parts.Length == 1) WriteOutputs();
+                            else await SelectOutputAsync(I(parts, 1));
                             break;
                         case "in":
-                            if (parts.Length == 1) { display.WriteInputs(); break; }
-                            input.ReplacePort(DryWetMidiPortCatalog.OpenInput(I(parts, 1)));
-                            display.WriteLine($"Input: {input.Name}");
+                            if (parts.Length == 1) WriteInputs();
+                            else SelectInput(I(parts, 1));
                             break;
                         case "source":
                             if (parts.Length == 1)
@@ -303,6 +298,52 @@ public sealed class JamWeaverConsole
             externalClock.MessageReceived -= ProcessExternalMessage;
             input.Dispose();
         }
+    }
+
+    private void WriteSetup()
+    {
+        display.WriteConfiguration(output, input.Name, transport, internalClock, player);
+        WriteOutputs();
+        WriteInputs();
+        display.WriteSetupGuidance();
+    }
+
+    private void WriteOutputs()
+    {
+        var names = DiscoverPortNames(portCatalog.OutputNames, "outputs");
+        if (names is not null) display.WriteOutputs(names);
+    }
+
+    private void WriteInputs()
+    {
+        var names = DiscoverPortNames(portCatalog.InputNames, "inputs");
+        if (names is not null) display.WriteInputs(names);
+    }
+
+    private IReadOnlyList<string>? DiscoverPortNames(Func<IReadOnlyList<string>> discover, string direction)
+    {
+        try { return discover(); }
+        catch (Exception ex)
+        {
+            display.WriteLine($"Error: Could not discover MIDI {direction}: {ex.Message}");
+            return null;
+        }
+    }
+
+    private async Task SelectOutputAsync(int index)
+    {
+        player.Mute();
+        if (transport.Source == ClockSource.Internal && output.PortName is not null)
+            await internalClock.StopAsync();
+        output.ReplacePort(portCatalog.OpenOutput(index));
+        display.WriteLine($"Output: {output.PortName}");
+        display.WriteLine("Next: new, then go.");
+    }
+
+    private void SelectInput(int index)
+    {
+        input.ReplacePort(portCatalog.OpenInput(index));
+        display.WriteLine($"Input: {input.Name}");
     }
 
     private void ProcessExternalMessage(object? sender, RealtimeMessage message) =>

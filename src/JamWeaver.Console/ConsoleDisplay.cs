@@ -1,5 +1,4 @@
 using System.Globalization;
-using JamWeaver.ConsoleApp.DryWetMidi;
 
 namespace JamWeaver.ConsoleApp;
 
@@ -19,23 +18,25 @@ public sealed class ConsoleDisplay
         writer.WriteLine("Type 'setup' to choose MIDI devices or 'help' for the live controls.");
     }
 
-    public void WriteOutputs()
+    public void WriteOutputs(IReadOnlyList<string> names)
     {
         writer.WriteLine("Outputs:");
-        foreach (var item in DryWetMidiPortCatalog.OutputNames().Select((name, index) => (name, index)))
+        foreach (var item in names.Select((name, index) => (name, index)))
             writer.WriteLine($"  {item.index}: {item.name}");
+        if (names.Count == 0) writer.WriteLine("  No MIDI outputs found.");
         writer.WriteLine("Select one with: out <number>");
     }
 
-    public void WriteInputs()
+    public void WriteInputs(IReadOnlyList<string> names)
     {
         writer.WriteLine("Inputs:");
-        foreach (var item in DryWetMidiPortCatalog.InputNames().Select((name, index) => (name, index)))
+        foreach (var item in names.Select((name, index) => (name, index)))
             writer.WriteLine($"  {item.index}: {item.name}");
+        if (names.Count == 0) writer.WriteLine("  No MIDI inputs found.");
         writer.WriteLine("Select one with: in <number>");
     }
 
-    public void WriteSetup(SafeMidiOutput output, string? inputName, TransportEngine transport,
+    public void WriteConfiguration(SafeMidiOutput output, string? inputName, TransportEngine transport,
         InternalMidiClock internalClock, PatternPlayer player)
     {
         writer.WriteLine($"Output: {output.PortName ?? "not selected"}");
@@ -43,8 +44,10 @@ public sealed class ConsoleDisplay
         writer.WriteLine($"Clock:  {transport.Source.ToString().ToLowerInvariant()}, {internalClock.Bpm:0.##} BPM");
         writer.WriteLine($"Channel: {player.Channel.Number}");
         writer.WriteLine();
-        WriteOutputs();
-        WriteInputs();
+    }
+
+    public void WriteSetupGuidance()
+    {
         writer.WriteLine("Clock: source internal|external; set internal tempo with bpm <20..300>.");
         writer.WriteLine("Routing: ch <1..16> (or channel <1..16>).");
         writer.WriteLine("Next: out <number>, ch <number>, source internal, then new and go.");

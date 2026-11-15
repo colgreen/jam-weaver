@@ -17,10 +17,13 @@ primer identifies the main types and extension contracts.
   replaceable MIDI input. `GenerationControls` holds performer-selectable
   generator state, while `CandidateGenerator` translates it into strongly typed
   core settings using the current candidate's tonal context and role.
-  `ConsoleDisplay` owns terminal rendering through a `TextWriter` and does not
-  mutate application state.
+  `ConsoleDisplay` owns terminal rendering through a `TextWriter` and receives
+  device-name lists from the loop. `IMidiPortCatalog` supplies discovery and
+  opening, with the native implementation injected only at composition.
 - `JamWeaver.Core.Tests` exercises the core through deterministic inputs and
-  fake MIDI ports. Hardware tests remain a separate validation activity.
+  fake MIDI ports. `JamWeaver.Console.Tests` covers generation, presentation,
+  and command/lifetime behavior using a fake catalog without native discovery.
+  Hardware tests remain a separate validation activity.
 
 Keep new musical rules and deterministic logic in the core. Keep device and
 terminal details at the console boundary.

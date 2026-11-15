@@ -18,9 +18,12 @@ The same instances serve the whole interactive session.
 `MidiInput` selection owner and subscribes the external-message bridge for the
 duration of the loop. `GenerationControls` holds defaults for subsequent
 generation; it does not edit the pattern already playing. `ConsoleDisplay`
-writes presentation through a `TextWriter`; its device-listing methods also
-enumerate native MIDI devices. `DryWetMidiInput` implements the small input-port
-interface; selection ownership controls listening and handles failure cleanup.
+writes presentation through a `TextWriter` using supplied device-name lists.
+`IMidiPortCatalog` separates discovery/opening from command coordination;
+`Program` injects the native adapter and tests inject a fake. Discovery errors
+are reported independently per direction without ending the session. Startup
+setup runs inside the loop's cleanup scope. `DryWetMidiInput` implements the
+small input-port interface; selection ownership controls listening and cleanup.
 
 Core owns musical and timing behavior without terminal or DryWetMIDI types.
 `IMidiOutputPort` is the hardware output boundary. The console adapter converts

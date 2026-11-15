@@ -4,7 +4,9 @@ JamWeaver is a .NET 8 MIDI application for contributing generated patterns to
 live jams. Its tested core library owns MIDI safety, clock and transport,
 immutable patterns, deterministic generation, playback, candidate audition, and
 JSON persistence. The console owns MIDI-device adapters and line-oriented
-controls.
+controls. Its command loop uses an injectable port catalog, while rendering
+receives device-name lists. Discovery errors leave commands available; automated
+console tests use fake ports and discovery without accessing native MIDI.
 
 Jam-session preferences are ergonomic defaults, not product boundaries. The
 application should start in a context that is immediately useful for its regular

@@ -67,7 +67,7 @@ public sealed class ConsoleShutdownTests
             new CandidateGenerator(new EuclideanMotifGenerator(), new TurnaroundLoopGenerator(),
                 new EuclideanPhraseGenerator(), phrase, groove, new MotifGenerator()),
             new GenerationControls(), new CandidateHistory(), library, phrase, groove,
-            RandomDefaults.CreateRandomSource(123), new ExternalMidiClockInput());
+            RandomDefaults.CreateRandomSource(123), new ExternalMidiClockInput(), new FakeMidiPortCatalog());
 
         await application.RunAsync();
     }

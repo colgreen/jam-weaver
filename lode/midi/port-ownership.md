@@ -12,6 +12,27 @@ cleanup and after disposal. A proposal whose name cannot be read is disposed
 before the existing selection is disturbed. A proposal passed to a disposed
 owner is also disposed; if that disposal fails, both errors are reported.
 
+## Discovery and opening
+
+`IMidiPortCatalog` supplies name snapshots and opens ports by zero-based device
+index. `Program` injects the native `DryWetMidiPortCatalog`; the command loop
+uses the interface and passes names to `ConsoleDisplay`. Listing does not
+select a port or start listening. Indices may change when devices connect or
+disconnect; a displayed index does not reserve a device.
+
+Setup discovers inputs and outputs independently. A discovery failure reports
+its direction and underlying error, while other discovery and commands remain
+available. Later `setup`, `out`, or `in` commands retry discovery. Empty lists
+are displayed explicitly and are distinct from discovery failures. Startup
+setup shares the command loop's try/finally, which detaches the external-message
+bridge and closes the selected input on quit, EOF, or an escaping error.
+
+Successful open returns a caller-owned port, with inputs initially not
+listening. The console immediately transfers it to the appropriate selection
+owner. Open failures are handled as command errors; an output open failure
+retains the old selection after muting/stopping it, while an input open failure
+leaves the old listener running.
+
 ## Output replacement
 
 Before adopting a proposal, `SafeMidiOutput` attempts explicit Note Off for
@@ -78,7 +99,9 @@ fails. Hardware closure or silence cannot be guaranteed when native calls fail.
 
 Fake-port tests exercise partial cleanup, failure aggregation, rejected-port
 disposal, partially started listeners, late callbacks, idempotence, and panic
-coordination. The command loop still discovers ports through the native static
-catalog, and native device disconnects/opening/listening need physical testing.
+coordination. Command-loop tests use a fake catalog for empty/failed discovery,
+retry, selection/replacement, continued commands, and cleanup after startup or
+reader failure. Native discovery, disconnects, opening, and listening still
+need physical testing.
 No quantitative timing or physical disconnect-recovery guarantee follows from
 the automated tests.

@@ -1,4 +1,5 @@
 using JamWeaver.ConsoleApp;
+using JamWeaver.ConsoleApp.DryWetMidi;
 using Redzen.Random;
 
 var display = new ConsoleDisplay(Console.Out);
@@ -26,5 +27,5 @@ var externalClock = new ExternalMidiClockInput();
 
 var application = new JamWeaverConsole(Console.In, display, output, transport, internalClock, player, session,
     candidateGenerator, generationControls, history, patternLibrary, phraseGenerator,
-    grooveGenerator, seedSource, externalClock);
+    grooveGenerator, seedSource, externalClock, new DryWetMidiPortCatalog());
 await application.RunAsync();

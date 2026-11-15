@@ -12,7 +12,7 @@
 - MIDI
   - [Clock and transport](midi/clock-transport.md) - synchronization and transport contracts
   - [Note lifecycle](midi/note-lifecycle.md) - active-note and shutdown safety
-  - [Port ownership](midi/port-ownership.md) - port transfer, replacement, listener startup, and failure cleanup
+  - [Port ownership](midi/port-ownership.md) - discovery, port transfer, replacement, listener startup, and failure cleanup
 - Sequencer
   - [Pattern model](sequencer/pattern-model.md) - step, identity, and persistence model
   - [Domain value validation](sequencer/value-validation.md) - struct defaults, aggregate/API guards, enums, and persistence limits

@@ -12,7 +12,7 @@ src/
   JamWeaver.Console/    terminal UI and DryWetMIDI adapters
 tests/
   JamWeaver.Core.Tests/ xUnit v3 unit tests using fake MIDI ports
-  JamWeaver.Console.Tests/ deterministic console-layer generation tests
+  JamWeaver.Console.Tests/ generation, rendering, and fake-port command/lifecycle tests
 ```
 
 `JamWeaver.Core` has no dependency on DryWetMIDI or console APIs. It owns
@@ -30,8 +30,12 @@ interactive session. `CandidateGenerator` maps `GenerationControls`, a seed, and
 the current candidate context to strongly typed core settings.
 `ConsoleDisplay` renders setup, prompts, status, patterns, library entries, help,
 and console-specific labels through an injected `TextWriter`; rendering does not
-change musical state. Its device-listing methods also enumerate native ports,
-so command-loop tests currently access the installed MIDI subsystem.
+change musical state or discover devices. `Program` injects a
+`DryWetMidiPortCatalog` through `IMidiPortCatalog`; the command loop passes
+discovered names to the display. Command-loop tests inject a fake catalog and
+never access the installed MIDI subsystem. Discovery failures are reported per
+direction, leaving other lists and commands available. Startup setup shares
+the loop's cleanup scope, so even a rendering failure detaches external clock.
 Incoming external clock/transport drives the local
 engine but is never implicitly relayed to an output.
 

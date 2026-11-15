@@ -7,6 +7,9 @@ architectural rewrite. Product behavior decisions belong to the human.
 Commit each completed task after verification; the full review follows the
 individual fixes.
 
+All seven priority findings below have implementation and regression coverage.
+The full review and later readability work remain separate follow-up work.
+
 ## Transport notification contract
 
 Transport mutations and their synchronous notifications are serialized by a
@@ -87,17 +90,19 @@ generator entry validation, valid-zero round trips, and persistence rejection.
 Fixed-seed tests retain their existing musical results. See [domain value
 validation](../sequencer/value-validation.md).
 
-## Next: console discovery boundary
+## Console discovery boundary
 
-`ConsoleDisplay` directly enumerates native ports, including during command-loop
-startup outside its try/finally. Native failure can prevent startup and leave
-the external-message subscription attached. Command-loop tests depend on the
-installed MIDI subsystem.
+`IMidiPortCatalog` separates discovery/opening from command coordination.
+`Program` injects the native adapter; `ConsoleDisplay` renders supplied names
+without device I/O. Input/output discovery errors are reported independently,
+commands remain available, and later listing commands retry discovery.
+Startup setup runs inside the loop's cleanup scope so escaping errors still
+detach the external-message bridge and close input.
 
-- Inject a small port catalog and pass device data to rendering.
-- Include setup in lifetime/error handling.
-- Test empty devices, discovery failure, port selection and replacement, and
-  continued command processing without native MIDI access.
+Command-loop tests inject a fake catalog and cover empty devices, discovery
+failure/recovery, port selection/replacement, open/listen failures, continued
+commands, and startup/reader failure cleanup without native MIDI access.
+See [discovery and opening](../midi/port-ownership.md#discovery-and-opening).
 
 ## Later readability work
 
