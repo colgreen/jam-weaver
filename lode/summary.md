@@ -38,7 +38,8 @@ The generic melodic path, note cleanup, internal and external clock, candidate
 workflow, and save/restart/load have been exercised on physical devices.
 The current console path has [external-clock smoke
 coverage](hardware/external-clock-validation.md) for discovery, playback,
-Stop/restart, live candidate replacement, and clean shutdown.
+Stop/restart, live candidate replacement, clock-loss silence, paused behavior
+after pulses return, recovery through Stop/Start, and clean shutdown.
 Generator musical quality, quantitative timing, long-running behavior, drum
 workflow, and device-specific controls still require further hardware work.
 
