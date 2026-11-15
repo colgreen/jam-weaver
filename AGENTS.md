@@ -7,8 +7,9 @@ project knowledge.
 
 ## Start of work
 
-1. Read `lode/lode-map.md`, `lode/terminology.md`, and `lode/summary.md` when
-   they exist.
+1. Read `lode/lode-map.md`, `lode/terminology.md`, `lode/summary.md`, and
+   [`lode/practices.md`](lode/practices.md) when they exist. Read the practices
+   before writing or changing code.
 2. Use `lode/lode-map.md` to find relevant design documentation before broadly
    searching the source tree.
 3. Inspect the actual code involved before proposing or making a change. Code is
@@ -90,6 +91,30 @@ decision.
 - Do not introduce abstractions for hypothetical requirements. Refactor when a
   boundary has a concrete second use or is needed for testing.
 
+## Code design and maintainability
+
+- Give each type a clear responsibility and keep related state and behavior
+  together. Keep methods focused on a meaningful operation with straightforward
+  control flow. Extract operations when their names and boundaries make the code
+  easier to understand; do not impose arbitrary method or class size limits.
+- Define abstractions around a coherent domain contract. Callers should not need
+  concrete implementation types, internal data layouts, or undocumented call
+  sequences to use them correctly. Make required lifecycle ordering explicit.
+- Keep domain behavior independent of UI and device-library details. Adapt
+  external representations at the boundary; preserve the dependency direction
+  described in [project structure](lode/architecture/project-structure.md).
+- Give each invariant, state transition, and resource lifecycle a clear owner.
+  Protect that owner's state from outside mutation and keep policy out of callers
+  that should only request an operation.
+- Prefer explicit dependencies and strongly typed contracts. Avoid hidden global
+  state, service location, untyped parameter bags, and flags that combine unrelated
+  operations. Share code when it represents the same rule, not merely similar
+  syntax; do not force unrelated behavior through a common abstraction.
+- Apply these standards to new and changed code in proportion to the task.
+  Improve relevant structure when needed for correctness or clarity, preserve
+  compatibility contracts, and avoid unrelated cleanup. See
+  [project practices](lode/practices.md) for concrete design and readability rules.
+
 ## C# conventions
 
 - Target the framework declared by the project; do not retarget it incidentally.
@@ -118,9 +143,38 @@ math, and external-clock estimation. Hardware-dependent behavior should sit
 behind interfaces so it can be exercised with fakes; also state clearly when a
 change still requires testing with a real MIDI device.
 
+Run both native xUnit runners for this repository:
+
+```powershell
+dotnet run --project tests/JamWeaver.Core.Tests
+dotnet run --project tests/JamWeaver.Console.Tests
+```
+
+- Cover new or changed behavior with meaningful automated tests. For bug fixes,
+  add a regression test that exposes the defect before the fix whenever it can
+  be reproduced automatically.
+- Test observable contracts and outcomes rather than private methods or exact
+  internal call sequences, unless ordering itself is part of the contract.
+  Include relevant boundaries, invalid input, failures, cancellation, cleanup,
+  and concurrency as well as successful use.
+- Keep tests repeatable and independent. Control seeds, time, and I/O through
+  the existing test boundaries; coordinate concurrency explicitly rather than
+  relying on arbitrary sleeps. Prefer focused fakes over unnecessary mocking.
+- Judge coverage by the behavior and risks exercised. Test counts and coverage
+  percentages alone do not establish correctness; assertions must detect a
+  meaningful violation of the promised behavior.
+
 Do not claim that hardware behavior was verified unless the relevant physical
 device was actually exercised. Report the build/test result and any remaining
 hardware verification separately.
+
+Before handing off a code change, review:
+
+- Are responsibilities cohesive and dependencies pointed in the right direction?
+- Can callers use each contract without knowing its implementation details?
+- Are state, validation, resource ownership, and failure behavior explicit?
+- Are relevant compatibility guarantees preserved and changed behavior tested?
+- Do names, control flow, and documentation make the change easy to maintain?
 
 ## Scope and safety
 

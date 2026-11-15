@@ -2,7 +2,7 @@
 
 - [Project summary](summary.md) - purpose, current capabilities, and limitations
 - [Terminology](terminology.md) - project-specific domain language
-- [Project practices](practices.md) - conventions not covered by `AGENTS.md`
+- [Project practices](practices.md) - type design, abstraction boundaries, ownership, readability, validation, and documentation conventions
 - Development
   - [Developer primer](development/developer-primer.md) - core concepts, types, and runtime relationships
   - [Console commands](development/console-commands.md) - shared command span, argument counts, free-text names, and dispatch boundary
@@ -30,6 +30,7 @@
 - Performance
   - [Candidate workflow](performance/candidate-workflow.md) - audition and live-control state
 - Plans
+  - [Maintainability review](plans/maintainability-review.md) - proposed test protection, console cleanup, shared variation vocabulary, and verification tooling
   - [Follow-up code review](plans/follow-up-review.md) - regression boundaries, verification limits, and deferred readability work
   - [Codebase findings](plans/codebase-findings.md) - ordered lifecycle, validation, and console-boundary work from the structural review
   - [Simplify candidate workflow](plans/simplify-candidate-workflow.md) - unify short-term browsing around one accepted safe point

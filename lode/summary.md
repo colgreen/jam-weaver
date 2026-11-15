@@ -10,6 +10,9 @@ console tests use fake ports and discovery without accessing native MIDI.
 
 The [follow-up review](plans/follow-up-review.md) records regression boundaries
 and deferred readability work; it has no open correctness findings.
+The [maintainability review](plans/maintainability-review.md) proposes focused
+console and shared-contract cleanup, with additional regression protection
+before restructuring.
 The console parses command tokens and free-text names from one trimmed span
 and rejects malformed argument counts before dispatch. Indented save/load
 commands preserve names and support the same bare forms as unindented commands.

@@ -21,6 +21,52 @@ not presumed to comply and do not need opportunistic renaming or restructuring.
 Review them separately when there is a clear benefit and enough context to make
 a sound design decision.
 
+## Abstraction boundaries and ownership
+
+Keep core contracts in domain terms. For example, a MIDI output exposes MIDI
+operations rather than DryWetMIDI event objects, and rendering receives display
+data rather than discovering devices. Keep native conversion in adapters and
+composition in the console startup code. See [project
+structure](architecture/project-structure.md) for the current boundaries.
+
+An interface should describe behavior its implementations can honor without
+callers downcasting, inspecting implementation state, or duplicating its policy.
+Specify significant preconditions, failure behavior, ownership transfer, and
+lifecycle ordering. Keep implementation-specific options local to the adapter
+unless a concrete domain requirement needs them.
+
+Keep mutable state private to its owner. Expose immutable values, snapshots, or
+read-only views that cannot bypass the owner's validation or synchronization.
+Choose snapshots when callers need a stable view of changing state; a read-only
+interface alone does not make its backing collection immutable or thread-safe.
+Keep transition decisions with the component that owns the state rather than
+spreading them across callers.
+
+Use constructor parameters or explicit operation arguments for dependencies.
+Introduce interfaces where substitution, I/O isolation, or contract testing has
+a concrete benefit; an interface for every class is not a design goal. Share an
+invariant's implementation within its owner, while retaining validation at
+boundaries that can receive untrusted or invalid values.
+
+## Method structure and readability
+
+Write methods around recognizable operations and keep orchestration distinct
+from the detailed work it coordinates when that improves readability. Prefer
+guard clauses and direct control flow over deep nesting or compressed chains
+of side effects. Name important domain values and rules rather than leaving
+unexplained literals in algorithms.
+
+Extract a helper when it names a useful concept, isolates a responsibility, or
+removes duplication of the same rule. Keep related logic together when splitting
+it would force readers to jump between trivial helpers. Use comments to explain
+rationale, constraints, and non-obvious ordering rather than paraphrase code.
+
+Refactoring must preserve observable behavior, including ownership and failure
+contracts. For deterministic generators, random-call order and fixed-seed output
+are versioned behavior; follow [adding a
+generator](development/adding-a-generator.md#version-change-checklist) when an
+edit could change them. Run the relevant regression coverage after restructuring.
+
 ## Value types and validation
 
 Struct constructors cannot prevent `default(T)`. When a default violates a
