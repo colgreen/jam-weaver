@@ -36,7 +36,22 @@ public sealed class ConsoleShutdownTests
         Assert.ThrowsAny<OperationCanceledException>(scheduler.Pulse!);
     }
 
-    private static async Task RunSessionAsync(string commands, RecordingOutputPort port, CancellationScheduler scheduler)
+    [Fact]
+    public async Task Panic_still_sends_all_notes_off_after_player_mute_fails()
+    {
+        var port = new RecordingOutputPort(false) { NoteOffFailuresRemaining = 1 };
+        var transcript = new StringWriter();
+
+        await RunSessionAsync("source internal\nnew 123\ngo\npanic\nquit\n", port, new CancellationScheduler(), transcript);
+
+        Assert.Equal(2, port.Messages.Count(message => message == "Off"));
+        Assert.Equal(16, port.Messages.TakeWhile(message => message != "Stop").Count(message => message == "CC"));
+        Assert.Contains("MIDI panic encountered cleanup failures", transcript.ToString());
+        Assert.True(port.IsDisposed);
+    }
+
+    private static async Task RunSessionAsync(string commands, RecordingOutputPort port, CancellationScheduler scheduler,
+        StringWriter? transcript = null)
     {
         using var output = new SafeMidiOutput();
         output.ReplacePort(port);
@@ -47,7 +62,7 @@ public sealed class ConsoleShutdownTests
         var phrase = new StructuredPhraseGenerator();
         var groove = new GrooveVocabularyGenerator();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
-        var application = new JamWeaverConsole(new StringReader(commands), new ConsoleDisplay(new StringWriter()),
+        var application = new JamWeaverConsole(new StringReader(commands), new ConsoleDisplay(transcript ?? new StringWriter()),
             output, transport, clock, player, new CandidateSession(player),
             new CandidateGenerator(new EuclideanMotifGenerator(), new TurnaroundLoopGenerator(),
                 new EuclideanPhraseGenerator(), phrase, groove, new MotifGenerator()),
@@ -73,8 +88,17 @@ public sealed class ConsoleShutdownTests
         public string Name => "shutdown-test";
         public List<string> Messages { get; } = [];
         public bool IsDisposed { get; private set; }
+        public int NoteOffFailuresRemaining { get; set; }
         public void SendNoteOn(MidiChannel channel, MidiValue note, MidiValue velocity) => Add("On");
-        public void SendNoteOff(MidiChannel channel, MidiValue note, MidiValue velocity) => Add("Off");
+        public void SendNoteOff(MidiChannel channel, MidiValue note, MidiValue velocity)
+        {
+            Add("Off");
+            if (NoteOffFailuresRemaining > 0)
+            {
+                NoteOffFailuresRemaining--;
+                throw new InvalidOperationException("note-off send failed");
+            }
+        }
         public void SendControlChange(MidiChannel channel, MidiValue controller, MidiValue value) => Add("CC");
         public void SendProgramChange(MidiChannel channel, MidiValue program) => Add("Program");
         public void SendClock() => Add("Clock");

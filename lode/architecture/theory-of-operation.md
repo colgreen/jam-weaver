@@ -15,11 +15,12 @@ what the room hears; acceptance is an in-memory safe point, not an audio fade.
 The same instances serve the whole interactive session.
 
 `JamWeaverConsole.RunAsync` reads and dispatches commands. It owns the
-replaceable `DryWetMidiInput` and subscribes the external-message bridge for the
+`MidiInput` selection owner and subscribes the external-message bridge for the
 duration of the loop. `GenerationControls` holds defaults for subsequent
 generation; it does not edit the pattern already playing. `ConsoleDisplay`
 writes presentation through a `TextWriter`; its device-listing methods also
-enumerate native MIDI devices.
+enumerate native MIDI devices. `DryWetMidiInput` implements the small input-port
+interface; selection ownership controls listening and handles failure cleanup.
 
 Core owns musical and timing behavior without terminal or DryWetMIDI types.
 `IMidiOutputPort` is the hardware output boundary. The console adapter converts
@@ -37,7 +38,8 @@ flowchart LR
     Library[PatternLibrary and JSON codec] -->|load for audition| Candidate
     Candidate -->|accepted pattern only| Library
     Candidate -->|queue immutable snapshot| Player[PatternPlayer]
-    Device[DryWetMidiInput] --> Bridge[ExternalMidiClockInput]
+    Device[DryWetMidiInput] --> Input[MidiInput selection]
+    Input --> Bridge[ExternalMidiClockInput]
     Bridge --> Transport[TransportEngine]
     Internal[InternalMidiClock] --> Transport
     Internal -->|internal clock and transport only| Output[SafeMidiOutput]
@@ -187,10 +189,13 @@ prevents another during disposal. The watchdog and player are disposed next;
 safe output performs final cleanup and disposes the port last. Shutdown Stop
 errors retain output/operation context and propagate; nested resource scopes
 still attempt later cleanup. Forced termination cannot guarantee this sequence.
-Safe output attempts
-tracked Note Off and CC 123 cleanup, but its cleanup loop exits on the first
-send failure. See [clock and transport](../midi/clock-transport.md) and
-[note lifecycle](../midi/note-lifecycle.md) before modifying these paths.
+Safe output attempts all tracked Note Off and CC 123 cleanup messages despite
+individual failures, preserves failed releases for retry, and aggregates errors
+with native disposal failures. Proposed ports are owned even when replacement
+fails. Input teardown separately attempts detachment, listening stop, and
+disposal; a retired input's callbacks are ignored. See [port
+ownership](../midi/port-ownership.md), [clock and
+transport](../midi/clock-transport.md), and [note lifecycle](../midi/note-lifecycle.md).
 
 Desktop .NET is not hard real-time. Synchronous device calls, lock contention,
 thread scheduling, and garbage collection can affect pulse delivery. Automated

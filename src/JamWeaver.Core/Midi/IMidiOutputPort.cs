@@ -1,5 +1,7 @@
 namespace JamWeaver.Core.Midi;
 
+/// <summary>Sends validated MIDI messages through one output port.</summary>
+/// <remarks>Passing a port to SafeMidiOutput.ReplacePort transfers disposal responsibility, even if replacement fails.</remarks>
 public interface IMidiOutputPort : IDisposable
 {
     string Name { get; }

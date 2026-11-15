@@ -7,11 +7,18 @@ through a `finally` block.
 
 Before switching or disposing an output, the application attempts explicit Note
 Off messages for tracked notes and then CC 123 (All Notes Off) on all 16
-channels. Panic attempts the same sequence. `SafeMidiOutput.SilenceUnsafe`
-currently exits on its first send failure, so remaining cleanup messages are
-not attempted. Disposal still disposes the port in a `finally` block and
-propagates the error. Replacement leaves the old port selected if cleanup
-fails; the proposed new port has not been adopted or disposed by the wrapper.
+channels. Each send is attempted even if an earlier one fails; errors preserve
+port, operation, channel, and note context and are reported together.
+Successful Note Off removes its tracked note; failed Note Off remains tracked
+for a later cleanup attempt. Panic uses the same sequence. The console attempts
+safe-output panic even if muting the player's notes fails, preserving errors
+from both stages.
+
+Disposal still attempts native port disposal after cleanup errors and clears
+the owner even when disposal fails. Replacement retains the previous selection
+on cleanup failure and disposes the proposal; failure disposing the previous
+port clears selection. See [port ownership](port-ownership.md) for transfer and
+input-listening contracts.
 
 This is a safety net rather than a replacement for correct scheduling: normal
 playback must issue its corresponding Note Off at the intended gate time.

@@ -37,7 +37,8 @@ before sending another Start and resetting position. Continue preserves
 position and does nothing while its scheduler is already running. Stop joins
 the scheduler before sending MIDI Stop; local transport is stopped even if
 that send fails. The console awaits these operations, including when changing
-source or enabling playback with `go`.
+source or enabling playback with `go`. Selecting a replacement output also
+stops internal transport on the previous output before opening the new port.
 
 Each run owns its cancellation token and remains joined before its source is
 disposed or replaced. The pulse callback checks that run's token before

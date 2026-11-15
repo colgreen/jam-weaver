@@ -25,7 +25,7 @@ persistence, and MIDI safety can be tested independently.
 command parsing, and performer-selectable generation controls. `Program` is the
 composition root and owns the stable MIDI, transport, playback, and persistence
 resources. `JamWeaverConsole` runs the interactive read/dispatch loop, owns its
-session state and replaceable MIDI input, and keeps command failures inside the
+session state and a `MidiInput` selection owner, and keeps command failures inside the
 interactive session. `CandidateGenerator` maps `GenerationControls`, a seed, and
 the current candidate context to strongly typed core settings.
 `ConsoleDisplay` renders setup, prompts, status, patterns, library entries, help,
@@ -34,6 +34,12 @@ change musical state. Its device-listing methods also enumerate native ports,
 so command-loop tests currently access the installed MIDI subsystem.
 Incoming external clock/transport drives the local
 engine but is never implicitly relayed to an output.
+
+`IMidiInputPort` separates native event conversion/listening from input selection
+and failure cleanup. `MidiInput` adopts or disposes every proposed port and
+forwards only events from its current selection. `SafeMidiOutput` similarly
+owns proposed output ports, preserves cleanup errors, and retries failed note
+releases. See [port ownership](../midi/port-ownership.md).
 
 Shutdown closes console-owned input, then disposes internal clock before the
 watchdog, player, and output. The clock joins scheduling and sends any owed MIDI

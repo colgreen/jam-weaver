@@ -209,7 +209,7 @@ Type 'help <command>' for detailed syntax.
         "keep" => "keep\nMakes the audible candidate the safe point. Only the safe point can be saved.",
         "revert" => "revert\nReturns to the safe point without removing patterns from recent history.",
         "key" => "key up|down\nMoves the candidate's tonal root by one semitone for by-ear key matching. Creates a new audition candidate.",
-        "out" => "out <index>\nOpens the numbered MIDI output shown by 'setup'. Mutes pattern playback while changing ports.",
+        "out" => "out <index>\nOpens the numbered MIDI output shown by 'setup'. Mutes pattern playback and stops internal transport before changing ports.",
         "in" => "in <index>\nOpens the numbered MIDI input shown by 'setup' for external clock and transport messages.",
         "source" => "source internal|external\nSelects the transport clock. External waits for MIDI Start/Continue and Clock; internal uses 'bpm' and 'start'.",
         "bpm" => "bpm <20..300>\nSets the internal-clock tempo. It has no effect while the external clock source is selected.",

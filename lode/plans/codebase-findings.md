@@ -57,18 +57,23 @@ clock loss and source selection, muted output, acceptance, and differing lengths
 and resolutions. See [pending pattern
 activation](../midi/clock-transport.md#pending-pattern-activation).
 
-## Next: output cleanup and port ownership
+## Output cleanup and port ownership
 
-`SafeMidiOutput` stops cleanup after its first failed send. A replacement
-opened by the console can be left undisposed if old-port cleanup fails.
-Input replacement also needs exception-safe ownership during construction and
-listener startup.
+`SafeMidiOutput` attempts every note/channel cleanup operation, retains failed
+Note Off for retry, and aggregates contextual send/disposal errors. Proposed
+ports transfer ownership even on replacement failure. Cleanup failure preserves
+the previous output; previous-port disposal failure clears selection. The
+console stops internal transport on the old output before replacing it, and
+panic attempts safe-output cleanup even when player mute fails.
 
-- Attempt independent cleanup operations and aggregate contextual errors.
-- Define ownership of proposed, adopted, and failed replacement ports.
-- Test send/disposal failures, replacement failure, and input listening failure.
+Console `MidiInput` owns an `IMidiInputPort` selection. Replacement closes the
+old listener before starting another; partial startup and teardown always
+attempt detachment, stop, and disposal. Failed selection does not retain a
+disposed input, and retired-port callbacks are ignored. Tests cover these
+paths with fakes; native behavior still needs physical verification. See
+[port ownership](../midi/port-ownership.md).
 
-## Domain default values
+## Next: domain default values
 
 Struct constructor validation does not prevent invalid `default(T)` values.
 Pattern accepts zero timing, empty identity, or a default name; PatternNote

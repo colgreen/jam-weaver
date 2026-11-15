@@ -25,7 +25,7 @@ public sealed class JamWeaverConsole
     private Pattern? comparisonPhrase;
     private Pattern? comparisonGroove;
     private bool comparisonShowsGroove = true;
-    private DryWetMidiInput? input;
+    private readonly MidiInput input;
 
     public JamWeaverConsole(TextReader reader, ConsoleDisplay display, SafeMidiOutput output,
         TransportEngine transport, InternalMidiClock internalClock, PatternPlayer player,
@@ -49,12 +49,13 @@ public sealed class JamWeaverConsole
         this.grooveGenerator = grooveGenerator ?? throw new ArgumentNullException(nameof(grooveGenerator));
         this.seedSource = seedSource ?? throw new ArgumentNullException(nameof(seedSource));
         this.externalClock = externalClock ?? throw new ArgumentNullException(nameof(externalClock));
+        input = new MidiInput(this.externalClock);
     }
 
     public async Task RunAsync()
     {
         externalClock.MessageReceived += ProcessExternalMessage;
-        display.WriteSetup(output, input?.Name, transport, internalClock, player);
+        display.WriteSetup(output, input.Name, transport, internalClock, player);
         try
         {
             while (true)
@@ -69,18 +70,20 @@ public sealed class JamWeaverConsole
                 {
                     switch (parts[0].ToLowerInvariant())
                     {
-                        case "setup": display.WriteSetup(output, input?.Name, transport, internalClock, player); break;
+                        case "setup": display.WriteSetup(output, input.Name, transport, internalClock, player); break;
                         case "out":
                             if (parts.Length == 1) { display.WriteOutputs(); break; }
+                            var outputIndex = I(parts, 1);
                             player.Mute();
-                            output.ReplacePort(DryWetMidiPortCatalog.OpenOutput(I(parts, 1)));
+                            if (transport.Source == ClockSource.Internal && output.PortName is not null)
+                                await internalClock.StopAsync();
+                            output.ReplacePort(DryWetMidiPortCatalog.OpenOutput(outputIndex));
                             display.WriteLine($"Output: {output.PortName}");
                             display.WriteLine("Next: new, then go.");
                             break;
                         case "in":
                             if (parts.Length == 1) { display.WriteInputs(); break; }
-                            input?.Dispose();
-                            input = new DryWetMidiInput(DryWetMidiPortCatalog.OpenInput(I(parts, 1)), externalClock);
+                            input.ReplacePort(DryWetMidiPortCatalog.OpenInput(I(parts, 1)));
                             display.WriteLine($"Input: {input.Name}");
                             break;
                         case "source":
@@ -285,8 +288,8 @@ public sealed class JamWeaverConsole
                         case "off": output.NoteOff(C(parts, 1), V(parts, 2), new MidiValue(parts.Length > 3 ? I(parts, 3) : 0)); break;
                         case "cc": output.ControlChange(C(parts, 1), V(parts, 2), V(parts, 3)); break;
                         case "pc": output.ProgramChange(C(parts, 1), V(parts, 2)); break;
-                        case "panic": player.Mute(); output.Panic(); break;
-                        case "status": display.WriteStatus(output, input?.Name, transport, internalClock, player); break;
+                        case "panic": Panic(); break;
+                        case "status": display.WriteStatus(output, input.Name, transport, internalClock, player); break;
                         case "help": display.WriteHelp(parts.Length > 1 ? parts[1] : null); break;
                         case "quit" or "exit": return;
                         default: display.WriteLine("Unknown command. Type 'help'."); break;
@@ -298,12 +301,22 @@ public sealed class JamWeaverConsole
         finally
         {
             externalClock.MessageReceived -= ProcessExternalMessage;
-            input?.Dispose();
+            input.Dispose();
         }
     }
 
     private void ProcessExternalMessage(object? sender, RealtimeMessage message) =>
         transport.Process(ClockSource.External, message);
+
+    private void Panic()
+    {
+        List<Exception> errors = [];
+        try { player.Mute(); }
+        catch (Exception ex) { errors.Add(ex); }
+        try { output.Panic(); }
+        catch (Exception ex) { errors.Add(ex); }
+        if (errors.Count > 0) throw new AggregateException("MIDI panic encountered cleanup failures.", errors);
+    }
 
     private static string S(string[] p, int i) => i < p.Length ? p[i] : throw new ArgumentException("Missing argument.");
     private static int I(string[] p, int i) => int.Parse(S(p, i), CultureInfo.InvariantCulture);

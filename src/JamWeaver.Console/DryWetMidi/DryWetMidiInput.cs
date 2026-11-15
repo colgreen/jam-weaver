@@ -3,20 +3,27 @@ using Melanchall.DryWetMidi.Multimedia;
 
 namespace JamWeaver.ConsoleApp.DryWetMidi;
 
-internal sealed class DryWetMidiInput : IDisposable
+internal sealed class DryWetMidiInput : IMidiInputPort
 {
     private readonly InputDevice _device;
-    private readonly ExternalMidiClockInput _input;
 
-    public DryWetMidiInput(InputDevice device, ExternalMidiClockInput input)
+    public DryWetMidiInput(InputDevice device) =>
+        _device = device ?? throw new ArgumentNullException(nameof(device));
+
+    public event EventHandler<RealtimeMessage>? MessageReceived;
+    public string Name => _device.Name;
+
+    public void StartListening()
     {
-        _device = device;
-        _input = input;
         _device.EventReceived += OnEventReceived;
         _device.StartEventsListening();
     }
 
-    public string Name => _device.Name;
+    public void StopListening()
+    {
+        try { _device.StopEventsListening(); }
+        finally { _device.EventReceived -= OnEventReceived; }
+    }
 
     private void OnEventReceived(object? sender, MidiEventReceivedEventArgs e)
     {
@@ -28,13 +35,12 @@ internal sealed class DryWetMidiInput : IDisposable
             StopEvent => RealtimeMessage.Stop,
             _ => (RealtimeMessage?)null
         };
-        if (message is { } value) _input.Receive(value);
+        if (message is { } value) MessageReceived?.Invoke(this, value);
     }
 
     public void Dispose()
     {
-        _device.StopEventsListening();
-        _device.EventReceived -= OnEventReceived;
-        _device.Dispose();
+        try { _device.EventReceived -= OnEventReceived; }
+        finally { _device.Dispose(); }
     }
 }

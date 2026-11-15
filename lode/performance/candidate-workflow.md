@@ -68,6 +68,11 @@ help shows the concise `ch <1..16>` form, and bare `ch` or `channel` reports its
 value and syntax. `channel` remains the readable long form of this conventional
 MIDI abbreviation.
 
+Selecting an output mutes pattern notes and stops internal transport before
+retiring the previous port; use `go` to resume on the replacement. Selection
+failures report cleanup errors without leaving a rejected port unowned. See
+[port ownership](../midi/port-ownership.md) for failure behavior.
+
 Musical creation controls are part of default help rather than diagnostics.
 Bare `generator` reports the current generator and the `euclidean`, `turnaround`,
 `euclidean-phrase`, `motif`, `phrase`, and `groove` choices. Euclidean is the
