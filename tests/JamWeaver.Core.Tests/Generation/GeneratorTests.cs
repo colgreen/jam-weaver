@@ -29,7 +29,7 @@ public sealed class GeneratorTests
         var first = generator.Vary(generated,
             new GeneratorVariationSettings(null, new NormalizedAmount(.3), 456));
         var second = generator.Vary(first,
-            new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.3), 789));
+            new GeneratorVariationSettings(VariationTarget.Notes, new NormalizedAmount(.3), 789));
 
         Assert.Equal(generator.Lineage, generated.Recipe!.Lineage);
         Assert.Equal(generator.Lineage, first.Recipe!.Lineage);

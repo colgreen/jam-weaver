@@ -46,7 +46,20 @@ Recipes record requested and resolved shape, controls, tonal context, four onset
 masks, motif length, development choice, and classification masks. Recipe
 reconstruction reproduces the material without changing the JSON schema.
 
+The generator names rhythm creation/development, contour creation/development,
+velocity emphasis, onset movement, and recipe construction as separate local
+operations. Four-bar and sixteenth-note dimensions are explicit constants.
+Random choices occur in this order: optional automatic shape selection, rhythm
+variant, starting root, and the A-prime ending neighbor when variation is not
+low. Step materialization and recipe construction consume no random values.
+Preserve that order when restructuring the version-4 implementation.
+
 Tests protect deterministic output, role ranges, and compositional constraints.
+Twelve fixed serialized snapshots protect version-4 material and complete
+recipes across every shape (including automatic selection), all three roles,
+both palettes, and varied activity, movement, and variation levels. They fix
+only the random pattern ID and save time; existing reconstruction and musical
+invariant tests remain independent protection.
 They do not establish musical quality; middle/high motifs and fixed seeds should
 be auditioned on physical hardware before contours or defaults are tuned.
 

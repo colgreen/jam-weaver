@@ -119,7 +119,7 @@ public sealed class CandidateGeneratorTests
         var first = generator.Vary(parent,
             new GeneratorVariationSettings(null, new NormalizedAmount(.3), 456));
         var second = generator.Vary(first,
-            new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.3), 789));
+            new GeneratorVariationSettings(VariationTarget.Notes, new NormalizedAmount(.3), 789));
 
         var expected = new GeneratorLineage(TurnaroundLoopGenerator.GeneratorId,
             TurnaroundLoopGenerator.GeneratorVersion);

@@ -39,7 +39,7 @@ internal sealed class ConsoleCommand
             "on" or "cc" => (3, 3),
             "off" => (2, 3),
             "note" => (3, 4),
-            // VariationArguments validates the optional target/strength/seed grammar before mutation.
+            // VariationArguments.Parse validates the optional target/strength/seed grammar before mutation.
             "vary" => (0, 4),
             // Save/load consume the entire argument text as a name or library query.
             _ => (0, int.MaxValue)

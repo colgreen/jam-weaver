@@ -29,6 +29,22 @@ session state and a `MidiInput` selection owner, and keeps command failures insi
 interactive session. `ConsoleCommand` parses one trimmed command span and checks
 argument counts before dispatch; save/load consume its preserved free-text
 argument. See [console commands](../development/console-commands.md).
+`ConsoleArgumentParser` owns token-to-value conversion, including console choice
+names and aliases. `VariationArguments` maps the optional variation grammar to
+typed core settings while preserving seed-consumption order. Core value types
+retain range validation; the console still owns command effects and reports
+operation errors through its read loop.
+
+An internal `CandidateComparison` belongs to each console instance and owns
+matched phrase/groove preparation, toggle selection, the two-entry history
+addition, and comparison responses. It borrows the console's generators, seed
+source, generation controls, candidate session, history, and display; it owns
+no disposable resources. The public console constructor retains its existing
+signature and creates this owner from those dependencies. Comparison selections
+still pass through `CandidateSession` and `PatternPlayer` for safe-point and
+activation policy. See [candidate workflow](../performance/candidate-workflow.md)
+for history ordering and seed-consumption behavior.
+
 `CandidateGenerator` maps `GenerationControls`, a seed, and
 the current candidate context to strongly typed core settings.
 `ConsoleDisplay` renders setup, prompts, status, patterns, library entries, help,
@@ -58,11 +74,17 @@ The core MIDI interface uses explicit operations such as `SendNoteOn` and
 `SendClock`; it does not expose DryWetMIDI event types. Tests can therefore use a
 recording fake without hardware or native MIDI access.
 
-All four projects target `net11.0` and require the .NET 11 SDK for development.
+All four projects target `net11.0`. `global.json` selects the .NET 11.0.100 SDK
+feature band with servicing-patch roll-forward. `Directory.Build.props` enables
+the default .NET 11 analyzer rule set and treats build warnings as errors.
 Framework-dependent executables require the .NET 11 runtime. Package versions
 remain explicitly pinned in each project file.
 
-Build the solution with `dotnet build JamWeaver.sln`. Run tests with
+Run `pwsh -NoProfile -File ./verify.ps1` for the solution build and both native
+test runners; `-Configuration Release` matches the GitHub workflow. See
+[verification](../development/verification.md) for the build and formatting
+policies and script regression checks. Individual commands remain available:
+build the solution with `dotnet build JamWeaver.sln` and run tests with
 `dotnet run --project tests/JamWeaver.Core.Tests` and
 `dotnet run --project tests/JamWeaver.Console.Tests`.
 

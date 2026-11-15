@@ -7,12 +7,18 @@ JSON persistence. The console owns MIDI-device adapters and line-oriented
 controls. Its command loop uses an injectable port catalog, while rendering
 receives device-name lists. Discovery errors leave commands available; automated
 console tests use fake ports and discovery without accessing native MIDI.
+The code currently has no external users.
 
 The [follow-up review](plans/follow-up-review.md) records regression boundaries
 and deferred readability work; it has no open correctness findings.
-The [maintainability review](plans/maintainability-review.md) proposes focused
-console and shared-contract cleanup, with additional regression protection
-before restructuring.
+The [maintainability review](plans/maintainability-review.md) tracks focused
+console and shared-contract cleanup under scripted regression protection.
+`verify.ps1` provides one local build/test entry point, shared by the prepared
+GitHub workflow. SDK/analyzer policy and formatting preferences are checked in;
+see [verification](development/verification.md) for scope and hosted-run limits.
+An internal comparison owner handles matched phrase/groove preparation,
+toggling, and its history coordination. Console token conversion and variation
+grammar have focused parsing helpers; domain value validation remains in core.
 The console parses command tokens and free-text names from one trimmed span
 and rejects malformed argument counts before dispatch. Indented save/load
 commands preserve names and support the same bare forms as unindented commands.
@@ -57,6 +63,12 @@ Generated material and recipes are deterministic and versioned; saved
 materialized steps remain authoritative for playback. Each generator owns both
 generation and variation, and mutation recipes retain the original generator
 lineage so repeated variation returns to the same generator.
+Variation settings share `VariationTarget` in the generation namespace, with
+stable names and numeric values. The [generation
+contract](generation/pattern-generation.md#mutation-and-recipes) records their
+semantics; saved patterns and musical output remain compatible. Motif version 4
+and groove version 1 have fixed material/recipe snapshots alongside their
+behavioral tests, protecting their readable local generation operations.
 
 The generic melodic path, note cleanup, internal and external clock, candidate
 workflow, and save/restart/load have been exercised on physical devices.

@@ -4,6 +4,7 @@
 - [Terminology](terminology.md) - project-specific domain language
 - [Project practices](practices.md) - type design, abstraction boundaries, ownership, readability, validation, and documentation conventions
 - Development
+  - [Verification](development/verification.md) - SDK/analyzer policy, local build/test entry point, script regression checks, and GitHub Actions
   - [Developer primer](development/developer-primer.md) - core concepts, types, and runtime relationships
   - [Console commands](development/console-commands.md) - shared command span, argument counts, free-text names, and dispatch boundary
   - [Adding a generator](development/adding-a-generator.md) - typed contract, recipes, wiring, and verification

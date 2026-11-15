@@ -2,8 +2,7 @@ using Redzen.Random;
 
 namespace JamWeaver.Core.Generation.Phrase;
 
-public enum PhraseMutationTarget { Rhythm, Notes, Expression, Turnaround, All }
-public readonly record struct PhraseMutationSettings(PhraseMutationTarget Target, NormalizedAmount Strength, ulong Seed);
+public readonly record struct PhraseMutationSettings(VariationTarget Target, NormalizedAmount Strength, ulong Seed);
 
 public sealed class PhrasePatternMutator
 {
@@ -23,15 +22,15 @@ public sealed class PhrasePatternMutator
         var changes = 0;
         for (var edit = 0; edit < budget; edit++)
         {
-            var target = settings.Target == PhraseMutationTarget.All
-                ? (PhraseMutationTarget)(edit % 4) : settings.Target;
-            if (target == PhraseMutationTarget.Turnaround)
+            var target = settings.Target == VariationTarget.All
+                ? (VariationTarget)(edit % 4) : settings.Target;
+            if (target == VariationTarget.Turnaround)
                 changes += MutateNoteOrExpression(parent, steps, random, structuralMask, true, edit % 2 == 0);
-            else if (target == PhraseMutationTarget.Rhythm)
+            else if (target == VariationTarget.Rhythm)
                 changes += MutateRhythm(steps, random, structuralMask);
-            else if (target == PhraseMutationTarget.Notes)
+            else if (target == VariationTarget.Notes)
                 changes += MutateNoteOrExpression(parent, steps, random, structuralMask, false, true);
-            else if (target == PhraseMutationTarget.Expression)
+            else if (target == VariationTarget.Expression)
                 changes += MutateNoteOrExpression(parent, steps, random, structuralMask, false, false);
         }
         if (changes == 0) throw new InvalidOperationException("No valid structured phrase mutation was available.");

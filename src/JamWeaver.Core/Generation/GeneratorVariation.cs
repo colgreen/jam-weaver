@@ -3,7 +3,7 @@ using JamWeaver.Core.Generation.Phrase;
 namespace JamWeaver.Core.Generation;
 
 public readonly record struct GeneratorVariationSettings(
-    PhraseMutationTarget? Target, NormalizedAmount Strength, ulong Seed)
+    VariationTarget? Target, NormalizedAmount Strength, ulong Seed)
 {
     internal void Validate()
     {

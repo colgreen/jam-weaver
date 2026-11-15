@@ -3,6 +3,20 @@
 Repository-wide working, MIDI-safety, and verification instructions are in
 [`AGENTS.md`](../AGENTS.md). This file records additional project conventions.
 
+## Verification and build policy
+
+Use `pwsh -NoProfile -File ./verify.ps1` for the solution build and both native
+xUnit runners. `-Configuration Release` matches CI. The script stops on failure
+and preserves the failing exit code; it runs no hardware checks.
+
+`global.json` selects the .NET 11.0.100 SDK feature band with servicing-patch
+roll-forward. `Directory.Build.props` enables the default .NET 11 analyzer set
+and makes build warnings errors. Review diagnostics before expanding this
+policy; resolve warnings rather than broadly suppressing them. `.editorconfig`
+sets formatting preferences without adding a formatting sweep or CI style gate.
+See [verification](development/verification.md) for commands, script checks,
+SDK selection, and the GitHub workflow.
+
 ## Type design and naming
 
 Name classes, records, structs, and interfaces to describe their purpose as

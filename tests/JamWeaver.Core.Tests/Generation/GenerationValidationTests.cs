@@ -31,7 +31,7 @@ public sealed class GenerationValidationTests
             generator = melodic;
             parent = melodic.Generate(settings);
         }
-        var invalid = new GeneratorVariationSettings((PhraseMutationTarget)999, default, 0);
+        var invalid = new GeneratorVariationSettings((VariationTarget)999, default, 0);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => generator.Vary(parent, invalid));
         Assert.Equal(generator.Lineage, parent.Recipe!.Lineage);

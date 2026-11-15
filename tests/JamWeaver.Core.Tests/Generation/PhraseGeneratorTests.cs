@@ -90,11 +90,11 @@ public sealed class PhraseGeneratorTests
     }
 
     [Theory]
-    [InlineData(PhraseMutationTarget.Rhythm)]
-    [InlineData(PhraseMutationTarget.Notes)]
-    [InlineData(PhraseMutationTarget.Expression)]
-    [InlineData(PhraseMutationTarget.Turnaround)]
-    public void Targeted_mutation_changes_content_and_preserves_structural_steps(PhraseMutationTarget target)
+    [InlineData(VariationTarget.Rhythm)]
+    [InlineData(VariationTarget.Notes)]
+    [InlineData(VariationTarget.Expression)]
+    [InlineData(VariationTarget.Turnaround)]
+    public void Targeted_mutation_changes_content_and_preserves_structural_steps(VariationTarget target)
     {
         var parent = new StructuredPhraseGenerator().Generate(Settings(999));
         var mutated = new PhrasePatternMutator().Mutate(parent,
@@ -105,9 +105,9 @@ public sealed class PhraseGeneratorTests
         Assert.Equal(parent.Id, mutated.Recipe!.ParentPatternId);
         for (var step = 0; step < parent.Steps.Length; step++)
             if ((structural & (1UL << step)) != 0) Assert.Equal(StepSignature(parent.Steps[step]), StepSignature(mutated.Steps[step]));
-        if (target == PhraseMutationTarget.Notes || target == PhraseMutationTarget.Expression)
+        if (target == VariationTarget.Notes || target == VariationTarget.Expression)
             Assert.Equal(parent.Steps.Select(step => step.Notes.Length > 0), mutated.Steps.Select(step => step.Notes.Length > 0));
-        if (target == PhraseMutationTarget.Turnaround)
+        if (target == VariationTarget.Turnaround)
             Assert.Equal(parent.Steps.Take(parent.Steps.Length - 16).Select(StepSignature),
                 mutated.Steps.Take(mutated.Steps.Length - 16).Select(StepSignature));
     }

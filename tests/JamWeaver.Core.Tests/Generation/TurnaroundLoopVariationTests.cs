@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using JamWeaver.Core.Generation.Phrase;
 
 namespace JamWeaver.Core.Tests.Generation;
 
@@ -21,7 +20,7 @@ public sealed class TurnaroundLoopVariationTests
             source.Repetition, source.Gate, source.VelocityVariation, seed);
         var generated = generator.Generate(settings);
         var varied = generator.Vary(generated,
-            new GeneratorVariationSettings(PhraseMutationTarget.All, new NormalizedAmount(.8), 456));
+            new GeneratorVariationSettings(VariationTarget.All, new NormalizedAmount(.8), 456));
 
         var signature = string.Join("|", new[] { generated, varied }.Select(pattern =>
             string.Join(";", pattern.Steps.Select(step =>
@@ -71,12 +70,12 @@ public sealed class TurnaroundLoopVariationTests
     }
 
     [Theory]
-    [InlineData(PhraseMutationTarget.Rhythm)]
-    [InlineData(PhraseMutationTarget.Notes)]
-    [InlineData(PhraseMutationTarget.Expression)]
-    [InlineData(PhraseMutationTarget.Turnaround)]
-    [InlineData(PhraseMutationTarget.All)]
-    public void Targeted_variation_is_deterministic_and_preserves_turnaround_loop_form(PhraseMutationTarget target)
+    [InlineData(VariationTarget.Rhythm)]
+    [InlineData(VariationTarget.Notes)]
+    [InlineData(VariationTarget.Expression)]
+    [InlineData(VariationTarget.Turnaround)]
+    [InlineData(VariationTarget.All)]
+    public void Targeted_variation_is_deterministic_and_preserves_turnaround_loop_form(VariationTarget target)
     {
         var generator = new TurnaroundLoopGenerator();
         var parent = generator.Generate(Settings(123));
@@ -102,10 +101,10 @@ public sealed class TurnaroundLoopVariationTests
             new GeneratorVariationSettings(null, new NormalizedAmount(.3), (ulong)seed))).ToArray();
         var targets = variations.Select(pattern => pattern.Recipe!.Parameters["target"].Text).ToArray();
 
-        Assert.True(targets.Count(target => target == PhraseMutationTarget.Turnaround.ToString()) >
-            targets.Count(target => target == PhraseMutationTarget.Notes.ToString()));
-        Assert.Contains(PhraseMutationTarget.Turnaround.ToString(), targets);
-        Assert.Contains(PhraseMutationTarget.Notes.ToString(), targets);
+        Assert.True(targets.Count(target => target == VariationTarget.Turnaround.ToString()) >
+            targets.Count(target => target == VariationTarget.Notes.ToString()));
+        Assert.Contains(VariationTarget.Turnaround.ToString(), targets);
+        Assert.Contains(VariationTarget.Notes.ToString(), targets);
         Assert.All(variations, AssertForm);
     }
 
@@ -116,7 +115,7 @@ public sealed class TurnaroundLoopVariationTests
         var parent = generator.Generate(Settings(123));
 
         var varied = generator.Vary(parent,
-            new GeneratorVariationSettings(PhraseMutationTarget.Turnaround, new NormalizedAmount(.3), 456));
+            new GeneratorVariationSettings(VariationTarget.Turnaround, new NormalizedAmount(.3), 456));
 
         Assert.Equal(parent.Steps.Take(56).Select(StepSignature), varied.Steps.Take(56).Select(StepSignature));
         Assert.NotEqual(Signature(parent), Signature(varied));
@@ -128,10 +127,10 @@ public sealed class TurnaroundLoopVariationTests
         var generator = new TurnaroundLoopGenerator();
         var parent = generator.Generate(Settings(123));
         var rhythm = generator.Vary(parent,
-            new GeneratorVariationSettings(PhraseMutationTarget.Rhythm, new NormalizedAmount(.8), 456));
+            new GeneratorVariationSettings(VariationTarget.Rhythm, new NormalizedAmount(.8), 456));
 
         var notes = generator.Vary(rhythm,
-            new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.8), 789));
+            new GeneratorVariationSettings(VariationTarget.Notes, new NormalizedAmount(.8), 789));
 
         Assert.Equal(generator.Lineage, notes.Recipe!.Lineage);
         Assert.Equal(rhythm.Id, notes.Recipe.ParentPatternId);
@@ -145,7 +144,7 @@ public sealed class TurnaroundLoopVariationTests
         var parent = generator.Generate(Settings(123));
 
         var variations = Enumerable.Range(1, 12).Select(seed => generator.Vary(parent,
-            new GeneratorVariationSettings(PhraseMutationTarget.Turnaround,
+            new GeneratorVariationSettings(VariationTarget.Turnaround,
                 new NormalizedAmount(.3), (ulong)seed))).ToArray();
 
         Assert.True(variations.Select(Signature).Distinct().Count() > 1);
@@ -159,9 +158,9 @@ public sealed class TurnaroundLoopVariationTests
         var parent = generator.Generate(Settings(123));
 
         var low = generator.Vary(parent,
-            new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.3), 456));
+            new GeneratorVariationSettings(VariationTarget.Notes, new NormalizedAmount(.3), 456));
         var high = generator.Vary(parent,
-            new GeneratorVariationSettings(PhraseMutationTarget.Notes, new NormalizedAmount(.8), 456));
+            new GeneratorVariationSettings(VariationTarget.Notes, new NormalizedAmount(.8), 456));
 
         Assert.Equal(1, low.Recipe!.Parameters["edit-count"].Integer);
         Assert.Equal(2, high.Recipe!.Parameters["edit-count"].Integer);

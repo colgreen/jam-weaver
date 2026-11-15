@@ -1,4 +1,3 @@
-using JamWeaver.Core.Generation.Phrase;
 using Redzen.Random;
 
 namespace JamWeaver.Core.Generation;
@@ -28,10 +27,10 @@ public sealed class TurnaroundLoopGenerator : IPatternGenerator<EuclideanGenerat
         var baseEditCount = settings.Strength.Value >= .67 ? 2 : 1;
         var edited = target switch
         {
-            PhraseMutationTarget.Rhythm => VaryRhythm(parent, steps, random, baseEditCount),
-            PhraseMutationTarget.Notes => VaryNotes(parent, steps, random, baseEditCount),
-            PhraseMutationTarget.Expression => VaryExpression(steps, random, baseEditCount),
-            PhraseMutationTarget.Turnaround => VaryTurnaround(parent, steps, random),
+            VariationTarget.Rhythm => VaryRhythm(parent, steps, random, baseEditCount),
+            VariationTarget.Notes => VaryNotes(parent, steps, random, baseEditCount),
+            VariationTarget.Expression => VaryExpression(steps, random, baseEditCount),
+            VariationTarget.Turnaround => VaryTurnaround(parent, steps, random),
             _ => throw new ArgumentOutOfRangeException(nameof(settings))
         };
 
@@ -99,13 +98,13 @@ public sealed class TurnaroundLoopGenerator : IPatternGenerator<EuclideanGenerat
         return [approachStep, finalStep];
     }
 
-    private static PhraseMutationTarget ResolveTarget(GeneratorVariationSettings settings, IRandomSource random)
+    private static VariationTarget ResolveTarget(GeneratorVariationSettings settings, IRandomSource random)
     {
-        if (settings.Target is { } explicitTarget && explicitTarget != PhraseMutationTarget.All)
+        if (settings.Target is { } explicitTarget && explicitTarget != VariationTarget.All)
             return explicitTarget;
         if (settings.Target is null && settings.Strength.Value < .67)
-            return random.Next(4) < 3 ? PhraseMutationTarget.Turnaround : PhraseMutationTarget.Notes;
-        return (PhraseMutationTarget)random.Next(4);
+            return random.Next(4) < 3 ? VariationTarget.Turnaround : VariationTarget.Notes;
+        return (VariationTarget)random.Next(4);
     }
 
     private static int[] VaryRhythm(Pattern parent, PatternStep[] steps, IRandomSource random, int editCount)

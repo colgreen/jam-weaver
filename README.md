@@ -6,7 +6,8 @@ For architecture and runtime behavior, start with the [theory of operation](lode
 
 ## Run
 
-Install the .NET 11 SDK to build and run the application. All projects target
+Install the .NET 11.0.100 SDK (or a newer servicing patch in its 11.0.1xx feature
+band) to match `global.json`. All projects target
 `net11.0`; running a framework-dependent build requires the .NET 11 runtime.
 
 Connect the MIDI device before starting the program, then run:
@@ -44,12 +45,16 @@ status
 
 External clock and transport are observed but deliberately not relayed, avoiding a feedback loop to the clock source. Type `help` for all commands.
 
-Run the xUnit v3 test suite with its native runner:
+Build and run both native xUnit v3 test runners using PowerShell 7 or later:
 
 ```powershell
-dotnet run --project tests/JamWeaver.Core.Tests
-dotnet run --project tests/JamWeaver.Console.Tests
+pwsh -NoProfile -File ./verify.ps1
 ```
+
+Add `-Configuration Release` to match CI. The script stops at the first failure
+and returns its exit code. Build warnings are errors; tests use fake MIDI ports.
+See [verification](lode/development/verification.md) for individual commands,
+SDK/analyzer policy, script regression checks, and the GitHub workflow.
 
 ## Novation Circuit Tracks
 

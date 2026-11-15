@@ -125,6 +125,21 @@ parent content, preserves the parent, and records both immediate ancestry and
 the original generator lineage in the new recipe. Repeated variation therefore
 returns to the same generator.
 
+`GeneratorVariationSettings.Target` uses the shared
+`JamWeaver.Core.Generation.VariationTarget` enum. Its names and numeric values
+are stable: `Rhythm = 0`, `Notes = 1`, `Expression = 2`, `Turnaround = 3`, and
+`All = 4`. A null target requests the generator's default variation; each
+generator owns the interpretation of `All`. `PhraseMutationSettings.Target`
+uses the same enum, while the phrase-specific settings and mutator remain
+separate concrete algorithm types.
+
+There are currently no external users of this code; no legacy enum compatibility
+wrapper is needed. Saved patterns require no migration: recipe targets remain text
+with the same names, and generator/operation IDs, versions, lineage, ancestry,
+and musical output are unchanged. Compatibility snapshots cover all five
+targets through shared targeted mutation and Turnaround Loop variation,
+including encoded pattern content and recipes.
+
 The Turnaround Loop generator has family-specific variation that preserves
 its repeated-loop form. Other current generators still share the existing
 bounded mutation algorithms: bare variation uses the conservative

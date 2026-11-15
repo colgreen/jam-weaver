@@ -121,6 +121,22 @@ the forward branch; this never alters Accepted. Accepting a pattern does not
 create a second history: the former safe point is recoverable only while it
 remains in this bounded list or if it was saved.
 
+Advanced `compare [seed]` prepares a matched four-bar phrase/groove pair using
+the current candidate's tonal context and the applicable generation controls.
+Creation requires bass, adds phrase then groove to recent history, and selects
+groove first. Bare `compare` toggles a prepared pair without adding history or
+moving its cursor; subsequent browsing starts from that cursor, even when the
+toggle selected a different pattern. An explicit seed replaces the pair and
+adds its two entries from the current history position, discarding the forward
+branch. `revert` also leaves the history cursor unchanged. These selections use
+the normal activation path and do not move Accepted until `keep` succeeds.
+
+The bass restriction applies when preparing a pair; toggling an existing pair
+remains available after selecting a non-bass candidate. Invalid seeds and role
+rejection preserve the existing pair, candidate, and history. Bare creation
+consumes a fresh seed before checking the role, so a role rejection advances
+the seed source. Explicit-seed creation and toggling consume no fresh seeds.
+
 Only Accepted can be saved. `save [name]` confirms the saved musical name and
 shows its matching `load <name>` command; generated filenames and storage paths
 are not part of the ordinary workflow. Load always enters as Candidate and

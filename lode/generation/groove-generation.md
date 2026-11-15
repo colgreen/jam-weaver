@@ -46,8 +46,26 @@ surrounding space, and phrase role. Sparse ghost behavior is deterministic;
 there is no independent velocity randomness.
 
 Recipes record vocabulary and metric versions, template ID, settings, all four
-rhythm and accent masks, measured features, any relaxed constraint, and motif
-transformations. Materialized steps remain authoritative.
+rhythm masks, measured features, any relaxed constraint, and structural and
+ghost classification masks. Accent levels come from the recorded template;
+there are no separate accent-mask or motif-transformation recipe fields.
+Materialized pitches, velocities, gates, and trigger probabilities remain
+authoritative.
+
+The generator names activity adjustment, motif construction, pitch development,
+velocity/gate rules, onset mapping, and recipe construction as local operations.
+Source onsets are materialized once and retain their original order; nearest
+source mapping uses circular distance within the bar and source ordinal for
+ties. Random consumption proceeds through template selection, activity
+adjustment, A-prime/B/turnaround searches, motif construction, and per-bar pitch
+development in that order. Keep this order and all recipe values unchanged
+when restructuring version 1.
+
+Category snapshots and the existing seed matrix protect range, anchors, and
+expression. Seven additional serialized snapshots cover every selection,
+including automatic selection, with varied activity, movement, variation,
+similarity, and turnaround settings. They protect complete material and recipes
+while fixing only the random pattern ID and save time.
 
 Automated metrics constrain and explain output; they are not evidence of musical
 quality. Comparison should use matched seeds and settings on physical hardware
