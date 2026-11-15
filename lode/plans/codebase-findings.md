@@ -4,11 +4,12 @@ Address the code review findings one at a time, preserving the core/console
 split, immutable materialized patterns, and typed generator settings. Prefer
 focused changes to lifecycle ownership and testing boundaries over a broad
 architectural rewrite. Product behavior decisions belong to the human.
-Commit each completed task after verification; the full review follows the
-individual fixes.
+Commit each completed task after verification.
 
-All seven priority findings below have implementation and regression coverage.
-The full review and later readability work remain separate follow-up work.
+The seven original priority areas below have implementation and regression
+coverage. The [follow-up review](follow-up-review.md) identifies remaining
+correctness gaps and the next focused changes; the existing suite does not
+cover every interaction between these contracts.
 
 ## Transport notification contract
 

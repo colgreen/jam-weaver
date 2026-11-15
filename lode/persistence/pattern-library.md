@@ -58,7 +58,9 @@ library entries from being listed.
 
 ## Save and load
 
-Saves are serialized within the process. The complete JSON is prepared first,
+Saves are serialized within one library instance; the application owns one
+instance. Separate instances or processes are not coordinated. The complete
+JSON is prepared first,
 then written to a unique temporary file in the library directory and atomically
 moved into place. Cancellation or failure before replacement leaves the previous
 file intact and cleans up the temporary file when possible.

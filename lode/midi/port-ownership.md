@@ -53,6 +53,11 @@ output before opening its replacement. This joins clock production and sends
 MIDI Stop while the previous port is available. The new output does not
 implicitly restart playback; use `go` after selection.
 
+Known gap: after internal scheduling fails, selecting External skips the still
+owed MIDI Stop. Replacing output afterward can retire the old port without Stop
+and send that Stop to the new port at shutdown. See the
+[follow-up review](../plans/follow-up-review.md#p2-an-owed-midi-stop-can-reach-a-replacement-output).
+
 Output disposal attempts all cleanup messages and native disposal, aggregates
 their failures, clears selection/tracking, and marks the owner disposed even
 when native disposal fails. Repeated disposal does not repeat failed native

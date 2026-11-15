@@ -208,10 +208,17 @@ thread scheduling, and garbage collection can affect pulse delivery. Automated
 tests and fake ports establish logic and expose failure cases; they do not
 measure physical timing, audio quality, or device disconnect recovery.
 
+Two failure paths remain open: sustained internal-clock overrun can keep Start
+from yielding and block Stop behind its lifecycle gate; after a clock fault,
+switching to External and replacing output can send an owed Stop to the new
+port during shutdown. See the [follow-up review](../plans/follow-up-review.md)
+for reproductions and required fixes. These limits require focused lifecycle
+changes rather than a different overall architecture.
+
 ## Persistence and extension boundaries
 
 `save` serializes Accepted, optionally with a new name. `PatternLibrary` owns
-file naming, same-process save serialization, temporary-file replacement,
+file naming, per-instance save serialization, temporary-file replacement,
 listing, and duplicate-ID checks. `PatternJsonCodec` owns the versioned JSON
 representation and reconstructs domain values on load. Format version 2 stores
 materialized steps, tonal context, role, recipe, ancestry, and lineage.
