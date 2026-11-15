@@ -174,11 +174,14 @@ Start also leaves an existing pending deadline tied to the previous pulse
 count. These are current timing limitations, not intended musical behavior.
 
 Program disposes resources in reverse declaration order. Input closes when
-the command loop exits; the player releases its scheduled notes; the watchdog
-and internal scheduler are cancelled; safe output performs its final cleanup
-and disposes the port. Internal-clock disposal does not currently send MIDI
-Stop. Clock disposal does cancel and join its run and stop local transport;
-it retains any recorded clock failure. Safe output attempts
+the command loop exits. Internal clock disposal joins its scheduler, stops local
+playback, and sends any Stop owed by its own successfully sent Start/Continue.
+An unused clock sends no transport messages, and successful explicit Stop
+prevents another during disposal. The watchdog and player are disposed next;
+safe output performs final cleanup and disposes the port last. Shutdown Stop
+errors retain output/operation context and propagate; nested resource scopes
+still attempt later cleanup. Forced termination cannot guarantee this sequence.
+Safe output attempts
 tracked Note Off and CC 123 cleanup, but its cleanup loop exits on the first
 send failure. See [clock and transport](../midi/clock-transport.md) and
 [note lifecycle](../midi/note-lifecycle.md) before modifying these paths.

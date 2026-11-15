@@ -1,7 +1,10 @@
 namespace JamWeaver.Core.Transport;
 
 /// <summary>Owns one internal clock run at a time and retains failures for the caller to inspect.</summary>
-/// <remarks>Cancellation can interrupt waiting for a lifecycle operation; once admitted, it joins its owned run.</remarks>
+/// <remarks>
+/// Cancellation can interrupt waiting for a lifecycle operation; once admitted, it joins its owned run.
+/// Keep the borrowed output alive through disposal, which sends any Stop still owed by this clock.
+/// </remarks>
 public sealed class InternalMidiClock : IAsyncDisposable
 {
     private readonly SafeMidiOutput _output;
@@ -12,6 +15,7 @@ public sealed class InternalMidiClock : IAsyncDisposable
     private CancellationTokenSource? _cancellation;
     private Task? _runTask;
     private Exception? _error;
+    private bool _needsMidiStop;
     private bool _disposed;
     private double _bpm = 120;
 
@@ -48,7 +52,7 @@ public sealed class InternalMidiClock : IAsyncDisposable
             ObjectDisposedException.ThrowIf(_disposed, this);
             EnsureInternalSource();
             await StopRunAsync().ConfigureAwait(false);
-            try { _output.Stop(); }
+            try { SendStop(); }
             finally { _engine.Process(ClockSource.Internal, RealtimeMessage.Stop); }
         }
         finally { _lifecycle.Release(); }
@@ -68,6 +72,7 @@ public sealed class InternalMidiClock : IAsyncDisposable
             try
             {
                 if (resetPosition) _output.Start(); else _output.Continue();
+                _needsMidiStop = true;
                 _engine.Process(ClockSource.Internal, resetPosition ? RealtimeMessage.Start : RealtimeMessage.Continue);
             }
             catch (Exception ex)
@@ -147,6 +152,12 @@ public sealed class InternalMidiClock : IAsyncDisposable
         }
     }
 
+    private void SendStop()
+    {
+        _output.Stop();
+        _needsMidiStop = false;
+    }
+
     public async ValueTask DisposeAsync()
     {
         await _lifecycle.WaitAsync().ConfigureAwait(false);
@@ -154,7 +165,29 @@ public sealed class InternalMidiClock : IAsyncDisposable
         {
             if (_disposed) return;
             _disposed = true;
-            await StopRunAsync().ConfigureAwait(false);
+            List<Exception> errors = [];
+            try { await StopRunAsync().ConfigureAwait(false); }
+            catch (Exception ex)
+            {
+                errors.Add(new InvalidOperationException($"Could not join the internal clock run during shutdown: {ex.Message}", ex));
+            }
+            try
+            {
+                if (_needsMidiStop) SendStop();
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new InvalidOperationException(
+                    $"Could not send MIDI Stop during internal clock shutdown to output '{_output.PortName ?? "not selected"}': {ex.Message}", ex));
+            }
+            finally { StopLocalTransport(); }
+            if (errors.Count > 0)
+            {
+                var failure = errors.Count == 1 ? errors[0]
+                    : new AggregateException("Internal clock shutdown encountered multiple failures.", errors);
+                RecordError(failure);
+                throw failure;
+            }
         }
         finally { _lifecycle.Release(); }
     }

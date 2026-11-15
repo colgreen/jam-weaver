@@ -8,6 +8,8 @@ internal sealed class FakeMidiOutputPort(string name = "fake") : IMidiOutputPort
     public bool IsDisposed { get; private set; }
     public Exception? ClockFailure { get; set; }
     public Exception? StopFailure { get; set; }
+    public Exception? StartFailure { get; set; }
+    public int StopAttempts { get; private set; }
     public void SendNoteOn(MidiChannel c, MidiValue n, MidiValue v) => Messages.Add($"On:{c.Number}:{n.Value}:{v.Value}");
     public void SendNoteOff(MidiChannel c, MidiValue n, MidiValue v) => Messages.Add($"Off:{c.Number}:{n.Value}:{v.Value}");
     public void SendControlChange(MidiChannel c, MidiValue n, MidiValue v) => Messages.Add($"CC:{c.Number}:{n.Value}:{v.Value}");
@@ -17,10 +19,15 @@ internal sealed class FakeMidiOutputPort(string name = "fake") : IMidiOutputPort
         if (ClockFailure is { } error) throw error;
         Messages.Add("Clock");
     }
-    public void SendStart() => Messages.Add("Start");
+    public void SendStart()
+    {
+        if (StartFailure is { } error) throw error;
+        Messages.Add("Start");
+    }
     public void SendContinue() => Messages.Add("Continue");
     public void SendStop()
     {
+        StopAttempts++;
         if (StopFailure is { } error) throw error;
         Messages.Add("Stop");
     }

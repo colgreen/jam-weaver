@@ -35,6 +35,12 @@ so command-loop tests currently access the installed MIDI subsystem.
 Incoming external clock/transport drives the local
 engine but is never implicitly relayed to an output.
 
+Shutdown closes console-owned input, then disposes internal clock before the
+watchdog, player, and output. The clock joins scheduling and sends any owed MIDI
+Stop while output is still available. Nested resource scopes continue later
+cleanup if an earlier disposal throws. See [clock
+shutdown](../midi/clock-transport.md#shutdown).
+
 The core MIDI interface uses explicit operations such as `SendNoteOn` and
 `SendClock`; it does not expose DryWetMIDI event types. Tests can therefore use a
 recording fake without hardware or native MIDI access.

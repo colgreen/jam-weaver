@@ -60,6 +60,29 @@ Clock callbacks and scheduling paths must not perform blocking UI or persistence
 work. Pattern changes are prepared off the timing path and swapped atomically at
 the next bar boundary.
 
+## Shutdown
+
+`InternalMidiClock` remembers a successfully sent Start or Continue until a MIDI
+Stop succeeds. Disposal cancels and joins its run, then sends any owed Stop
+while the borrowed output remains open. A successful explicit Stop prevents a
+duplicate on disposal; a failed explicit Stop leaves a disposal retry due.
+Background scheduler failure and failure of local Start processing do not
+erase the obligation to stop the receiving device.
+
+An unused clock sends no Stop, including in an external-clock-only session.
+An owed Stop belongs to this clock's own earlier Start/Continue, independently
+of the source selected at disposal; it is not a relay of external messages.
+Disposal is idempotent. A shutdown Stop failure is retained in `Error` and
+propagated with output/operation context; repeated disposal does not repeat
+the failed shutdown attempt.
+
+Program keeps output and player alive while disposing the internal clock.
+It then disposes the watchdog, player, and output. Nested `using` scopes attempt
+later resource cleanup even if clock shutdown fails. The command loop closes
+its input on quit, EOF, or loop failure before these outer resources unwind.
+This is cooperative shutdown; forced process termination cannot promise MIDI
+Stop or note release.
+
 ## Runtime state
 
 `TransportEngine` is the single source of truth for selected clock source,
@@ -101,13 +124,8 @@ pulse being processed. The player's `Position.Bar + 1` deadline therefore skips
 the upcoming boundary if queued between pulses 95 and 96. Start resets pulse
 position but does not rebase a pending deadline from the previous run.
 
-Internal clock disposal cancels and joins its run and stops local transport,
-but does not send MIDI Stop to the selected output. Application shutdown still
-needs an explicit transport-stop step while output is alive.
-
-These lifecycle and quantization limits require focused changes before stronger
-timing or shutdown guarantees can be made. See the [theory of
-operation](../architecture/theory-of-operation.md) for execution contexts.
+These pending-swap limits concern musical activation timing. See the [theory
+of operation](../architecture/theory-of-operation.md) for execution contexts.
 
 Related: [candidate workflow](../performance/candidate-workflow.md) and
 [note lifecycle](note-lifecycle.md).

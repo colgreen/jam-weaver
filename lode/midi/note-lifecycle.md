@@ -16,6 +16,12 @@ fails; the proposed new port has not been adopted or disposed by the wrapper.
 This is a safety net rather than a replacement for correct scheduling: normal
 playback must issue its corresponding Note Off at the intended gate time.
 
+On orderly application exit, internal clock disposal joins the scheduler,
+stops local playback, and sends any MIDI Stop still owed by its earlier
+Start/Continue. Output remains open for that operation and subsequent note
+cleanup. Nested resource scopes still attempt player/output disposal when
+clock shutdown throws. See [clock shutdown](clock-transport.md#shutdown).
+
 `PatternPlayer` additionally tracks the notes and pulse deadlines it owns. It
 releases them on gate expiry, mute, transport exit, channel change, playback
 failure, and disposal. Repeated Start cleanup happens on the next pulse whose

@@ -203,6 +203,7 @@ public sealed class InternalMidiClockTests
 
         Assert.True(run.Token.IsCancellationRequested);
         Assert.False(disposal.IsCompleted);
+        Assert.Equal(0, fixture.Port.StopAttempts);
         run.Complete();
         await disposal.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await fixture.Clock.DisposeAsync();
@@ -210,6 +211,7 @@ public sealed class InternalMidiClockTests
         Assert.False(fixture.Clock.IsRunning);
         Assert.Equal(TransportState.Stopped, fixture.Engine.State);
         Assert.Null(fixture.Clock.Error);
+        Assert.Equal(1, fixture.Port.StopAttempts);
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Clock.StartAsync(TestContext.Current.CancellationToken));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Clock.ContinueAsync(TestContext.Current.CancellationToken));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Clock.StopAsync(TestContext.Current.CancellationToken));
@@ -251,6 +253,7 @@ public sealed class InternalMidiClockTests
         Assert.True(run.Token.IsCancellationRequested);
         Assert.False(fixture.Clock.IsRunning);
         Assert.Equal(TransportState.Stopped, fixture.Engine.State);
+        fixture.Port.StopFailure = null;
     }
 
     [Fact]

@@ -6,9 +6,9 @@ display.WriteStartup();
 
 using var output = new SafeMidiOutput();
 var transport = new TransportEngine();
-await using var internalClock = new InternalMidiClock(output, transport);
-await using var watchdog = new ExternalClockWatchdog(transport);
 using var player = new PatternPlayer(output, transport);
+await using var watchdog = new ExternalClockWatchdog(transport);
+await using var internalClock = new InternalMidiClock(output, transport);
 var session = new CandidateSession(player);
 var euclideanGenerator = new EuclideanMotifGenerator();
 var turnaroundGenerator = new TurnaroundLoopGenerator();

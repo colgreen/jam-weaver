@@ -28,14 +28,20 @@ Tests cover held runs, late and synchronous failures, concurrent commands,
 caller cancellation, Continue position, note release, failed sends, and
 idempotent disposal. See [clock and transport](../midi/clock-transport.md).
 
-## Next: shutdown MIDI Stop
+## Shutdown MIDI Stop
 
-Quitting or EOF while internal clock runs cancels scheduling without sending
-MIDI Stop. Define shutdown ordering while output is still alive, preserve note
-and resource cleanup after errors, and test Stop before port disposal with no
-later pulses. Hardware response to disconnects still needs physical testing.
+Clock disposal joins scheduling and sends a Stop owed by its earlier successful
+Start/Continue. Explicit Stop clears that obligation only after a successful
+send. Shutdown keeps player and output alive through clock disposal, and nested
+resource scopes attempt later cleanup after failures. Unused clocks send no
+transport messages; an external-clock-only session is not relayed.
 
-## Pending candidate activation
+Tests cover quit/EOF, Stop before port disposal, no later pulses, failed sends
+with continued note/port cleanup, background failure, retry after failed explicit
+Stop, and duplicate/unused disposal. Hardware response still requires physical
+testing. See [clock shutdown](../midi/clock-transport.md#shutdown).
+
+## Next: pending candidate activation
 
 `Position` reports the next pulse. The player's `Position.Bar + 1` deadline
 skips the imminent boundary when queued between pulses 95 and 96. Start also
