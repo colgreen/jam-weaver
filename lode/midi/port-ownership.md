@@ -101,7 +101,8 @@ Fake-port tests exercise partial cleanup, failure aggregation, rejected-port
 disposal, partially started listeners, late callbacks, idempotence, and panic
 coordination. Command-loop tests use a fake catalog for empty/failed discovery,
 retry, selection/replacement, continued commands, and cleanup after startup or
-reader failure. Native discovery, disconnects, opening, and listening still
-need physical testing.
+reader failure. Normal native discovery, opening/listening, and shutdown have
+short [physical smoke coverage](../hardware/external-clock-validation.md).
+Native replacement, disconnects, and failure recovery still need physical testing.
 No quantitative timing or physical disconnect-recovery guarantee follows from
 the automated tests.
