@@ -96,7 +96,7 @@ public sealed class JamWeaverConsole
                                 "internal" => ClockSource.Internal,
                                 _ => throw new ArgumentException("Source must be internal or external.")
                             };
-                            if (transport.Source == ClockSource.Internal && internalClock.IsRunning) internalClock.Stop();
+                            if (transport.Source == ClockSource.Internal && internalClock.IsRunning) await internalClock.StopAsync();
                             transport.SelectSource(source);
                             display.WriteLine($"Clock source: {source.ToString().ToLowerInvariant()}");
                             break;
@@ -110,15 +110,15 @@ public sealed class JamWeaverConsole
                             internalClock.Bpm = D(parts, 1);
                             display.WriteLine($"Tempo: {internalClock.Bpm:0.##} BPM");
                             break;
-                        case "start": if (transport.Source == ClockSource.External) display.WriteLine("Waiting for external MIDI Start."); else internalClock.Start(); break;
-                        case "continue": if (transport.Source == ClockSource.External) display.WriteLine("Waiting for external MIDI Continue."); else internalClock.Continue(); break;
-                        case "stop": if (transport.Source == ClockSource.External) transport.Process(ClockSource.External, RealtimeMessage.Stop); else internalClock.Stop(); break;
+                        case "start": if (transport.Source == ClockSource.External) display.WriteLine("Waiting for external MIDI Start."); else await internalClock.StartAsync(); break;
+                        case "continue": if (transport.Source == ClockSource.External) display.WriteLine("Waiting for external MIDI Continue."); else await internalClock.ContinueAsync(); break;
+                        case "stop": if (transport.Source == ClockSource.External) transport.Process(ClockSource.External, RealtimeMessage.Stop); else await internalClock.StopAsync(); break;
                         case "go":
                             player.Play();
                             if (transport.Source == ClockSource.External)
                                 display.WriteLine("Pattern playback enabled; waiting for external MIDI Start or Continue.");
                             else if (!internalClock.IsRunning)
-                                internalClock.Start();
+                                await internalClock.StartAsync();
                             else
                                 display.WriteLine("Pattern playback enabled; transport is already running.");
                             break;

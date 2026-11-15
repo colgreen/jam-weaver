@@ -1,4 +1,7 @@
 using JamWeaver.Core.Persistence;
+using JamWeaver.Core.Midi;
+using JamWeaver.Core.Performance;
+using JamWeaver.Core.Transport;
 
 namespace JamWeaver.Console.Tests;
 
@@ -72,6 +75,45 @@ public sealed class ConsoleDisplayTests
 
         Assert.Contains("root-fifth", writer.ToString());
         Assert.Contains("call-response", writer.ToString());
+    }
+
+    [Fact]
+    public async Task Status_includes_a_background_internal_clock_error()
+    {
+        using var output = new SafeMidiOutput();
+        output.ReplacePort(new SilentOutputPort());
+        var transport = new TransportEngine(ClockSource.Internal);
+        await using var clock = new InternalMidiClock(output, transport, new FailingScheduler());
+        using var player = new PatternPlayer(output, transport);
+        var writer = new StringWriter();
+
+        await clock.StartAsync(TestContext.Current.CancellationToken);
+        new ConsoleDisplay(writer).WriteStatus(output, null, transport, clock, player);
+
+        Assert.Contains("ClockError=", writer.ToString());
+        Assert.Contains("clock scheduler failed", writer.ToString());
+        Assert.Contains("status-fake", writer.ToString());
+        Assert.Contains("State=Stopped", writer.ToString());
+    }
+
+    private sealed class FailingScheduler : IClockPulseScheduler
+    {
+        public Task RunAsync(Func<double> bpm, Action pulse, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("clock scheduler failed");
+    }
+
+    private sealed class SilentOutputPort : IMidiOutputPort
+    {
+        public string Name => "status-fake";
+        public void SendNoteOn(MidiChannel channel, MidiValue note, MidiValue velocity) { }
+        public void SendNoteOff(MidiChannel channel, MidiValue note, MidiValue velocity) { }
+        public void SendControlChange(MidiChannel channel, MidiValue controller, MidiValue value) { }
+        public void SendProgramChange(MidiChannel channel, MidiValue program) { }
+        public void SendClock() { }
+        public void SendStart() { }
+        public void SendContinue() { }
+        public void SendStop() { }
+        public void Dispose() { }
     }
 
     private static string[] Lines(StringWriter writer) => writer.ToString()

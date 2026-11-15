@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 namespace JamWeaver.Core.Transport;
 
+/// <summary>Emits pulses until cancelled and completes only after all pulse callbacks have finished.</summary>
 public interface IClockPulseScheduler
 {
     Task RunAsync(Func<double> bpm, Action pulse, CancellationToken cancellationToken);

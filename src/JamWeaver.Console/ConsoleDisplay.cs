@@ -113,7 +113,11 @@ public sealed class ConsoleDisplay
 
     public void WriteStatus(SafeMidiOutput output, string? inputName, TransportEngine transport,
         InternalMidiClock internalClock, PatternPlayer player) =>
-        writer.WriteLine($"Output={output.PortName ?? "none"}, Input={inputName ?? "none"}, Source={transport.Source.ToString().ToLowerInvariant()}, State={transport.State}, Bar={transport.Position.Bar + 1}, Beat={transport.Position.Beat + 1}, Pulse={transport.Position.PulseInBeat}, BPM={internalClock.Bpm:0.##}, Pattern={(player.IsEnabled ? "playing" : "muted")}, Error={player.Error?.Message ?? "none"}");
+        writer.WriteLine($"Output={output.PortName ?? "none"}, Input={inputName ?? "none"}, "
+            + $"Source={transport.Source.ToString().ToLowerInvariant()}, State={transport.State}, "
+            + $"Bar={transport.Position.Bar + 1}, Beat={transport.Position.Beat + 1}, Pulse={transport.Position.PulseInBeat}, "
+            + $"BPM={internalClock.Bpm:0.##}, Pattern={(player.IsEnabled ? "playing" : "muted")}, "
+            + $"Error={player.Error?.Message ?? "none"}, ClockError={internalClock.Error?.Message ?? "none"}");
 
     public void WriteHelp(string? command)
     {
@@ -240,7 +244,7 @@ Type 'help <command>' for detailed syntax.
         "cc" => "cc <channel> <controller> <value>\nSends a MIDI Control Change; controller and value must be 0..127.",
         "pc" => "pc <channel> <program>\nSends a MIDI Program Change; program is a raw MIDI value from 0..127.",
         "panic" => "panic\nMutes pattern playback and sends note cleanup for active/stuck notes.",
-        "status" => "status\nShows ports, clock source/state/position, tempo, playback enabled state, and the latest playback error.",
+        "status" => "status\nShows ports, clock source/state/position, tempo, playback enabled state, and the latest playback and internal-clock errors.",
         "quit" or "exit" => "quit | exit\nStops the application and disposes MIDI ports, clocks, and active notes safely.",
         _ => $"No help is available for '{command}'. Type 'help' to list commands."
     };

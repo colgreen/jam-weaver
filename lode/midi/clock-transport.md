@@ -31,6 +31,31 @@ Internal mode sends MIDI Start, Continue, Stop, and 24-PPQN Clock to the selecte
 output. Tempo is adjustable. Desktop .NET is not hard real-time; timing jitter
 must be measured before claiming suitability for timing-critical performance.
 
+`InternalMidiClock.StartAsync`, `ContinueAsync`, `StopAsync`, and disposal share
+one asynchronous lifecycle gate. Start cancels and joins the previous run
+before sending another Start and resetting position. Continue preserves
+position and does nothing while its scheduler is already running. Stop joins
+the scheduler before sending MIDI Stop; local transport is stopped even if
+that send fails. The console awaits these operations, including when changing
+source or enabling playback with `go`.
+
+Each run owns its cancellation token and remains joined before its source is
+disposed or replaced. The pulse callback checks that run's token before
+sending. `IClockPulseScheduler` implementations must not complete their task
+until all their callbacks have finished. Caller cancellation can cancel waiting
+for the lifecycle gate; once admitted, an operation finishes joining its run
+even if the caller's token is subsequently cancelled.
+
+Scheduler and pulse failures are caught by the run, stop local transport, and
+remain in `InternalMidiClock.Error`, displayed as `ClockError` by `status`.
+Expected cancellation with the run's own token is quiet; unrelated cancellation
+and an unrequested scheduler exit are failures. Direct start/continue/stop send
+errors still reach command error handling. A start/continue attempt that reaches
+the MIDI send stage clears the previous retained error as an explicit retry.
+Stop and disposal retain errors. Fault cleanup never acquires the lifecycle
+gate or cancels a shared replacement source. MIDI sends and subscribers can
+still block; cancellation does not interrupt an in-progress native call.
+
 Clock callbacks and scheduling paths must not perform blocking UI or persistence
 work. Pattern changes are prepared off the timing path and swapped atomically at
 the next bar boundary.
@@ -76,11 +101,9 @@ pulse being processed. The player's `Position.Bar + 1` deadline therefore skips
 the upcoming boundary if queued between pulses 95 and 96. Start resets pulse
 position but does not rebase a pending deadline from the previous run.
 
-Internal clock restart cancels the prior scheduler without awaiting completion
-before replacing its task and cancellation source. A late failure from the old
-run can cancel the new run. Scheduler faults have no dedicated live error
-reporting path. Disposal cancels and awaits only the latest task, without
-sending MIDI Stop to the selected output.
+Internal clock disposal cancels and joins its run and stops local transport,
+but does not send MIDI Stop to the selected output. Application shutdown still
+needs an explicit transport-stop step while output is alive.
 
 These lifecycle and quantization limits require focused changes before stronger
 timing or shutdown guarantees can be made. See the [theory of

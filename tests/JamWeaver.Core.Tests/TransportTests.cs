@@ -131,14 +131,15 @@ public sealed class TransportTests
         var scheduler = new CountingScheduler(24);
         await using var clock = new InternalMidiClock(output, engine, scheduler);
 
-        clock.Start();
+        await clock.StartAsync(TestContext.Current.CancellationToken);
         await scheduler.Completed.Task.WaitAsync(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
-        clock.Stop();
+        await clock.StopAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal("Start", port.Messages[0]);
         Assert.Equal(24, port.Messages.Count(message => message == "Clock"));
         Assert.Equal(24UL, engine.Position.Pulse);
         Assert.Equal(TransportState.Stopped, engine.State);
+        Assert.Null(clock.Error);
     }
 
     [Fact]
@@ -148,7 +149,7 @@ public sealed class TransportTests
         output.ReplacePort(new FakeMidiOutputPort());
         await using var clock = new InternalMidiClock(output, new TransportEngine(), new CountingScheduler(1));
 
-        var error = Assert.Throws<InvalidOperationException>(clock.Start);
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => clock.StartAsync(TestContext.Current.CancellationToken));
         Assert.Contains("not internal", error.Message);
     }
 

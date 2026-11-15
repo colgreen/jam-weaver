@@ -15,19 +15,20 @@ available state reads, reentrancy rejection, and gate release after failure.
 
 See [clock and transport](../midi/clock-transport.md#notification-ordering).
 
-## Next: internal clock run ownership
+## Internal clock run ownership
 
-`InternalMidiClock` cancels old runs without joining them before replacing the
-task and cancellation source. A late failure from an old run can cancel the
-new run; faults can be overwritten or surface only during disposal.
+`InternalMidiClock` serializes asynchronous lifecycle methods. Restart cancels
+and joins the old run before replacement; Stop joins before sending MIDI Stop.
+Each run retains its token until joined, and fault cleanup does not cancel a
+replacement or acquire the lifecycle gate. Scheduler/pulse errors stop local
+transport and remain visible as `ClockError` in `status`. Explicit retry clears
+the previous error at the MIDI send stage. Stop and disposal retain errors.
 
-- Make stop/restart cancellation and task ownership explicit.
-- Join each run before starting its replacement and scope failure handling to
-  the run that failed.
-- Expose current clock failures to the console without UI work on pulse paths.
-- Test held callbacks, late failures, current-run failure, and disposal.
+Tests cover held runs, late and synchronous failures, concurrent commands,
+caller cancellation, Continue position, note release, failed sends, and
+idempotent disposal. See [clock and transport](../midi/clock-transport.md).
 
-## Shutdown MIDI Stop
+## Next: shutdown MIDI Stop
 
 Quitting or EOF while internal clock runs cancels scheduling without sending
 MIDI Stop. Define shutdown ordering while output is still alive, preserve note

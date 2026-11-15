@@ -1,12 +1,18 @@
 namespace JamWeaver.Core.Transport;
 
+/// <summary>Owns one internal clock run at a time and retains failures for the caller to inspect.</summary>
+/// <remarks>Cancellation can interrupt waiting for a lifecycle operation; once admitted, it joins its owned run.</remarks>
 public sealed class InternalMidiClock : IAsyncDisposable
 {
     private readonly SafeMidiOutput _output;
     private readonly TransportEngine _engine;
     private readonly IClockPulseScheduler _scheduler;
+    private readonly SemaphoreSlim _lifecycle = new(1, 1);
+    private readonly object _errorSync = new();
     private CancellationTokenSource? _cancellation;
     private Task? _runTask;
+    private Exception? _error;
+    private bool _disposed;
     private double _bpm = 120;
 
     public InternalMidiClock(SafeMidiOutput output, TransportEngine engine, IClockPulseScheduler? scheduler = null)
@@ -25,38 +31,55 @@ public sealed class InternalMidiClock : IAsyncDisposable
             Volatile.Write(ref _bpm, value);
         }
     }
-    public bool IsRunning => _runTask is { IsCompleted: false };
+    public bool IsRunning => Volatile.Read(ref _runTask) is { IsCompleted: false };
+    public Exception? Error => Volatile.Read(ref _error);
 
-    public void Start()
+    public Task StartAsync(CancellationToken cancellationToken = default) =>
+        BeginAsync(resetPosition: true, cancellationToken);
+
+    public Task ContinueAsync(CancellationToken cancellationToken = default) =>
+        BeginAsync(resetPosition: false, cancellationToken);
+
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
-        EnsureInternalSource();
-        StopLoop();
-        _output.Start();
-        _engine.Process(ClockSource.Internal, RealtimeMessage.Start);
-        StartLoop();
+        await _lifecycle.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            EnsureInternalSource();
+            await StopRunAsync().ConfigureAwait(false);
+            try { _output.Stop(); }
+            finally { _engine.Process(ClockSource.Internal, RealtimeMessage.Stop); }
+        }
+        finally { _lifecycle.Release(); }
     }
 
-    public void Continue()
+    private async Task BeginAsync(bool resetPosition, CancellationToken cancellationToken)
     {
-        EnsureInternalSource();
-        if (IsRunning) return;
-        _output.Continue();
-        _engine.Process(ClockSource.Internal, RealtimeMessage.Continue);
-        StartLoop();
-    }
-
-    public void Stop()
-    {
-        EnsureInternalSource();
-        StopLoop();
-        _output.Stop();
-        _engine.Process(ClockSource.Internal, RealtimeMessage.Stop);
-    }
-
-    private void StartLoop()
-    {
-        _cancellation = new CancellationTokenSource();
-        _runTask = _scheduler.RunAsync(() => Bpm, EmitPulse, _cancellation.Token);
+        await _lifecycle.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            EnsureInternalSource();
+            if (!resetPosition && IsRunning) return;
+            await StopRunAsync().ConfigureAwait(false);
+            EnsureInternalSource();
+            Volatile.Write(ref _error, null);
+            try
+            {
+                if (resetPosition) _output.Start(); else _output.Continue();
+                _engine.Process(ClockSource.Internal, resetPosition ? RealtimeMessage.Start : RealtimeMessage.Continue);
+            }
+            catch (Exception ex)
+            {
+                RecordError(ex);
+                StopLocalTransport();
+                throw;
+            }
+            _cancellation = new CancellationTokenSource();
+            Volatile.Write(ref _runTask, RunAsync(_cancellation.Token));
+        }
+        finally { _lifecycle.Release(); }
     }
 
     private void EnsureInternalSource()
@@ -65,36 +88,74 @@ public sealed class InternalMidiClock : IAsyncDisposable
             throw new InvalidOperationException("The transport clock source is not internal.");
     }
 
-    private void EmitPulse()
+    private async Task RunAsync(CancellationToken cancellationToken)
     {
         try
         {
-            _output.Clock();
-            _engine.Process(ClockSource.Internal, RealtimeMessage.Clock);
+            await _scheduler.RunAsync(() => Bpm, () => EmitPulse(cancellationToken), cancellationToken)
+                .ConfigureAwait(false);
+            if (!cancellationToken.IsCancellationRequested)
+                throw new InvalidOperationException("The clock scheduler ended without cancellation.");
         }
-        catch
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested
+            && ex.CancellationToken == cancellationToken) { }
+        catch (Exception ex)
         {
-            StopLoop();
-            _engine.Process(ClockSource.Internal, RealtimeMessage.Stop);
-            throw;
+            RecordError(new InvalidOperationException(
+                $"Internal MIDI clock failed on output '{_output.PortName ?? "not selected"}': {ex.Message}", ex));
+        }
+        finally { StopLocalTransport(); }
+    }
+
+    private void EmitPulse(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _output.Clock();
+        _engine.Process(ClockSource.Internal, RealtimeMessage.Clock);
+    }
+
+    private async Task StopRunAsync()
+    {
+        if (_cancellation is null) return;
+        try
+        {
+            try { _cancellation.Cancel(); }
+            catch (Exception ex) { RecordError(new InvalidOperationException("Could not cancel the internal clock run.", ex)); }
+            if (_runTask is not null) await _runTask.ConfigureAwait(false);
+        }
+        finally
+        {
+            _cancellation.Dispose();
+            _cancellation = null;
+            Volatile.Write(ref _runTask, null);
         }
     }
 
-    private void StopLoop()
+    private void StopLocalTransport()
     {
-        _cancellation?.Cancel();
-        _cancellation?.Dispose();
-        _cancellation = null;
+        try { _engine.Process(ClockSource.Internal, RealtimeMessage.Stop); }
+        catch (Exception ex) { RecordError(new InvalidOperationException("Could not stop local transport after the internal clock run.", ex)); }
+    }
+
+    private void RecordError(Exception error)
+    {
+        lock (_errorSync)
+        {
+            var previous = Error;
+            Volatile.Write(ref _error, previous is null ? error
+                : new AggregateException("The internal clock encountered multiple failures.", previous, error));
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        StopLoop();
-        if (_runTask is not null)
+        await _lifecycle.WaitAsync().ConfigureAwait(false);
+        try
         {
-            try { await _runTask.ConfigureAwait(false); }
-            catch (OperationCanceledException) { }
+            if (_disposed) return;
+            _disposed = true;
+            await StopRunAsync().ConfigureAwait(false);
         }
-        _runTask = null;
+        finally { _lifecycle.Release(); }
     }
 }

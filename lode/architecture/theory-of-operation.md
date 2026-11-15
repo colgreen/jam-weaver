@@ -144,6 +144,12 @@ output and are retained in `PatternPlayer.Error` for `status`.
 
 Internal clock uses `IClockPulseScheduler` with timed waits and a short spin.
 It emits MIDI Start/Continue/Stop and Clock as well as driving local transport.
+Its asynchronous lifecycle methods serialize commands and cancel/join the
+previous run before replacement. A run's scheduler and pulse failures stop
+local transport and remain in `InternalMidiClock.Error`; `status` reports them
+as `ClockError` independently of player errors. Expected cancellation is quiet.
+The console awaits clock commands; retrying Start or Continue clears the prior
+error when the operation reaches the MIDI send stage.
 The watchdog polls for external silence every 50 ms; its default timeout is
 500 ms. Clock loss pauses transport, preserves position, and requires a new
 Start or Continue. It never switches automatically to internal clock.
@@ -171,7 +177,8 @@ Program disposes resources in reverse declaration order. Input closes when
 the command loop exits; the player releases its scheduled notes; the watchdog
 and internal scheduler are cancelled; safe output performs its final cleanup
 and disposes the port. Internal-clock disposal does not currently send MIDI
-Stop, and restart cancels an old run without awaiting it. Safe output attempts
+Stop. Clock disposal does cancel and join its run and stop local transport;
+it retains any recorded clock failure. Safe output attempts
 tracked Note Off and CC 123 cleanup, but its cleanup loop exits on the first
 send failure. See [clock and transport](../midi/clock-transport.md) and
 [note lifecycle](../midi/note-lifecycle.md) before modifying these paths.
