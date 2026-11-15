@@ -58,6 +58,10 @@ The core MIDI interface uses explicit operations such as `SendNoteOn` and
 `SendClock`; it does not expose DryWetMIDI event types. Tests can therefore use a
 recording fake without hardware or native MIDI access.
 
+All four projects target `net11.0` and require the .NET 11 SDK for development.
+Framework-dependent executables require the .NET 11 runtime. Package versions
+remain explicitly pinned in each project file.
+
 Build the solution with `dotnet build JamWeaver.sln`. Run tests with
 `dotnet run --project tests/JamWeaver.Core.Tests` and
 `dotnet run --project tests/JamWeaver.Console.Tests`.

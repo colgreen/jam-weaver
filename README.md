@@ -1,10 +1,13 @@
 # JamWeaver
 
-A .NET 8 console application for generating, auditioning, and playing MIDI patterns with internal or external MIDI Clock.
+A .NET 11 console application for generating, auditioning, and playing MIDI patterns with internal or external MIDI Clock.
 
 For architecture and runtime behavior, start with the [theory of operation](lode/architecture/theory-of-operation.md), then the [developer primer](lode/development/developer-primer.md). The [Lode map](lode/lode-map.md) indexes the subsystem contracts.
 
 ## Run
+
+Install the .NET 11 SDK to build and run the application. All projects target
+`net11.0`; running a framework-dependent build requires the .NET 11 runtime.
 
 Connect the MIDI device before starting the program, then run:
 

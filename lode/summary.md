@@ -1,6 +1,6 @@
 # Project summary
 
-JamWeaver is a .NET 8 MIDI application for contributing generated patterns to
+JamWeaver is a .NET 11 MIDI application for contributing generated patterns to
 live jams. Its tested core library owns MIDI safety, clock and transport,
 immutable patterns, deterministic generation, playback, candidate audition, and
 JSON persistence. The console owns MIDI-device adapters and line-oriented
