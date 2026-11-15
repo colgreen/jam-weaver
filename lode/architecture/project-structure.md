@@ -26,7 +26,10 @@ command parsing, and performer-selectable generation controls. `Program` is the
 composition root and owns the stable MIDI, transport, playback, and persistence
 resources. `JamWeaverConsole` runs the interactive read/dispatch loop, owns its
 session state and a `MidiInput` selection owner, and keeps command failures inside the
-interactive session. `CandidateGenerator` maps `GenerationControls`, a seed, and
+interactive session. `ConsoleCommand` parses one trimmed command span and checks
+argument counts before dispatch; save/load consume its preserved free-text
+argument. See [console commands](../development/console-commands.md).
+`CandidateGenerator` maps `GenerationControls`, a seed, and
 the current candidate context to strongly typed core settings.
 `ConsoleDisplay` renders setup, prompts, status, patterns, library entries, help,
 and console-specific labels through an injected `TextWriter`; rendering does not

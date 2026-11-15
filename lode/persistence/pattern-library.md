@@ -67,6 +67,9 @@ file intact and cleans up the temporary file when possible.
 
 Only the accepted pattern can be saved. An optional new name updates in-memory
 metadata only after the file save succeeds.
+Save/load arguments come from the same trimmed command text as the command
+token. Indentation does not enter the name or query; internal spaces in names
+are preserved. Bare `save` keeps the accepted name.
 
 The console treats the saved pattern name as the primary load identity. It
 matches names case-insensitively and accepts names containing spaces. Displayed

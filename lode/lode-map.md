@@ -5,6 +5,7 @@
 - [Project practices](practices.md) - conventions not covered by `AGENTS.md`
 - Development
   - [Developer primer](development/developer-primer.md) - core concepts, types, and runtime relationships
+  - [Console commands](development/console-commands.md) - shared command span, argument counts, free-text names, and dispatch boundary
   - [Adding a generator](development/adding-a-generator.md) - typed contract, recipes, wiring, and verification
 - Architecture
   - [Theory of operation](architecture/theory-of-operation.md) - runtime ownership, candidate-to-note flow, execution contexts, and current limits

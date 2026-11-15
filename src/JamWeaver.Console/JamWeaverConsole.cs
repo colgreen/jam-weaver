@@ -65,12 +65,12 @@ public sealed class JamWeaverConsole
                 display.WritePrompt(session, player, transport, generationControls.Mode);
                 var line = await reader.ReadLineAsync();
                 if (line is null) break;
-                var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (parts.Length == 0) continue;
-
                 try
                 {
-                    switch (parts[0].ToLowerInvariant())
+                    var command = ConsoleCommand.Parse(line);
+                    if (command is null) continue;
+                    var parts = command.Parts;
+                    switch (command.Name)
                     {
                         case "setup": WriteSetup(); break;
                         case "out":
@@ -88,15 +88,7 @@ public sealed class JamWeaverConsole
                                 display.WriteLine("Select with: source internal|external");
                                 break;
                             }
-                            var source = S(parts, 1).ToLowerInvariant() switch
-                            {
-                                "external" => ClockSource.External,
-                                "internal" => ClockSource.Internal,
-                                _ => throw new ArgumentException("Source must be internal or external.")
-                            };
-                            await internalClock.StopOwnedTransportAsync();
-                            transport.SelectSource(source);
-                            display.WriteLine($"Clock source: {source.ToString().ToLowerInvariant()}");
+                            await SelectSourceAsync(S(parts, 1));
                             break;
                         case "bpm":
                             if (parts.Length == 1)
@@ -149,23 +141,7 @@ public sealed class JamWeaverConsole
                             display.WriteLine($"Comparison: {(comparisonShowsGroove ? "groove" : "phrase")} (changes at next bar while running).");
                             break;
                         case "vary":
-                            var parent = session.Candidate ?? throw new InvalidOperationException("Create a candidate with 'new' first.");
-                            var variationArgument = 1;
-                            var mutationTarget = default(PhraseMutationTarget);
-                            var hasTarget = parts.Length > variationArgument && TryMutationTarget(parts[variationArgument], out mutationTarget);
-                            if (hasTarget) variationArgument++;
-                            var (variationStrength, variationSeed) = VariationArguments(parts, variationArgument, seedSource);
-                            SelectCandidate(session, history, candidateGenerator.Vary(parent,
-                                new GeneratorVariationSettings(hasTarget ? mutationTarget : null,
-                                    new NormalizedAmount(variationStrength), variationSeed)));
-                            if (hasTarget)
-                            {
-                                display.WriteLine($"Varied {mutationTarget.ToString().ToLowerInvariant()} with seed {variationSeed} at strength {variationStrength:0.##}.");
-                            }
-                            else
-                            {
-                                display.WriteLine($"Varied candidate with seed {variationSeed} at strength {variationStrength:0.##}.");
-                            }
+                            VaryCandidate(parts);
                             break;
                         case "back":
                             session.SetCandidate(history.Previous()); display.WriteLine($"Candidate history {history.Position}/{history.Count}."); break;
@@ -257,26 +233,10 @@ public sealed class JamWeaverConsole
                             display.WriteLine($"Library: {patternLibrary.RootDirectory}");
                             break;
                         case "save":
-                            var accepted = session.Accepted ?? throw new InvalidOperationException("There is no accepted pattern to save.");
-                            var requestedName = line[parts[0].Length..].Trim();
-                            var patternToSave = requestedName.Length == 0 ? accepted : accepted.Rename(new PatternName(requestedName));
-                            var saved = await patternLibrary.SaveAsync(patternToSave);
-                            if (patternToSave.Name != accepted.Name) session.RenameAccepted(patternToSave);
-                            display.WriteLine($"Saved '{saved.Name}'. Load it with: load {saved.Name}");
+                            await SaveAcceptedAsync(command.ArgumentText);
                             break;
                         case "load":
-                            var entries = await patternLibrary.ListAsync();
-                            var loadQuery = line[parts[0].Length..].Trim();
-                            if (loadQuery.Length == 0)
-                            {
-                                display.WriteLibrary(entries);
-                                if (entries.Length > 0) display.WriteLine("Load with: load <name> or load #<number>");
-                                break;
-                            }
-                            var loadEntry = ResolveLibraryEntry(entries, loadQuery);
-                            var loaded = await patternLibrary.LoadAsync(loadEntry);
-                            SelectCandidate(session, history, loaded);
-                            display.WriteLine($"Loaded '{loaded.Name}' as a candidate ({(player.CurrentPattern?.Id == loaded.Id ? "audible" : "pending for next bar")}).");
+                            await LoadCandidateAsync(command.ArgumentText);
                             break;
                         case "note": await output.SendNoteAsync(C(parts, 1), V(parts, 2), V(parts, 3), TimeSpan.FromMilliseconds(parts.Length > 4 ? I(parts, 4) : 250)); break;
                         case "on": output.NoteOn(C(parts, 1), V(parts, 2), V(parts, 3)); break;
@@ -337,6 +297,59 @@ public sealed class JamWeaverConsole
         output.ReplacePort(portCatalog.OpenOutput(index));
         display.WriteLine($"Output: {output.PortName}");
         display.WriteLine("Next: new, then go.");
+    }
+
+    private async Task SelectSourceAsync(string value)
+    {
+        var source = value.ToLowerInvariant() switch
+        {
+            "external" => ClockSource.External,
+            "internal" => ClockSource.Internal,
+            _ => throw new ArgumentException("Source must be internal or external.")
+        };
+        await internalClock.StopOwnedTransportAsync();
+        transport.SelectSource(source);
+        display.WriteLine($"Clock source: {source.ToString().ToLowerInvariant()}");
+    }
+
+    private async Task SaveAcceptedAsync(string requestedName)
+    {
+        var accepted = session.Accepted ?? throw new InvalidOperationException("There is no accepted pattern to save.");
+        var patternToSave = requestedName.Length == 0 ? accepted : accepted.Rename(new PatternName(requestedName));
+        var saved = await patternLibrary.SaveAsync(patternToSave);
+        if (patternToSave.Name != accepted.Name) session.RenameAccepted(patternToSave);
+        display.WriteLine($"Saved '{saved.Name}'. Load it with: load {saved.Name}");
+    }
+
+    private async Task LoadCandidateAsync(string query)
+    {
+        var entries = await patternLibrary.ListAsync();
+        if (query.Length == 0)
+        {
+            display.WriteLibrary(entries);
+            if (entries.Length > 0) display.WriteLine("Load with: load <name> or load #<number>");
+            return;
+        }
+        var entry = ResolveLibraryEntry(entries, query);
+        var loaded = await patternLibrary.LoadAsync(entry);
+        SelectCandidate(session, history, loaded);
+        display.WriteLine($"Loaded '{loaded.Name}' as a candidate ({(player.CurrentPattern?.Id == loaded.Id ? "audible" : "pending for next bar")}).");
+    }
+
+    private void VaryCandidate(string[] parts)
+    {
+        var parent = Candidate(session);
+        var argument = 1;
+        var target = default(PhraseMutationTarget);
+        var hasTarget = parts.Length > argument && TryMutationTarget(parts[argument], out target);
+        if (hasTarget) argument++;
+        var (strength, seed) = VariationArguments(parts, argument, seedSource);
+        SelectCandidate(session, history, candidateGenerator.Vary(parent,
+            new GeneratorVariationSettings(hasTarget ? target : null, new NormalizedAmount(strength), seed)));
+        if (hasTarget)
+            display.WriteLine($"Varied {target.ToString().ToLowerInvariant()} with seed {seed} at strength {strength:0.##}.");
+        else
+            display.WriteLine($"Varied candidate with seed {seed} at strength {strength:0.##}.");
     }
 
     private void SelectInput(int index)
