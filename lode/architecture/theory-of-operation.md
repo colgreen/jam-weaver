@@ -26,6 +26,9 @@ Core owns musical and timing behavior without terminal or DryWetMIDI types.
 `IMidiOutputPort` is the hardware output boundary. The console adapter converts
 user-facing channels 1-16 to DryWetMIDI's zero-based channels and constructs
 library events. No device-specific patches or SysEx are part of this flow.
+Aggregates and public consumption boundaries reject invalid struct defaults and
+undefined enums before state changes or I/O. Valid zero values keep their domain
+meanings; see [domain value validation](../sequencer/value-validation.md).
 
 ## Two paths meet at the player
 

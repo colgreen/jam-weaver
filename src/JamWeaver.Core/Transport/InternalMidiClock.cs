@@ -31,7 +31,8 @@ public sealed class InternalMidiClock : IAsyncDisposable
         get => Volatile.Read(ref _bpm);
         set
         {
-            if (value is < 20 or > 300) throw new ArgumentOutOfRangeException(nameof(value), "BPM must be 20-300.");
+            if (!double.IsFinite(value) || value is < 20 or > 300)
+                throw new ArgumentOutOfRangeException(nameof(value), "BPM must be finite and 20-300.");
             Volatile.Write(ref _bpm, value);
         }
     }

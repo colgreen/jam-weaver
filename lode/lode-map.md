@@ -15,6 +15,7 @@
   - [Port ownership](midi/port-ownership.md) - port transfer, replacement, listener startup, and failure cleanup
 - Sequencer
   - [Pattern model](sequencer/pattern-model.md) - step, identity, and persistence model
+  - [Domain value validation](sequencer/value-validation.md) - struct defaults, aggregate/API guards, enums, and persistence limits
 - Persistence
   - [Pattern library](persistence/pattern-library.md) - JSON format, validation, save, and load contracts
 - Generation

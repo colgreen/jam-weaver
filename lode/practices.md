@@ -21,6 +21,19 @@ not presumed to comply and do not need opportunistic renaming or restructuring.
 Review them separately when there is a clear benefit and enough context to make
 a sound design decision.
 
+## Value types and validation
+
+Struct constructors cannot prevent `default(T)`. When a default violates a
+domain invariant, validate it where an aggregate, settings object, or public API
+consumes it. Reuse the value type's internal validation rule and name the outer
+argument in errors. Keep valid zero defaults usable; do not reject defaults as
+a category or silently coerce invalid values into musical defaults.
+
+Check externally supplied enums before switching on them. Reject invalid data
+before changing state, sending MIDI, or consuming randomness. Persistence must
+not encode a schema or document size its loader rejects. See [domain value
+validation](sequencer/value-validation.md) for the current contracts.
+
 ## Global usings
 
 Use each project's `Usings.cs` for namespaces that form its frequently used

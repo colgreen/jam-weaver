@@ -20,6 +20,12 @@ Resolution and length are data rather than hard-coded playback assumptions.
 The initial UI can expose only the 16-step default while preserving room for
 shorter loops and other resolutions.
 
+Construction rejects default identity/name/schema/timing, undefined mode/role/
+palette values, and mode/pitch mismatches. Note construction rejects a default
+zero gate. Valid zero-valued MIDI data, scale roots, probabilities, and controls
+retain their meanings. See [domain value validation](value-validation.md) for
+the distinction between absent, default, and invalid values.
+
 ## Step
 
 Each step records:

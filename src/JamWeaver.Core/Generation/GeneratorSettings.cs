@@ -8,6 +8,10 @@ public sealed record EuclideanGeneratorSettings
         MusicalRole role, NormalizedAmount density, NormalizedAmount movement, NormalizedAmount repetition,
         NormalizedAmount gate, NormalizedAmount velocityVariation, ulong seed)
     {
+        name.Validate(nameof(name));
+        timing.Validate(nameof(timing));
+        tonalContext.Validate(nameof(tonalContext));
+        if (!Enum.IsDefined(role)) throw new ArgumentOutOfRangeException(nameof(role));
         if (stepCount is < 1 or > 256) throw new ArgumentOutOfRangeException(nameof(stepCount));
         (Name, StepCount, Timing, TonalContext, Role, Density, Movement, Repetition, Gate, VelocityVariation, Seed) =
             (name, stepCount, timing, tonalContext, role, density, movement, repetition, gate, velocityVariation, seed);
@@ -32,10 +36,13 @@ public sealed class EuclideanDrumGeneratorSettings
     public EuclideanDrumGeneratorSettings(PatternName name, int stepCount, PatternTiming timing,
         IEnumerable<DrumVoiceSettings> voices, NormalizedAmount gate, NormalizedAmount velocityVariation, ulong seed)
     {
+        name.Validate(nameof(name));
+        timing.Validate(nameof(timing));
         if (stepCount is < 1 or > 256) throw new ArgumentOutOfRangeException(nameof(stepCount));
         ArgumentNullException.ThrowIfNull(voices);
         var copied = voices.ToImmutableArray();
         if (copied.Length is < 1 or > 8) throw new ArgumentOutOfRangeException(nameof(voices));
+        if (copied.Any(voice => voice is null)) throw new ArgumentException("Drum voices cannot contain null.", nameof(voices));
         if (copied.Select(voice => voice.Note).Distinct().Count() != copied.Length)
             throw new ArgumentException("Drum voice notes must be distinct.", nameof(voices));
         (Name, StepCount, Timing, Voices, Gate, VelocityVariation, Seed) =

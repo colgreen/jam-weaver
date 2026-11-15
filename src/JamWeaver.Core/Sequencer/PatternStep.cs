@@ -17,10 +17,14 @@ public readonly record struct NoteGate
 {
     public NoteGate(double value)
     {
-        if (!double.IsFinite(value) || value is <= 0 or > 1) throw new ArgumentOutOfRangeException(nameof(value));
         Value = value;
+        Validate(nameof(value));
     }
     public double Value { get; }
+    internal void Validate(string parameterName)
+    {
+        if (!double.IsFinite(Value) || Value is <= 0 or > 1) throw new ArgumentOutOfRangeException(parameterName);
+    }
 }
 
 public sealed record PatternNote
@@ -29,6 +33,7 @@ public sealed record PatternNote
     {
         ArgumentNullException.ThrowIfNull(pitch);
         if (velocity.Value == 0) throw new ArgumentOutOfRangeException(nameof(velocity), "Note velocity must be 1-127.");
+        gate.Validate(nameof(gate));
         Pitch = pitch;
         Velocity = velocity;
         Gate = gate;

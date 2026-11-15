@@ -45,6 +45,13 @@ properties, unsupported format or pattern-schema versions, unknown type labels,
 and values that violate the domain model. Unknown properties are tolerated so a
 newer writer can add optional data without breaking an older reader.
 
+Encoding applies the same 1 MiB byte limit and supported pattern-schema check
+before a save writes its temporary file, preventing unreadable self-generated
+files. Aggregate validation excludes invalid struct defaults from materialized
+patterns and recipes. Valid zero values round-trip normally; unsupported
+generator algorithms remain preservable metadata. See [domain value
+validation](../sequencer/value-validation.md).
+
 Errors identify the file and failed operation without echoing its full content.
 A malformed or duplicate entry is shown as invalid and does not prevent other
 library entries from being listed.

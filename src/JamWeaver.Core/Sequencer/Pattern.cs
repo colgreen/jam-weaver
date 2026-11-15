@@ -8,6 +8,11 @@ public sealed class Pattern : IEquatable<Pattern>
         PatternMode mode, PatternTiming timing, IEnumerable<PatternStep> steps,
         MusicalRole? role, TonalContext? tonalContext, GeneratorRecipe? recipe = null)
     {
+        id.Validate(nameof(id));
+        name.Validate(nameof(name));
+        schemaVersion.Validate(nameof(schemaVersion));
+        timing.Validate(nameof(timing));
+        if (!Enum.IsDefined(mode)) throw new ArgumentOutOfRangeException(nameof(mode));
         ArgumentNullException.ThrowIfNull(steps);
         var copiedSteps = steps.ToImmutableArray();
         if (copiedSteps.Length is < 1 or > 256) throw new ArgumentOutOfRangeException(nameof(steps), "Pattern must contain 1-256 steps.");
@@ -48,17 +53,19 @@ public sealed class Pattern : IEquatable<Pattern>
         new(PatternId.New(), name, SchemaVersion, mode, timing, steps, role, context);
 
     private static void ValidateMode(PatternMode mode, ImmutableArray<PatternStep> steps,
-        MusicalRole? role, TonalContext? context)
+        MusicalRole? role, TonalContext? tonalContext)
     {
         var pitches = steps.SelectMany(step => step.Notes).Select(note => note.Pitch);
         if (mode == PatternMode.Melodic)
         {
-            if (role is null || context is null) throw new ArgumentException("Melodic patterns require role and tonal context.");
+            if (role is null || tonalContext is null) throw new ArgumentException("Melodic patterns require role and tonal context.");
+            if (!Enum.IsDefined(role.Value)) throw new ArgumentOutOfRangeException(nameof(role));
+            tonalContext.Value.Validate(nameof(tonalContext));
             if (pitches.Any(pitch => pitch is not MelodicPitch)) throw new ArgumentException("Melodic patterns can contain only melodic pitches.");
         }
         else
         {
-            if (role is not null || context is not null) throw new ArgumentException("Drum patterns cannot have role or tonal context.");
+            if (role is not null || tonalContext is not null) throw new ArgumentException("Drum patterns cannot have role or tonal context.");
             if (pitches.Any(pitch => pitch is not DrumPitch)) throw new ArgumentException("Drum patterns can contain only drum pitches.");
         }
     }

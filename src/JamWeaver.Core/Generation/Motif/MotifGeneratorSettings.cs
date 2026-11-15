@@ -9,6 +9,8 @@ public sealed record MotifGeneratorSettings
     public MotifGeneratorSettings(PatternName name, TonalContext tonalContext, MusicalRole role,
         MotifShape shape, PhraseActivity activity, PhraseLevel movement, PhraseLevel variation, ulong seed)
     {
+        name.Validate(nameof(name));
+        tonalContext.Validate(nameof(tonalContext));
         if (!Enum.IsDefined(role)) throw new ArgumentOutOfRangeException(nameof(role));
         if (!Enum.IsDefined(shape) || !Enum.IsDefined(activity) || !Enum.IsDefined(movement) || !Enum.IsDefined(variation))
             throw new ArgumentOutOfRangeException(nameof(shape));

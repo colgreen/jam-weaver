@@ -18,6 +18,7 @@ public sealed record GrooveTemplate
         if ((movableOnsets & ~sounding) != 0) throw new ArgumentException("Movable onsets must sound in the template.");
         if ((requiredOnsets & 1) == 0) throw new ArgumentException("Bass templates must require step zero.");
         if (accents is null || accents.Count != 16) throw new ArgumentException("Exactly 16 accents are required.", nameof(accents));
+        if (accents.Any(accent => !Enum.IsDefined(accent))) throw new ArgumentOutOfRangeException(nameof(accents), "Unknown groove accent.");
         if (entrySuitability is < 0 or > 2 || turnaroundSuitability is < 0 or > 2)
             throw new ArgumentOutOfRangeException(nameof(entrySuitability), "Suitability must be 0-2.");
         if (BitOperations.PopCount(sounding) is < 3 or > 8) throw new ArgumentException("Template must contain 3-8 onsets.");

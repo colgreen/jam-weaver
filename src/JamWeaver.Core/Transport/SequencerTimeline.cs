@@ -31,6 +31,7 @@ public sealed class SequencerTimeline : IDisposable
 
     private static Configuration Validate(PatternTiming timing, int stepCount)
     {
+        timing.Validate(nameof(timing));
         if (stepCount is < 1 or > 256) throw new ArgumentOutOfRangeException(nameof(stepCount));
         return new Configuration(timing, stepCount);
     }

@@ -17,6 +17,11 @@ public readonly record struct GeneratorLineage
 
     public string GeneratorId { get; }
     public int GeneratorVersion { get; }
+    internal void Validate(string parameterName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(GeneratorId, parameterName);
+        if (GeneratorVersion < 1) throw new ArgumentOutOfRangeException(parameterName, "Generator version must be positive.");
+    }
 }
 
 public readonly record struct RecipeValue
@@ -50,6 +55,8 @@ public sealed class GeneratorRecipe
         if (generatorId.Length == 0) throw new ArgumentException("Generator ID is required.", nameof(generatorId));
         if (generatorVersion < 1) throw new ArgumentOutOfRangeException(nameof(generatorVersion));
         ArgumentNullException.ThrowIfNull(parameters);
+        parentPatternId?.Validate(nameof(parentPatternId));
+        lineage?.Validate(nameof(lineage));
 
         var builder = ImmutableSortedDictionary.CreateBuilder<string, RecipeValue>(StringComparer.Ordinal);
         foreach (var pair in parameters)

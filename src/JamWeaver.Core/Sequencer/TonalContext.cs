@@ -14,4 +14,10 @@ public readonly record struct RootPitchClass
     public int Value { get; }
 }
 
-public readonly record struct TonalContext(RootPitchClass Root, PitchPalette Palette);
+public readonly record struct TonalContext(RootPitchClass Root, PitchPalette Palette)
+{
+    internal void Validate(string parameterName)
+    {
+        if (!Enum.IsDefined(Palette)) throw new ArgumentOutOfRangeException(parameterName, "Unknown pitch palette.");
+    }
+}

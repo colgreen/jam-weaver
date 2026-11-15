@@ -13,6 +13,10 @@ public static class RhythmVariationSearch
     public static RhythmVariationResult Find(ushort source, GrooveTemplate template, GrooveSimilarity similarity,
         PhraseActivity activity, bool latterHalfOnly, IRandomSource random)
     {
+        ArgumentNullException.ThrowIfNull(template);
+        ArgumentNullException.ThrowIfNull(random);
+        if (!Enum.IsDefined(similarity)) throw new ArgumentOutOfRangeException(nameof(similarity));
+        if (!Enum.IsDefined(activity)) throw new ArgumentOutOfRangeException(nameof(activity));
         var targetHits = activity switch { PhraseActivity.Sparse => 4, PhraseActivity.Medium => 6, PhraseActivity.Busy => 8, _ => 6 };
         var (minDistance, maxDistance) = similarity switch
         {

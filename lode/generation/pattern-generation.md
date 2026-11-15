@@ -54,6 +54,12 @@ Performer-facing controls describe musical effects such as activity, movement,
 variation, turnaround strength, role, and gate length. Recipes store the exact
 resolved settings needed to explain and reproduce the result.
 
+Settings validate names, timing, roles, palettes, and family controls before
+generation. Undefined enum values are rejected by variation and groove entry
+points rather than interpreted as a fallback. Valid zero amounts remain valid;
+validation does not consume random values or change fixed-seed output. See
+[domain value validation](../sequencer/value-validation.md).
+
 Melodic pitches are stored as scale degrees and resolved through the current
 root, pentatonic palette, and musical role.
 

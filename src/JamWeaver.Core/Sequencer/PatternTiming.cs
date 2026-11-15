@@ -7,10 +7,15 @@ public readonly record struct PatternTiming
 
     public PatternTiming(int pulsesPerStep)
     {
-        var pulsesPerBar = MidiClockPulsesPerQuarterNote * InitialBeatsPerBar;
-        if (pulsesPerStep is < 1 or > 96 || pulsesPerBar % pulsesPerStep != 0)
-            throw new ArgumentOutOfRangeException(nameof(pulsesPerStep), "Pulses per step must be a positive divisor of 96.");
         PulsesPerStep = pulsesPerStep;
+        Validate(nameof(pulsesPerStep));
+    }
+
+    internal void Validate(string parameterName)
+    {
+        var pulsesPerBar = MidiClockPulsesPerQuarterNote * InitialBeatsPerBar;
+        if (PulsesPerStep is < 1 or > 96 || pulsesPerBar % PulsesPerStep != 0)
+            throw new ArgumentOutOfRangeException(parameterName, "Pulses per step must be a positive divisor of 96.");
     }
 
     public int PulsesPerQuarterNote => MidiClockPulsesPerQuarterNote;

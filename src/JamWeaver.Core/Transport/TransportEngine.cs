@@ -28,6 +28,7 @@ public sealed class TransportEngine
 
     public TransportEngine(ClockSource source = ClockSource.External, TimeProvider? timeProvider = null)
     {
+        if (!Enum.IsDefined(source)) throw new ArgumentOutOfRangeException(nameof(source));
         _source = source;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -44,6 +45,7 @@ public sealed class TransportEngine
 
     public void SelectSource(ClockSource source)
     {
+        if (!Enum.IsDefined(source)) throw new ArgumentOutOfRangeException(nameof(source));
         ThrowIfReentrant();
         lock (_dispatchSync) SelectSourceAndNotify(source);
     }
@@ -63,6 +65,8 @@ public sealed class TransportEngine
 
     public bool Process(ClockSource source, RealtimeMessage message)
     {
+        if (!Enum.IsDefined(source)) throw new ArgumentOutOfRangeException(nameof(source));
+        if (!Enum.IsDefined(message)) throw new ArgumentOutOfRangeException(nameof(message));
         ThrowIfReentrant();
         lock (_dispatchSync) return ProcessAndNotify(source, message);
     }

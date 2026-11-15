@@ -6,5 +6,9 @@ public sealed class ExternalMidiClockInput
 {
     public event EventHandler<RealtimeMessage>? MessageReceived;
 
-    public void Receive(RealtimeMessage message) => MessageReceived?.Invoke(this, message);
+    public void Receive(RealtimeMessage message)
+    {
+        if (!Enum.IsDefined(message)) throw new ArgumentOutOfRangeException(nameof(message));
+        MessageReceived?.Invoke(this, message);
+    }
 }

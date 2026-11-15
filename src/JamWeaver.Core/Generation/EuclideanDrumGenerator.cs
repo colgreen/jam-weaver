@@ -10,6 +10,7 @@ public sealed class EuclideanDrumGenerator : IPatternGenerator<EuclideanDrumGene
 
     public Pattern Vary(Pattern parent, GeneratorVariationSettings settings)
     {
+        settings.Validate();
         if (settings.Target is not null)
             throw new NotSupportedException("Targeted drum variation is not supported.");
         return CurrentGeneratorVariation.Vary(parent, settings, Lineage);

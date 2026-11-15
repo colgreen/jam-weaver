@@ -30,6 +30,9 @@ configuration to avoid feedback loops.
 Internal mode sends MIDI Start, Continue, Stop, and 24-PPQN Clock to the selected
 output. Tempo is adjustable. Desktop .NET is not hard real-time; timing jitter
 must be measured before claiming suitability for timing-critical performance.
+Tempo must be finite and within 20-300 BPM; invalid assignments preserve the
+previous tempo. Undefined clock-source and real-time-message enums are rejected
+before transport state changes or input forwarding.
 
 `InternalMidiClock.StartAsync`, `ContinueAsync`, `StopAsync`, and disposal share
 one asynchronous lifecycle gate. Start cancels and joins the previous run

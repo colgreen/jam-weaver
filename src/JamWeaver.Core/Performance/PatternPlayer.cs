@@ -38,6 +38,7 @@ public sealed class PatternPlayer : IDisposable
         get { lock (_sync) return _channel; }
         set
         {
+            value.Validate(nameof(value));
             lock (_sync)
             {
                 ThrowIfDisposed();

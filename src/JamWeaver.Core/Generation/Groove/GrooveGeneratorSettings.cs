@@ -11,6 +11,8 @@ public sealed record GrooveGeneratorSettings
         GrooveSelection groove, GrooveSimilarity similarity, PhraseActivity activity,
         PhraseLevel movement, PhraseLevel variation, PhraseTurnaround turnaround, ulong seed)
     {
+        name.Validate(nameof(name));
+        tonalContext.Validate(nameof(tonalContext));
         if (role != MusicalRole.Bass) throw new ArgumentException("The groove generator currently supports the bass role only.", nameof(role));
         if (!Enum.IsDefined(groove) || !Enum.IsDefined(similarity) || !Enum.IsDefined(activity)
             || !Enum.IsDefined(movement) || !Enum.IsDefined(variation) || !Enum.IsDefined(turnaround))

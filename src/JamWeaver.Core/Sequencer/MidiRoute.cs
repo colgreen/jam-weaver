@@ -4,6 +4,7 @@ public sealed record MidiRoute
 {
     public MidiRoute(string outputPortName, MidiChannel channel)
     {
+        channel.Validate(nameof(channel));
         ArgumentNullException.ThrowIfNull(outputPortName);
         outputPortName = outputPortName.Trim();
         if (outputPortName.Length == 0) throw new ArgumentException("Output port name is required.", nameof(outputPortName));

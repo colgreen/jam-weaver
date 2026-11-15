@@ -12,6 +12,8 @@ public sealed class PatternJsonCodec
     public byte[] Encode(Pattern pattern, DateTimeOffset savedUtc)
     {
         ArgumentNullException.ThrowIfNull(pattern);
+        if (pattern.SchemaVersion != PatternSchemaVersion.Current)
+            throw new PatternPersistenceException($"Cannot encode unsupported pattern schema version {pattern.SchemaVersion.Value}; expected {PatternSchemaVersion.Current.Value}.");
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
         {
@@ -23,6 +25,8 @@ public sealed class PatternJsonCodec
             writer.WriteEndObject();
         }
         stream.WriteByte((byte)'\n');
+        if (stream.Length > MaximumDocumentBytes)
+            throw new PatternPersistenceException($"Encoded pattern '{pattern.Name}' exceeds the {MaximumDocumentBytes}-byte limit.");
         return stream.ToArray();
     }
 

@@ -73,18 +73,21 @@ disposed input, and retired-port callbacks are ignored. Tests cover these
 paths with fakes; native behavior still needs physical verification. See
 [port ownership](../midi/port-ownership.md).
 
-## Next: domain default values
+## Domain default values
 
-Struct constructor validation does not prevent invalid `default(T)` values.
-Pattern accepts zero timing, empty identity, or a default name; PatternNote
-accepts a default gate. Some enums also lack aggregate validation.
+Aggregates and consumption boundaries validate invalid struct defaults while
+preserving valid zeros. Patterns, notes, recipes, generator settings, MIDI
+routing/output, and timelines enforce their input invariants before storing
+state or performing I/O. Transport, pitch resolution, variation, and groove
+entry points reject undefined enums. Internal tempo is finite and 20-300 BPM.
 
-- Enforce invariants consistently at aggregate/API boundaries or choose types
-  that cannot represent those invalid values.
-- Test defaults, invalid enum casts, and persistence round-trip for accepted
-  domain values.
+Encoding and decoding share supported-schema and document-size limits. Tests
+cover invalid defaults/enums, unchanged state and MIDI output on rejection,
+generator entry validation, valid-zero round trips, and persistence rejection.
+Fixed-seed tests retain their existing musical results. See [domain value
+validation](../sequencer/value-validation.md).
 
-## Console discovery boundary
+## Next: console discovery boundary
 
 `ConsoleDisplay` directly enumerates native ports, including during command-loop
 startup outside its try/finally. Native failure can prevent startup and leave

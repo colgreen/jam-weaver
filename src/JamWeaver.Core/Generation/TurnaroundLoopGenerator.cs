@@ -20,6 +20,7 @@ public sealed class TurnaroundLoopGenerator : IPatternGenerator<EuclideanGenerat
 
     public Pattern Vary(Pattern parent, GeneratorVariationSettings settings)
     {
+        settings.Validate();
         ValidateVariationParent(parent);
         var random = RandomDefaults.CreateRandomSource(settings.Seed);
         var target = ResolveTarget(settings, random);

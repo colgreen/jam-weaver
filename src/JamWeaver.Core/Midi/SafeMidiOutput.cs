@@ -60,6 +60,7 @@ public sealed class SafeMidiOutput : IDisposable
 
     public void NoteOn(MidiChannel channel, MidiValue note, MidiValue velocity)
     {
+        channel.Validate(nameof(channel));
         lock (_sync)
         {
             PortUnsafe.SendNoteOn(channel, note, velocity);
@@ -69,6 +70,7 @@ public sealed class SafeMidiOutput : IDisposable
 
     public void NoteOff(MidiChannel channel, MidiValue note, MidiValue velocity)
     {
+        channel.Validate(nameof(channel));
         lock (_sync)
         {
             PortUnsafe.SendNoteOff(channel, note, velocity);
@@ -76,11 +78,17 @@ public sealed class SafeMidiOutput : IDisposable
         }
     }
 
-    public void ControlChange(MidiChannel channel, MidiValue controller, MidiValue value) =>
+    public void ControlChange(MidiChannel channel, MidiValue controller, MidiValue value)
+    {
+        channel.Validate(nameof(channel));
         WithPort(port => port.SendControlChange(channel, controller, value));
+    }
 
-    public void ProgramChange(MidiChannel channel, MidiValue program) =>
+    public void ProgramChange(MidiChannel channel, MidiValue program)
+    {
+        channel.Validate(nameof(channel));
         WithPort(port => port.SendProgramChange(channel, program));
+    }
 
     public void Clock() => WithPort(port => port.SendClock());
     public void Start() => WithPort(port => port.SendStart());

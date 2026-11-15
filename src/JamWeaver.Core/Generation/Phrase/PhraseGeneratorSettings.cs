@@ -12,6 +12,9 @@ public sealed record PhraseGeneratorSettings
         MusicalRole role, PhraseActivity activity, PhraseRhythm rhythm, PhraseLevel movement,
         PhraseLevel variation, PhraseTurnaround turnaround, ulong seed)
     {
+        name.Validate(nameof(name));
+        tonalContext.Validate(nameof(tonalContext));
+        if (!Enum.IsDefined(role)) throw new ArgumentOutOfRangeException(nameof(role));
         if (!Enum.IsDefined(length)) throw new ArgumentOutOfRangeException(nameof(length));
         if (!Enum.IsDefined(activity)) throw new ArgumentOutOfRangeException(nameof(activity));
         if (!Enum.IsDefined(rhythm)) throw new ArgumentOutOfRangeException(nameof(rhythm));

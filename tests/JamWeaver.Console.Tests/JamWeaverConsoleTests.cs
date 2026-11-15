@@ -22,7 +22,7 @@ public sealed class JamWeaverConsoleTests
             new EuclideanPhraseGenerator(), phraseGenerator, grooveGenerator, new MotifGenerator());
         var writer = new StringWriter();
         using var library = new PatternLibrary(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
-        var application = new JamWeaverConsole(new StringReader("bpm invalid\nhelp\nquit\n"),
+        var application = new JamWeaverConsole(new StringReader("bpm invalid\nbpm NaN\nbpm\nhelp\nquit\n"),
             new ConsoleDisplay(writer), output, transport, internalClock, player, session, candidateGenerator,
             new GenerationControls(), new CandidateHistory(),
             library, phraseGenerator, grooveGenerator, RandomDefaults.CreateRandomSource(123),
@@ -31,6 +31,8 @@ public sealed class JamWeaverConsoleTests
         await application.RunAsync();
 
         Assert.Contains("Error:", writer.ToString());
+        Assert.Contains("BPM must be finite and 20-300.", writer.ToString());
+        Assert.Contains("Tempo: 120 BPM", writer.ToString());
         Assert.Contains("Live controls:", writer.ToString());
     }
 
