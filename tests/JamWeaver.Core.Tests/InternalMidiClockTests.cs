@@ -52,6 +52,35 @@ public sealed class InternalMidiClockTests
     }
 
     [Fact]
+    public async Task Owned_transport_cleanup_joins_the_run_even_after_source_changes_and_does_not_stop_external_transport()
+    {
+        await using var fixture = new ClockFixture();
+        await fixture.Clock.StartAsync(TestContext.Current.CancellationToken);
+        var run = await fixture.Scheduler.NextRunAsync();
+        run.Pulse();
+        fixture.Engine.SelectSource(ClockSource.External);
+        fixture.Engine.Process(ClockSource.External, RealtimeMessage.Start);
+        fixture.Engine.Process(ClockSource.External, RealtimeMessage.Clock);
+        var externalSnapshot = fixture.Engine.Snapshot;
+
+        var cleanup = fixture.Clock.StopOwnedTransportAsync(TestContext.Current.CancellationToken);
+
+        Assert.True(run.Token.IsCancellationRequested);
+        Assert.False(cleanup.IsCompleted);
+        Assert.Equal(["Start", "Clock"], fixture.Port.Messages);
+        run.Complete();
+        await cleanup.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await fixture.Clock.StopOwnedTransportAsync(TestContext.Current.CancellationToken);
+        await fixture.Clock.DisposeAsync();
+
+        Assert.False(fixture.Clock.IsRunning);
+        Assert.Null(fixture.Clock.Error);
+        Assert.Equal(externalSnapshot, fixture.Engine.Snapshot);
+        Assert.ThrowsAny<OperationCanceledException>(run.Pulse);
+        Assert.Equal(["Start", "Clock", "Stop"], fixture.Port.Messages);
+    }
+
+    [Fact]
     public async Task Continue_preserves_position_and_does_not_replace_a_running_scheduler()
     {
         await using var fixture = new ClockFixture();
@@ -97,15 +126,18 @@ public sealed class InternalMidiClockTests
         Assert.False(fixture.Clock.IsRunning);
     }
 
-    [Fact]
-    public async Task Cancelling_a_waiting_request_does_not_cancel_the_running_operation()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Cancelling_a_waiting_request_does_not_cancel_the_running_operation(bool ownedCleanup)
     {
         await using var fixture = new ClockFixture();
         await fixture.Clock.StartAsync(TestContext.Current.CancellationToken);
         var first = await fixture.Scheduler.NextRunAsync();
         var restart = fixture.Clock.StartAsync(TestContext.Current.CancellationToken);
         using var cancellation = new CancellationTokenSource();
-        var waiting = fixture.Clock.StopAsync(cancellation.Token);
+        var waiting = ownedCleanup ? fixture.Clock.StopOwnedTransportAsync(cancellation.Token)
+            : fixture.Clock.StopAsync(cancellation.Token);
         cancellation.Cancel();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => waiting);
@@ -118,14 +150,17 @@ public sealed class InternalMidiClockTests
         Assert.DoesNotContain("Stop", fixture.Port.Messages);
     }
 
-    [Fact]
-    public async Task An_admitted_stop_finishes_joining_even_if_its_callers_token_is_cancelled()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task An_admitted_stop_finishes_joining_even_if_its_callers_token_is_cancelled(bool ownedCleanup)
     {
         await using var fixture = new ClockFixture();
         await fixture.Clock.StartAsync(TestContext.Current.CancellationToken);
         var run = await fixture.Scheduler.NextRunAsync();
         using var cancellation = new CancellationTokenSource();
-        var stop = fixture.Clock.StopAsync(cancellation.Token);
+        var stop = ownedCleanup ? fixture.Clock.StopOwnedTransportAsync(cancellation.Token)
+            : fixture.Clock.StopAsync(cancellation.Token);
         cancellation.Cancel();
 
         Assert.False(stop.IsCompleted);
@@ -216,6 +251,7 @@ public sealed class InternalMidiClockTests
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Clock.StartAsync(TestContext.Current.CancellationToken));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Clock.ContinueAsync(TestContext.Current.CancellationToken));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Clock.StopAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Clock.StopOwnedTransportAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

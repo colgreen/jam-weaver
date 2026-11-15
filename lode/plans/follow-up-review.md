@@ -8,26 +8,8 @@ the runtime entry point; retain it and keep its failure limits explicit.
 
 The following defects have local reproductions using fake ports and the real
 application classes, without native MIDI access. Address them in this order,
-adding regression coverage with each fix. P1 identifies a control/liveness
-failure under the stated condition; the remaining P2 findings identify narrower
-correctness issues.
-
-## P2: an owed MIDI Stop can reach a replacement output
-
-The console's source command stops an internal run only when `IsRunning` is
-true. A failed scheduler has already completed, but its successful Start still
-leaves a MIDI Stop owed. Switching to External skips that Stop; a subsequent
-output replacement also skips internal-clock Stop because External is selected.
-Clock disposal later sends the owed Stop through the new output.
-
-Reproduction: select output A, select Internal, Start with a failing scheduler,
-select External, select output B, then quit. Recorded operations include
-`A:Start, A:Dispose, B:Stop`, with no `A:Stop`.
-
-Settle the clock's transport obligation before retiring its output,
-independently of whether scheduling is still running. Cover scheduler failure,
-source change, output replacement, shutdown, and Stop-send failure together.
-An unused clock must continue to send no transport messages.
+adding regression coverage with each fix. The remaining P2 findings identify
+correctness issues in command parsing and generator timing validation.
 
 ## P2: indented save/load commands corrupt the argument
 
@@ -67,12 +49,17 @@ existing supported sixteenth-note settings.
 ## Verification and remaining limits
 
 The solution builds without warnings and both native xUnit runners pass
-(306 core and 51 console tests). Clock-liveness regression coverage checks
+(310 core and 60 console tests). Clock-liveness regression coverage checks
 Start and Continue at 300 BPM with 15 ms fake Clock sends, direct default-scheduler
 yielding during overrun, and startup/disposal with an inline injected scheduler.
 The [clock contract](../midi/clock-transport.md#internal-source) retains every
 pulse and joins callbacks before Stop or replacement. This establishes
 responsiveness under the tested overload, not physical timing performance.
+Clock-ownership coverage checks scheduler faults after Start/Continue, source
+changes, direct output replacement, blocked transitions on Stop-send failures,
+command and shutdown retries on the original output, and cleanup with an unused
+clock. Owned cleanup joins callbacks, preserves cancellation rules, and leaves
+external transport alone even when an internal Stop is owed.
 The remaining reproductions expose cases absent from the suite; passing
 existing tests does not close these findings.
 The review covers runtime coordination, MIDI ownership, command handling,

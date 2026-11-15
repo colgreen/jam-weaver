@@ -50,11 +50,47 @@ public sealed class InternalClockShutdownTests
         if (source == ClockSource.External) engine.Process(ClockSource.External, RealtimeMessage.Start);
         await using var clock = new InternalMidiClock(output, engine);
 
+        await clock.StopOwnedTransportAsync(TestContext.Current.CancellationToken);
+        await clock.StopOwnedTransportAsync(TestContext.Current.CancellationToken);
         await clock.DisposeAsync();
 
         Assert.Empty(port.Messages);
         Assert.Equal(0, port.StopAttempts);
         Assert.Equal(source == ClockSource.External ? TransportState.Running : TransportState.Stopped, engine.State);
+    }
+
+    [Fact]
+    public async Task Failed_owned_stop_after_scheduler_failure_remains_owed_until_shutdown_even_with_external_selected()
+    {
+        var stopFailure = new InvalidOperationException("temporary stop failure");
+        var port = new FakeMidiOutputPort("original-output") { ClockFailure = new InvalidOperationException("clock failed") };
+        using var output = new SafeMidiOutput();
+        output.ReplacePort(port);
+        var engine = new TransportEngine(ClockSource.Internal);
+        await using var clock = new InternalMidiClock(output, engine, new CancellationScheduler());
+        await clock.StartAsync(TestContext.Current.CancellationToken);
+        await ClockTestWaits.ForRunCompletionAsync(clock);
+        var originalError = clock.Error;
+        engine.SelectSource(ClockSource.External);
+        engine.Process(ClockSource.External, RealtimeMessage.Start);
+        var externalSnapshot = engine.Snapshot;
+        port.StopFailure = stopFailure;
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            clock.StopOwnedTransportAsync(TestContext.Current.CancellationToken));
+
+        Assert.Same(stopFailure, error.InnerException);
+        Assert.Contains("original-output", error.Message);
+        Assert.Contains("MIDI Stop", error.Message);
+        Assert.Same(originalError, clock.Error);
+        Assert.False(clock.IsRunning);
+        Assert.Equal(externalSnapshot, engine.Snapshot);
+        port.StopFailure = null;
+        await clock.DisposeAsync();
+        Assert.Equal(2, port.StopAttempts);
+        Assert.Equal(["Start", "Stop"], port.Messages);
+        Assert.Same(originalError, clock.Error);
+        Assert.Equal(externalSnapshot, engine.Snapshot);
     }
 
     [Fact]

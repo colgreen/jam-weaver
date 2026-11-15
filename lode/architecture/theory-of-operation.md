@@ -213,10 +213,12 @@ thread scheduling, and garbage collection can affect pulse delivery. Automated
 tests and fake ports establish logic and expose failure cases; they do not
 measure physical timing, audio quality, or device disconnect recovery.
 
-One clock ownership failure remains open: after a clock fault, switching to
-External and replacing output can send an owed Stop to the new port during
-shutdown. See the [follow-up review](../plans/follow-up-review.md) for the
-reproduction and required fix. This requires a focused lifecycle change.
+Source and output changes await the internal clock's `StopOwnedTransportAsync`
+to join scheduling and settle any owed Stop before the previous output retires.
+This remains necessary after scheduler failure, independently of the selected
+source. A Stop-send failure aborts the transition and preserves the old output
+for retry or shutdown. Cleanup sends nothing when no Stop is owed and does not
+stop external transport. Explicit Internal Stop remains an unconditional send.
 
 ## Persistence and extension boundaries
 

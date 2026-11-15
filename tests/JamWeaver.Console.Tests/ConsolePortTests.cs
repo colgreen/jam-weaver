@@ -104,6 +104,88 @@ public sealed class ConsolePortTests
     }
 
     [Theory]
+    [InlineData("start", true)]
+    [InlineData("continue", true)]
+    [InlineData("start", false)]
+    [InlineData("continue", false)]
+    public async Task A_failed_clock_is_stopped_on_its_original_output_before_replacement(string operation, bool selectExternal)
+    {
+        await using var session = new Session(clockScheduler: new FailingScheduler());
+        var operations = new List<string>();
+        session.Catalog.OutputFactory = index =>
+        {
+            operations.Add($"Open:{index}");
+            return new OutputPort(index == 0 ? "first" : "second", operations);
+        };
+
+        var sourceCommand = selectExternal ? "source external\n" : string.Empty;
+        await session.RunAsync(new FaultAwaitingReader(
+            $"out 0\nsource internal\n{operation}\n{sourceCommand}out 1\nquit\n", session.Clock));
+        await session.Clock.DisposeAsync();
+        session.Output.Dispose();
+
+        Assert.Equal(["Open:0", $"first:{(operation == "start" ? "Start" : "Continue")}", "first:Stop", "Open:1", "first:Dispose", "second:Dispose"],
+            operations.Where(message => !message.EndsWith(":CC")));
+        Assert.NotNull(session.Clock.Error);
+        Assert.Contains("scheduler failed", session.Clock.Error.Message);
+        Assert.DoesNotContain("Error:", session.Transcript);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Failed_owed_stops_block_source_and_output_changes_until_retry_or_shutdown(bool retryCommands)
+    {
+        await using var session = new Session(clockScheduler: new FailingScheduler());
+        var operations = new List<string>();
+        var first = new OutputPort("first", operations) { StopFailuresRemaining = 2 };
+        session.Catalog.OutputFactory = index =>
+        {
+            operations.Add($"Open:{index}");
+            return index == 0 ? first : new OutputPort("second", operations);
+        };
+
+        await session.RunAsync(new FaultAwaitingReader(
+            "out 0\nsource internal\nstart\nsource external\nout 1\nquit\n", session.Clock));
+
+        Assert.Equal(ClockSource.Internal, session.Transport.Source);
+        Assert.Equal(TransportState.Stopped, session.Transport.State);
+        Assert.False(session.Clock.IsRunning);
+        Assert.Equal("first", session.Output.PortName);
+        Assert.Equal(["Open:0", "first:Start", "first:Stop", "first:Stop"], operations);
+        Assert.Equal(2, session.Transcript.Split("Error:").Length - 1);
+        Assert.Contains("first", session.Transcript);
+        Assert.Contains("stop send failed", session.Transcript);
+
+        if (retryCommands) await session.RunAsync("source external\nout 1\nquit\n");
+        await session.Clock.DisposeAsync();
+        session.Output.Dispose();
+
+        Assert.Equal(3, operations.Count(message => message == "first:Stop"));
+        Assert.DoesNotContain("second:Stop", operations);
+        Assert.Equal(retryCommands ? "second:Dispose" : "first:Dispose", operations.Last());
+        if (retryCommands)
+            Assert.True(operations.LastIndexOf("first:Stop") < operations.IndexOf("Open:1"));
+    }
+
+    [Theory]
+    [InlineData("source internal\nsource external\n")]
+    [InlineData("source internal\n")]
+    [InlineData("")]
+    public async Task Source_and_output_changes_with_an_unused_clock_send_no_transport_messages(string sourceCommands)
+    {
+        await using var session = new Session();
+        var operations = new List<string>();
+        session.Catalog.OutputFactory = index => new OutputPort(index == 0 ? "first" : "second", operations);
+
+        await session.RunAsync($"out 0\n{sourceCommands}out 1\nquit\n");
+        await session.Clock.DisposeAsync();
+        session.Output.Dispose();
+
+        Assert.Equal(["first:Dispose", "second:Dispose"], operations.Where(message => !message.EndsWith(":CC")));
+    }
+
+    [Theory]
     [InlineData("quit\n")]
     [InlineData("")]
     public async Task Input_open_failure_keeps_the_listener_and_replacement_closes_it_before_starting_another(string ending)
@@ -194,11 +276,11 @@ public sealed class ConsolePortTests
         private readonly SinglePulseScheduler scheduler = new();
         private readonly PatternLibrary library = new(Path.Combine(Path.GetTempPath(), $"jam-weaver-{Guid.NewGuid():N}"));
 
-        public Session(StringWriter? writer = null)
+        public Session(StringWriter? writer = null, IClockPulseScheduler? clockScheduler = null)
         {
             this.writer = writer ?? new StringWriter();
             player = new PatternPlayer(Output, Transport);
-            Clock = new InternalMidiClock(Output, Transport, scheduler);
+            Clock = new InternalMidiClock(Output, Transport, clockScheduler ?? scheduler);
         }
 
         public Task RunAsync(string commands) => RunAsync(new PulseAwaitingReader(commands, scheduler.Pulsed.Task));
@@ -245,6 +327,7 @@ public sealed class ConsolePortTests
     private sealed class OutputPort(string name, List<string> operations) : IMidiOutputPort
     {
         public string Name => name;
+        public int StopFailuresRemaining { get; set; }
         public void SendNoteOn(MidiChannel channel, MidiValue note, MidiValue velocity) => operations.Add($"{name}:On");
         public void SendNoteOff(MidiChannel channel, MidiValue note, MidiValue velocity) => operations.Add($"{name}:Off");
         public void SendControlChange(MidiChannel channel, MidiValue controller, MidiValue value) => operations.Add($"{name}:CC");
@@ -252,7 +335,15 @@ public sealed class ConsolePortTests
         public void SendClock() => operations.Add($"{name}:Clock");
         public void SendStart() => operations.Add($"{name}:Start");
         public void SendContinue() => operations.Add($"{name}:Continue");
-        public void SendStop() => operations.Add($"{name}:Stop");
+        public void SendStop()
+        {
+            operations.Add($"{name}:Stop");
+            if (StopFailuresRemaining > 0)
+            {
+                StopFailuresRemaining--;
+                throw new InvalidOperationException($"{name}: stop send failed");
+            }
+        }
         public void Dispose() => operations.Add($"{name}:Dispose");
     }
 
@@ -286,5 +377,30 @@ public sealed class ConsolePortTests
     private sealed class FailingWriter : StringWriter
     {
         public override void WriteLine(string? value) => throw new IOException("write failed");
+    }
+
+    private sealed class FailingScheduler : IClockPulseScheduler
+    {
+        public Task RunAsync(Func<double> bpm, Action pulse, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("scheduler failed");
+    }
+
+    private sealed class FaultAwaitingReader(string commands, InternalMidiClock clock) : StringReader(commands)
+    {
+        private string? previous;
+
+        public override async Task<string?> ReadLineAsync()
+        {
+            if (previous is "start" or "continue")
+                await WaitForFailureAsync().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+            previous = await base.ReadLineAsync();
+            return previous;
+        }
+
+        private async Task WaitForFailureAsync()
+        {
+            while (clock.IsRunning) await Task.Delay(1, TestContext.Current.CancellationToken);
+            Assert.NotNull(clock.Error);
+        }
     }
 }

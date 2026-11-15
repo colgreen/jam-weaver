@@ -34,14 +34,26 @@ Tempo must be finite and within 20-300 BPM; invalid assignments preserve the
 previous tempo. Undefined clock-source and real-time-message enums are rejected
 before transport state changes or input forwarding.
 
-`InternalMidiClock.StartAsync`, `ContinueAsync`, `StopAsync`, and disposal share
-one asynchronous lifecycle gate. Start cancels and joins the previous run
-before sending another Start and resetting position. Continue preserves
+`InternalMidiClock.StartAsync`, `ContinueAsync`, `StopAsync`,
+`StopOwnedTransportAsync`, and disposal share one asynchronous lifecycle gate.
+Start cancels and joins the previous run before sending another Start and
+resetting position. Continue preserves
 position and does nothing while its scheduler is already running. Stop joins
 the scheduler before sending MIDI Stop; local transport is stopped even if
-that send fails. The console awaits these operations, including when changing
-source or enabling playback with `go`. Selecting a replacement output also
-stops internal transport on the previous output before opening the new port.
+that send fails. The console awaits these operations, including when enabling
+playback with `go`.
+
+Source selection and output replacement first await `StopOwnedTransportAsync`.
+It joins scheduling and sends only a still-owed MIDI Stop, regardless of
+`IsRunning` or selected source. Scheduler failure therefore cannot hide a
+transport obligation. An unused clock sends nothing during these transitions;
+the explicit Internal `stop` command still sends Stop unconditionally.
+Cleanup processes only local Internal Stop, leaving external transport alone.
+A Stop-send failure reports the output and operation, preserves the obligation,
+and aborts the transition before selecting a source or opening a replacement
+port. The old output remains selected for command retry or shutdown cleanup.
+Callers borrowing `SafeMidiOutput` must keep that output selected until this
+operation succeeds; the clock does not own output selection.
 
 Each run owns its cancellation token and remains joined before its source is
 disposed or replaced. The pulse callback checks that run's token before
@@ -87,7 +99,8 @@ duplicate on disposal; a failed explicit Stop leaves a disposal retry due.
 Background scheduler failure and failure of local Start processing do not
 erase the obligation to stop the receiving device.
 
-An unused clock sends no Stop, including in an external-clock-only session.
+An unused clock sends no Stop during cleanup, including in an external-clock-only
+session.
 An owed Stop belongs to this clock's own earlier Start/Continue, independently
 of the source selected at disposal; it is not a relay of external messages.
 Disposal is idempotent. A shutdown Stop failure is retained in `Error` and

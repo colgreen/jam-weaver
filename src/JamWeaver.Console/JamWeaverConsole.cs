@@ -94,7 +94,7 @@ public sealed class JamWeaverConsole
                                 "internal" => ClockSource.Internal,
                                 _ => throw new ArgumentException("Source must be internal or external.")
                             };
-                            if (transport.Source == ClockSource.Internal && internalClock.IsRunning) await internalClock.StopAsync();
+                            await internalClock.StopOwnedTransportAsync();
                             transport.SelectSource(source);
                             display.WriteLine($"Clock source: {source.ToString().ToLowerInvariant()}");
                             break;
@@ -333,8 +333,7 @@ public sealed class JamWeaverConsole
     private async Task SelectOutputAsync(int index)
     {
         player.Mute();
-        if (transport.Source == ClockSource.Internal && output.PortName is not null)
-            await internalClock.StopAsync();
+        await internalClock.StopOwnedTransportAsync();
         output.ReplacePort(portCatalog.OpenOutput(index));
         display.WriteLine($"Output: {output.PortName}");
         display.WriteLine("Next: new, then go.");

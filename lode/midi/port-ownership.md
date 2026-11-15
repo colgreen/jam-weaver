@@ -48,15 +48,15 @@ before attempting its disposal. A disposal failure leaves no output selected,
 disposes the proposal, and reports the failure; it does not retain a possibly
 disposed port as usable. Another selection can recover the owner afterward.
 
-The console mutes the player and stops internal transport on an existing
-output before opening its replacement. This joins clock production and sends
-MIDI Stop while the previous port is available. The new output does not
-implicitly restart playback; use `go` after selection.
-
-Known gap: after internal scheduling fails, selecting External skips the still
-owed MIDI Stop. Replacing output afterward can retire the old port without Stop
-and send that Stop to the new port at shutdown. See the
-[follow-up review](../plans/follow-up-review.md#p2-an-owed-midi-stop-can-reach-a-replacement-output).
+The console mutes the player and awaits the internal clock's
+`StopOwnedTransportAsync` before opening a replacement output. Source selection
+also awaits this operation before changing source. It joins clock production
+and sends any owed MIDI Stop while the previous port is selected, even after
+scheduler failure or when External is selected. A failed Stop aborts the
+transition, leaving the obligation and previous output available for retry or
+shutdown. Successful cleanup prevents a shutdown Stop reaching the replacement.
+An unused clock sends no transport messages during these transitions. The new
+output does not implicitly restart playback; use `go` after selection.
 
 Output disposal attempts all cleanup messages and native disposal, aggregates
 their failures, clears selection/tracking, and marks the owner disposed even

@@ -59,6 +59,29 @@ public sealed class InternalMidiClock : IAsyncDisposable
         finally { _lifecycle.Release(); }
     }
 
+    /// <summary>Joins this clock's run and sends any owed Stop before its source or output is changed.</summary>
+    /// <remarks>The borrowed output must remain selected until this operation succeeds, regardless of clock source.</remarks>
+    public async Task StopOwnedTransportAsync(CancellationToken cancellationToken = default)
+    {
+        await _lifecycle.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            await StopRunAsync().ConfigureAwait(false);
+            try
+            {
+                if (_needsMidiStop) SendStop();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Could not send owed MIDI Stop to output '{_output.PortName ?? "not selected"}': {ex.Message}", ex);
+            }
+            finally { _engine.Process(ClockSource.Internal, RealtimeMessage.Stop); }
+        }
+        finally { _lifecycle.Release(); }
+    }
+
     private async Task BeginAsync(bool resetPosition, CancellationToken cancellationToken)
     {
         await _lifecycle.WaitAsync(cancellationToken).ConfigureAwait(false);
