@@ -30,7 +30,7 @@
 - Performance
   - [Candidate workflow](performance/candidate-workflow.md) - audition and live-control state
 - Plans
-  - [Follow-up code review](plans/follow-up-review.md) - current correctness findings, reproductions, and targeted readability work
+  - [Follow-up code review](plans/follow-up-review.md) - regression boundaries, verification limits, and deferred readability work
   - [Codebase findings](plans/codebase-findings.md) - ordered lifecycle, validation, and console-boundary work from the structural review
   - [Simplify candidate workflow](plans/simplify-candidate-workflow.md) - unify short-term browsing around one accepted safe point
   - [Generator strategy](plans/generator-strategy.md) - evaluate, cull, and experiment with generators around a proven concise-loop baseline

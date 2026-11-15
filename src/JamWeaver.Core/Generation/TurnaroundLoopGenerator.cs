@@ -49,8 +49,8 @@ public sealed class TurnaroundLoopGenerator : IPatternGenerator<EuclideanGenerat
     public Pattern Generate(EuclideanGeneratorSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        if (settings.StepCount != StepsPerBar)
-            throw new ArgumentException("The turnaround experiment requires a 16-step source bar.", nameof(settings));
+        if (settings.StepCount != StepsPerBar || settings.Timing != PatternTiming.SixteenthNotes)
+            throw new ArgumentException("The turnaround experiment requires a 16-step source bar of sixteenth notes.", nameof(settings));
 
         var source = baseline.Generate(settings);
         var steps = Enumerable.Range(0, 4).SelectMany(_ => source.Steps).ToArray();

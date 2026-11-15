@@ -1,9 +1,75 @@
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using JamWeaver.Core.Generation.Phrase;
 
 namespace JamWeaver.Core.Tests.Generation;
 
 public sealed class TurnaroundLoopVariationTests
 {
+    [Theory]
+    [InlineData(MusicalRole.Bass, PitchPalette.MinorPentatonic, 123UL, "F4403DF206159714028AF76C916B5127EF7A0B43C109A81700D6F87680372F87")]
+    [InlineData(MusicalRole.Middle, PitchPalette.MajorPentatonic, 456UL, "3CBA47AA13635EAEAEECE9CC66C0E3293E28957CB8126DBF8D454A7A3D092B4D")]
+    [InlineData(MusicalRole.High, PitchPalette.MinorPentatonic, 789UL, "6C7D1D7CA73B7DC3B8A7B8C0484A5B5E0816E6841539E5A75327330EDE7CC46E")]
+    public void Supported_generation_and_variation_preserve_versioned_output(
+        MusicalRole role, PitchPalette palette, ulong seed, string expectedHash)
+    {
+        var generator = new TurnaroundLoopGenerator();
+        var source = Settings(seed);
+        var settings = new EuclideanGeneratorSettings(source.Name, source.StepCount, source.Timing,
+            new TonalContext(source.TonalContext.Root, palette), role, source.Density, source.Movement,
+            source.Repetition, source.Gate, source.VelocityVariation, seed);
+        var generated = generator.Generate(settings);
+        var varied = generator.Vary(generated,
+            new GeneratorVariationSettings(PhraseMutationTarget.All, new NormalizedAmount(.8), 456));
+
+        var signature = string.Join("|", new[] { generated, varied }.Select(pattern =>
+            string.Join(";", pattern.Steps.Select(step =>
+                step.Probability.Value.ToString("R", CultureInfo.InvariantCulture) + ":" +
+                string.Join(",", step.Notes.Select(note =>
+                {
+                    var pitch = (MelodicPitch)note.Pitch;
+                    return FormattableString.Invariant(
+                        $"{pitch.ScaleDegree}/{pitch.OctaveOffset}/{pitch.ChromaticOffset}/{note.Velocity.Value}/{note.Gate.Value:R}");
+                }))))));
+        Assert.Equal(expectedHash, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(signature))));
+        AssertForm(generated);
+        AssertForm(varied);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(8)]
+    [InlineData(12)]
+    [InlineData(16)]
+    [InlineData(24)]
+    [InlineData(32)]
+    [InlineData(48)]
+    [InlineData(96)]
+    public void Generation_and_variation_reject_timing_outside_the_four_bar_sixteenth_note_form(int pulsesPerStep)
+    {
+        var generator = new TurnaroundLoopGenerator();
+        var source = Settings(123);
+        var timing = new PatternTiming(pulsesPerStep);
+        var settings = new EuclideanGeneratorSettings(source.Name, source.StepCount, timing, source.TonalContext,
+            source.Role, source.Density, source.Movement, source.Repetition, source.Gate, source.VelocityVariation, source.Seed);
+
+        var generationError = Assert.Throws<ArgumentException>(() => generator.Generate(settings));
+
+        Assert.Equal("settings", generationError.ParamName);
+        Assert.Contains("sixteenth", generationError.Message);
+        var supported = generator.Generate(source);
+        // Retimed material also models incompatible snapshots saved before entry-point validation.
+        var incompatible = new Pattern(supported.Id, supported.Name, supported.SchemaVersion, supported.Mode,
+            timing, supported.Steps, supported.Role, supported.TonalContext, supported.Recipe);
+        var variationError = Assert.Throws<InvalidOperationException>(() => generator.Vary(incompatible,
+            new GeneratorVariationSettings(null, new NormalizedAmount(.3), 456)));
+        Assert.Contains("four-bar melodic sixteenth-note", variationError.Message);
+    }
+
     [Theory]
     [InlineData(PhraseMutationTarget.Rhythm)]
     [InlineData(PhraseMutationTarget.Notes)]
@@ -115,6 +181,8 @@ public sealed class TurnaroundLoopVariationTests
     private static void AssertForm(Pattern pattern)
     {
         Assert.Equal(64, pattern.Steps.Length);
+        Assert.Equal(PatternTiming.SixteenthNotes, pattern.Timing);
+        Assert.Equal(4 * 96, pattern.Steps.Length * pattern.Timing.PulsesPerStep);
         for (var index = 0; index < 16; index++)
         {
             Assert.Equal(StepSignature(pattern.Steps[index]), StepSignature(pattern.Steps[index + 16]));

@@ -6,21 +6,10 @@ current one-track application. No broad structural rewrite is justified.
 The [theory of operation](../architecture/theory-of-operation.md) is useful as
 the runtime entry point; retain it and keep its failure limits explicit.
 
-The following defects have local reproductions using fake ports and the real
-application classes, without native MIDI access. Add regression coverage with
-each fix. The remaining P2 finding concerns generator timing validation.
-
-## P2: Turnaround generation and variation disagree about timing
-
-`TurnaroundLoopGenerator.Generate` requires 16 source steps but accepts any
-valid `PatternTiming`. Variation requires sixteenth notes. A source setting of
-12 pulses per step therefore generates a 64-step, eight-bar pattern that its
-own generator refuses to vary as a four-bar loop.
-
-Reject unsupported source timing before generation, consistently with the
-documented four-bar form and the Euclidean phrase generator. Test generation
-and variation together. Preserve musical output and random-call order for the
-existing supported sixteenth-note settings.
+No correctness findings remain open in this review. The regression boundaries
+below use fake ports and real application classes without native MIDI access,
+plus deterministic generator tests. The remaining work is limited to the
+readability opportunities below and separate hardware validation.
 
 ## Readability after correctness
 
@@ -36,7 +25,7 @@ existing supported sixteenth-note settings.
 ## Verification and remaining limits
 
 The solution builds without warnings and both native xUnit runners pass
-(310 core and 120 console tests). Clock-liveness regression coverage checks
+(324 core and 120 console tests). Clock-liveness regression coverage checks
 Start and Continue at 300 BPM with 15 ms fake Clock sends, direct default-scheduler
 yielding during overrun, and startup/disposal with an inline injected scheduler.
 The [clock contract](../midi/clock-transport.md#internal-source) retains every
@@ -50,8 +39,10 @@ external transport alone even when an internal Stop is owed.
 Command-loop coverage checks indented bare save/load, multiword names, internal
 spaces, numbered load, optional arguments, and count errors before MIDI,
 port-opening, candidate, control, persistence, or random-seed effects.
-The remaining reproduction exposes a case absent from the suite; passing
-existing tests does not close that finding.
+Turnaround coverage rejects every valid timing outside its sixteenth-note form
+in generation and variation. Fixed-seed snapshots captured from the supported
+version-1 algorithm protect generation and variation output across all roles.
+See the [Turnaround contract](../generation/turnaround-loop-generation.md).
 The review covers runtime coordination, MIDI ownership, command handling,
 pattern/validation boundaries, persistence, generator interfaces, and the
 architecture documentation. It does not establish musical quality or timing.

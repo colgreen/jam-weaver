@@ -33,7 +33,9 @@ version's output contract.
 - `melodic-euclidean-turnaround` version 1 is implemented by
   `TurnaroundLoopGenerator` and selected as `turnaround`. It repeats a
   version-3 Euclidean source bar in the form `A | A | A | A-turnaround`, changing
-  only the final two pitches into an approach and stable resolution. Rhythm,
+  only the final two pitches into an approach and stable resolution. Generation
+  requires a 16-step sixteenth-note source bar, yielding 64 steps across four
+  bars; variation enforces the same timing. Rhythm,
   velocity, and gate remain exact repetitions. It is a provisional listening
   generator and its recipes are not reconstructable. Its generator-owned
   variation mirrors rhythm, note, and expression edits across A repetitions and

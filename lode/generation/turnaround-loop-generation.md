@@ -14,7 +14,11 @@ form a nearby approach and stable scale-degree resolution.
 
 The generator supports bass, middle, and high roles and the shared major and
 minor pentatonic tonal contexts. It requires sixteenth-note timing and a
-16-step source bar. Generated recipes record the source generator and version,
+16-step source bar. Generation rejects other step counts or timings with a
+`settings` argument error before invoking the Euclidean baseline. It does not
+reinterpret a 16-step bar at another resolution: the result is always 64
+sixteenth-note steps, or 384 MIDI Clock pulses across four 4/4 bars.
+Generated recipes record the source generator and version,
 form, and changed turnaround steps. Reconstruction is not currently supported;
 materialized steps remain authoritative.
 
@@ -43,11 +47,18 @@ one of the four dimensions from the seed.
 Variation validates lineage, four-bar sixteenth-note timing, exact first-three
 bar repetition, shared four-bar rhythm, and pitch-only final turnaround changes.
 It rejects incompatible material rather than falling back to a generic mutator.
+This includes previously stored snapshots retimed outside the sixteenth-note
+form; their materialized timing remains authoritative for playback.
 Recipes record parent ancestry, lineage, resolved target, strength, edit count,
 and edited source-bar steps.
 
 Automated invariants and runtime smoke checks establish deterministic structure
-and safe values. Broader listening on the intended MIDI hardware is still
+and safe values. Timing regressions cover every valid non-sixteenth
+`PatternTiming` in both generation and variation. Fixed-seed snapshots of
+supported generation followed by variation protect version-1 musical output
+across bass, middle, and high roles. Input rejection leaves the supported
+algorithm and random-call sequence unchanged, so no generator version changes.
+Broader listening on the intended MIDI hardware is still
 required to tune its gesture vocabulary and target weighting.
 
 Related: [pattern generation](pattern-generation.md), [generator-specific

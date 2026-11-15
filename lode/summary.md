@@ -8,8 +8,8 @@ controls. Its command loop uses an injectable port catalog, while rendering
 receives device-name lists. Discovery errors leave commands available; automated
 console tests use fake ports and discovery without accessing native MIDI.
 
-The [follow-up review](plans/follow-up-review.md) tracks remaining Turnaround
-timing validation. The architecture is suitable; this requires a focused fix.
+The [follow-up review](plans/follow-up-review.md) records regression boundaries
+and deferred readability work; it has no open correctness findings.
 The console parses command tokens and free-text names from one trimmed span
 and rejects malformed argument counts before dispatch. Indented save/load
 commands preserve names and support the same bare forms as unindented commands.
@@ -39,7 +39,9 @@ selected bass, middle, or high register. A separate Euclidean phrase generator t
 bounded A, A-prime, B, return development without changing that baseline.
 The Turnaround Loop generator repeats a concise Euclidean source bar in the
 form A, A, A, and A-turnaround. Its generator-specific variation preserves that
-identity through mirrored loop edits and isolated final gestures.
+identity through mirrored loop edits and isolated final gestures. Generation
+requires a 16-step sixteenth-note source bar, matching variation's four-bar
+timing contract.
 Four-bar motif, structured-phrase, groove-vocabulary, and drum generators also
 remain available for experimentation.
 Generated material and recipes are deterministic and versioned; saved
